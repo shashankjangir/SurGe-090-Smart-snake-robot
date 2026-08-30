@@ -1,0 +1,247 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1120" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="1500" height="1120" fill="#fafaf7"/>
+  <text x="750" y="42" text-anchor="middle" font-size="26" font-weight="700" fill="#1a1a2e">Snake Robot — Complete Wiring Diagram</text>
+  <text x="750" y="66" text-anchor="middle" font-size="13" fill="#555">10× ST3215 · Bus Servo Adapter (A) · ESP32 onboard · 2× 3S 1500mAh LiPo (parallel) · ESP-NOW to base station</text>
+
+  <!-- ============ FRAMES ============ -->
+  <rect x="20" y="80" width="1130" height="930" rx="14" fill="#ffffff" stroke="#c5c5d0" stroke-width="1.5"/>
+  <text x="40" y="106" font-size="15" font-weight="700" fill="#6b6b7b" letter-spacing="2">ON THE ROBOT</text>
+
+  <rect x="1180" y="80" width="300" height="330" rx="14" fill="#ffffff" stroke="#c5c5d0" stroke-width="1.5"/>
+  <text x="1200" y="106" font-size="15" font-weight="700" fill="#6b6b7b" letter-spacing="2">BASE STATION</text>
+
+  <!-- ============ POWER: PACKS ============ -->
+  <rect x="40" y="120" width="150" height="60" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+  <text x="115" y="143" text-anchor="middle" font-size="13" font-weight="700" fill="#8f1f30">LiPo Pack A</text>
+  <text x="115" y="160" text-anchor="middle" font-size="11" fill="#8f1f30">3S 1500mAh 30C · XT60</text>
+  <rect x="40" y="188" width="150" height="24" rx="6" fill="#fff6e5" stroke="#d99a2b" stroke-width="1.2"/>
+  <text x="115" y="204" text-anchor="middle" font-size="10" fill="#7a5410">balance lead → LV alarm (3.4 V/cell)</text>
+  <line x1="90" y1="180" x2="90" y2="188" stroke="#7a5410" stroke-width="1.5"/>
+
+  <rect x="40" y="250" width="150" height="60" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+  <text x="115" y="273" text-anchor="middle" font-size="13" font-weight="700" fill="#8f1f30">LiPo Pack B</text>
+  <text x="115" y="290" text-anchor="middle" font-size="11" fill="#8f1f30">3S 1500mAh 30C · XT60</text>
+  <rect x="40" y="318" width="150" height="24" rx="6" fill="#fff6e5" stroke="#d99a2b" stroke-width="1.2"/>
+  <text x="115" y="334" text-anchor="middle" font-size="10" fill="#7a5410">balance lead → LV alarm (3.4 V/cell)</text>
+  <line x1="90" y1="310" x2="90" y2="318" stroke="#7a5410" stroke-width="1.5"/>
+
+  <!-- Fuses -->
+  <rect x="235" y="135" width="80" height="30" rx="6" fill="#fff" stroke="#d1495b" stroke-width="1.5"/>
+  <text x="275" y="155" text-anchor="middle" font-size="11" font-weight="600" fill="#8f1f30">15 A fuse</text>
+  <rect x="235" y="265" width="80" height="30" rx="6" fill="#fff" stroke="#d1495b" stroke-width="1.5"/>
+  <text x="275" y="285" text-anchor="middle" font-size="11" font-weight="600" fill="#8f1f30">15 A fuse</text>
+
+  <!-- Pack -> fuse wires -->
+  <line x1="190" y1="150" x2="235" y2="150" stroke="#d1495b" stroke-width="4"/>
+  <line x1="190" y1="280" x2="235" y2="280" stroke="#d1495b" stroke-width="4"/>
+
+  <!-- Y-harness -->
+  <rect x="370" y="185" width="110" height="55" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+  <text x="425" y="207" text-anchor="middle" font-size="12" font-weight="700" fill="#8f1f30">XT60</text>
+  <text x="425" y="223" text-anchor="middle" font-size="12" fill="#8f1f30">Y-harness</text>
+  <polyline points="315,150 345,150 345,200 370,200" fill="none" stroke="#d1495b" stroke-width="4"/>
+  <polyline points="315,280 345,280 345,225 370,225" fill="none" stroke="#d1495b" stroke-width="4"/>
+
+  <!-- Loop key -->
+  <rect x="520" y="185" width="110" height="55" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+  <text x="575" y="207" text-anchor="middle" font-size="12" font-weight="700" fill="#8f1f30">XT60 loop key</text>
+  <text x="575" y="223" text-anchor="middle" font-size="11" fill="#8f1f30">(master switch)</text>
+  <line x1="480" y1="212" x2="520" y2="212" stroke="#d1495b" stroke-width="4"/>
+  <line x1="630" y1="212" x2="700" y2="212" stroke="#d1495b" stroke-width="4"/>
+  <text x="665" y="200" text-anchor="middle" font-size="10" fill="#8f1f30">16 AWG</text>
+
+  <!-- ============ ADAPTER ============ -->
+  <rect x="700" y="130" width="230" height="215" rx="10" fill="#e8f1fb" stroke="#2274a5" stroke-width="2.5"/>
+  <text x="815" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#14496b">Bus Servo Adapter (A)</text>
+  <text x="815" y="172" text-anchor="middle" font-size="10.5" fill="#14496b">Waveshare 25514 · input 9–12.6 V</text>
+  <!-- screw terminal -->
+  <rect x="690" y="195" width="22" height="40" fill="#2f8f4e" stroke="#1d5c33" stroke-width="1.5"/>
+  <text x="720" y="207" font-size="11" font-weight="700" fill="#14496b">+</text>
+  <text x="720" y="228" font-size="11" font-weight="700" fill="#14496b">−</text>
+  <text x="726" y="250" font-size="10" fill="#14496b">screw terminal —</text>
+  <text x="726" y="262" font-size="10" fill="#14496b">NOT the barrel jack</text>
+  <!-- jumper -->
+  <rect x="820" y="185" width="100" height="24" rx="5" fill="#fff" stroke="#2274a5" stroke-width="1.2"/>
+  <text x="870" y="201" text-anchor="middle" font-size="10.5" font-weight="600" fill="#14496b">Jumper → A (UART)</text>
+  <!-- UART pins on bottom-left -->
+  <circle cx="745" cy="345" r="4" fill="#2e933c"/>
+  <circle cx="770" cy="345" r="4" fill="#2e933c"/>
+  <circle cx="795" cy="345" r="4" fill="#333"/>
+  <text x="745" y="332" text-anchor="middle" font-size="10" font-weight="600" fill="#14496b">TX</text>
+  <text x="770" y="332" text-anchor="middle" font-size="10" font-weight="600" fill="#14496b">RX</text>
+  <text x="795" y="332" text-anchor="middle" font-size="10" font-weight="600" fill="#14496b">GND</text>
+  <!-- servo port on right edge -->
+  <rect x="920" y="285" width="22" height="34" fill="#17a398" stroke="#0e6b64" stroke-width="1.5"/>
+  <text x="915" y="278" font-size="10" fill="#0e6b64">servo port</text>
+
+  <!-- Capacitor across terminal -->
+  <line x1="668" y1="255" x2="668" y2="300" stroke="#333" stroke-width="1.5"/>
+  <line x1="656" y1="300" x2="680" y2="300" stroke="#333" stroke-width="3"/>
+  <line x1="656" y1="308" x2="680" y2="308" stroke="#333" stroke-width="3"/>
+  <line x1="668" y1="308" x2="668" y2="330" stroke="#333" stroke-width="1.5"/>
+  <polyline points="700,205 668,205 668,255" fill="none" stroke="#d1495b" stroke-width="2"/>
+  <polyline points="700,228 690,228 690,340 668,340 668,330" fill="none" stroke="#333" stroke-width="2"/>
+  <text x="640" y="352" font-size="10" fill="#333">1000 µF 25 V</text>
+  <text x="640" y="364" font-size="10" fill="#a33">(mind polarity!)</text>
+
+  <!-- ============ BUCK ============ -->
+  <rect x="640" y="410" width="235" height="75" rx="10" fill="#fef3e2" stroke="#e8871e" stroke-width="2"/>
+  <text x="757" y="435" text-anchor="middle" font-size="13" font-weight="700" fill="#8a4d0f">Buck converter 12 V → 5 V</text>
+  <text x="757" y="452" text-anchor="middle" font-size="10.5" fill="#8a4d0f">Mini560-5V (3 A) · verify 5.0 V before</text>
+  <text x="757" y="466" text-anchor="middle" font-size="10.5" fill="#8a4d0f">connecting ESP32</text>
+  <!-- 12V tap from terminal down to buck -->
+  <polyline points="700,220 655,220 615,220 615,430 640,430" fill="none" stroke="#d1495b" stroke-width="2.5"/>
+  <text x="600" y="395" font-size="10" fill="#8f1f30" transform="rotate(-90 600 395)">12 V tap (IN+ / IN−)</text>
+  <!-- 5V out to ESP32 -->
+  <polyline points="640,470 590,470 590,478 560,478" fill="none" stroke="#e8871e" stroke-width="2.5"/>
+  <text x="598" y="492" font-size="10" fill="#8a4d0f">5 V → VIN</text>
+
+  <!-- ============ ESP32 (robot) ============ -->
+  <rect x="300" y="420" width="260" height="280" rx="10" fill="#eef7ee" stroke="#2e933c" stroke-width="2.5"/>
+  <text x="430" y="447" text-anchor="middle" font-size="14" font-weight="700" fill="#175c22">ESP32 #1 — onboard brain</text>
+  <text x="430" y="464" text-anchor="middle" font-size="10.5" fill="#175c22">gait CPG · sensors · ESP-NOW radio</text>
+  <!-- right-edge pins -->
+  <circle cx="560" cy="478" r="4" fill="#e8871e"/><text x="548" y="482" text-anchor="end" font-size="10.5" font-weight="600" fill="#175c22">VIN (5 V)</text>
+  <circle cx="560" cy="505" r="4" fill="#2e933c"/><text x="548" y="509" text-anchor="end" font-size="10.5" font-weight="600" fill="#175c22">GPIO17 · TX2</text>
+  <circle cx="560" cy="530" r="4" fill="#2e933c"/><text x="548" y="534" text-anchor="end" font-size="10.5" font-weight="600" fill="#175c22">GPIO16 · RX2</text>
+  <circle cx="560" cy="555" r="4" fill="#333"/><text x="548" y="559" text-anchor="end" font-size="10.5" font-weight="600" fill="#175c22">GND</text>
+  <!-- left-edge pins -->
+  <circle cx="300" cy="480" r="4" fill="#c9a227"/><text x="312" y="484" font-size="10.5" font-weight="600" fill="#175c22">3V3</text>
+  <circle cx="300" cy="505" r="4" fill="#333"/><text x="312" y="509" font-size="10.5" font-weight="600" fill="#175c22">GND</text>
+  <circle cx="300" cy="530" r="4" fill="#2274a5"/><text x="312" y="534" font-size="10.5" font-weight="600" fill="#175c22">GPIO21 · SDA</text>
+  <circle cx="300" cy="555" r="4" fill="#2274a5"/><text x="312" y="559" font-size="10.5" font-weight="600" fill="#175c22">GPIO22 · SCL</text>
+  <circle cx="300" cy="605" r="4" fill="#c9a227"/><text x="312" y="609" font-size="10.5" font-weight="600" fill="#175c22">3V3</text>
+  <circle cx="300" cy="630" r="4" fill="#333"/><text x="312" y="634" font-size="10.5" font-weight="600" fill="#175c22">GND</text>
+  <circle cx="300" cy="655" r="4" fill="#2274a5"/><text x="312" y="659" font-size="10.5" font-weight="600" fill="#175c22">GPIO26 · TRIG</text>
+  <circle cx="300" cy="680" r="4" fill="#2274a5"/><text x="312" y="684" font-size="10.5" font-weight="600" fill="#175c22">GPIO27 · ECHO</text>
+  <text x="430" y="720" text-anchor="middle" font-size="10" fill="#666">avoid strapping pins GPIO 0 / 2 / 12 / 15 · flash over USB with loop key pulled</text>
+
+  <!-- UART wires ESP32 -> adapter -->
+  <polyline points="560,505 745,505 745,349" fill="none" stroke="#2e933c" stroke-width="2.5"/>
+  <polyline points="560,530 770,530 770,349" fill="none" stroke="#2e933c" stroke-width="2.5" stroke-dasharray="none"/>
+  <polyline points="560,555 795,555 795,349" fill="none" stroke="#333" stroke-width="2.5"/>
+  <text x="655" y="498" font-size="10.5" font-weight="600" fill="#175c22">TX2 → TX</text>
+  <text x="655" y="546" font-size="10.5" font-weight="600" fill="#175c22">RX2 → RX</text>
+  <text x="830" y="560" font-size="10" fill="#333">GND common (mandatory)</text>
+  <text x="640" y="575" font-size="10" fill="#888">1,000,000 baud · 8N1 · if silent, swap TX/RX</text>
+
+  <!-- ============ SENSORS ============ -->
+  <rect x="40" y="440" width="190" height="130" rx="10" fill="#f0ecf9" stroke="#7d5ba6" stroke-width="2"/>
+  <text x="135" y="463" text-anchor="middle" font-size="13" font-weight="700" fill="#4b3572">MPU6050 IMU</text>
+  <text x="135" y="478" text-anchor="middle" font-size="10" fill="#4b3572">GY-521 · I2C 0x68 · AD0 → GND</text>
+  <circle cx="230" cy="490" r="4" fill="#c9a227"/><text x="222" y="494" text-anchor="end" font-size="10.5" fill="#4b3572">VCC</text>
+  <circle cx="230" cy="512" r="4" fill="#333"/><text x="222" y="516" text-anchor="end" font-size="10.5" fill="#4b3572">GND</text>
+  <circle cx="230" cy="534" r="4" fill="#2274a5"/><text x="222" y="538" text-anchor="end" font-size="10.5" fill="#4b3572">SDA</text>
+  <circle cx="230" cy="556" r="4" fill="#2274a5"/><text x="222" y="560" text-anchor="end" font-size="10.5" fill="#4b3572">SCL</text>
+  <polyline points="230,490 265,490 265,480 300,480" fill="none" stroke="#c9a227" stroke-width="2"/>
+  <polyline points="230,512 268,512 268,505 300,505" fill="none" stroke="#333" stroke-width="2"/>
+  <polyline points="230,534 271,534 271,530 300,530" fill="none" stroke="#2274a5" stroke-width="2"/>
+  <polyline points="230,556 274,556 274,555 300,555" fill="none" stroke="#2274a5" stroke-width="2"/>
+
+  <rect x="40" y="595" width="190" height="120" rx="10" fill="#f0ecf9" stroke="#7d5ba6" stroke-width="2"/>
+  <text x="135" y="618" text-anchor="middle" font-size="13" font-weight="700" fill="#4b3572">HC-SR04P ultrasonic</text>
+  <text x="135" y="633" text-anchor="middle" font-size="10" fill="#4b3572">3.3 V version — power from 3V3</text>
+  <text x="135" y="645" text-anchor="middle" font-size="10" fill="#a33">never feed it 5 V</text>
+  <circle cx="230" cy="605" r="4" fill="#c9a227"/><text x="222" y="609" text-anchor="end" font-size="10.5" fill="#4b3572">VCC</text>
+  <circle cx="230" cy="660" r="4" fill="#333"/><text x="222" y="664" text-anchor="end" font-size="10.5" fill="#4b3572">GND</text>
+  <circle cx="230" cy="682" r="4" fill="#2274a5"/><text x="222" y="686" text-anchor="end" font-size="10.5" fill="#4b3572">TRIG</text>
+  <circle cx="230" cy="704" r="4" fill="#2274a5"/><text x="222" y="708" text-anchor="end" font-size="10.5" fill="#4b3572">ECHO</text>
+  <polyline points="230,605 300,605" fill="none" stroke="#c9a227" stroke-width="2"/>
+  <polyline points="230,660 265,660 265,630 300,630" fill="none" stroke="#333" stroke-width="2"/>
+  <polyline points="230,682 270,682 270,655 300,655" fill="none" stroke="#2274a5" stroke-width="2"/>
+  <polyline points="230,704 275,704 275,680 300,680" fill="none" stroke="#2274a5" stroke-width="2"/>
+
+  <!-- ============ SERVO CHAIN ============ -->
+  <polyline points="942,302 1120,302 1120,815 120,815 120,855" fill="none" stroke="#17a398" stroke-width="4"/>
+  <text x="1100" y="600" font-size="11" font-weight="600" fill="#0e6b64" transform="rotate(-90 1108 600)">servo bus: +12 V · GND · DATA</text>
+
+  <g font-size="12" font-weight="700" fill="#0e6b64" text-anchor="middle">
+    <rect x="100" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="142" y="885">ST3215</text><text x="142" y="905">ID #1</text>
+    <rect x="195" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="237" y="885">ST3215</text><text x="237" y="905">ID #2</text>
+    <rect x="290" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="332" y="885">ST3215</text><text x="332" y="905">ID #3</text>
+    <rect x="385" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="427" y="885">ST3215</text><text x="427" y="905">ID #4</text>
+    <rect x="480" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="522" y="885">ST3215</text><text x="522" y="905">ID #5</text>
+    <rect x="575" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="617" y="885">ST3215</text><text x="617" y="905">ID #6</text>
+    <rect x="670" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="712" y="885">ST3215</text><text x="712" y="905">ID #7</text>
+    <rect x="765" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="807" y="885">ST3215</text><text x="807" y="905">ID #8</text>
+    <rect x="860" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="902" y="885">ST3215</text><text x="902" y="905">ID #9</text>
+    <rect x="955" y="855" width="85" height="70" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+    <text x="997" y="885">ST3215</text><text x="997" y="905">ID #10</text>
+  </g>
+  <g stroke="#17a398" stroke-width="3">
+    <line x1="185" y1="890" x2="195" y2="890"/><line x1="280" y1="890" x2="290" y2="890"/>
+    <line x1="375" y1="890" x2="385" y2="890"/><line x1="470" y1="890" x2="480" y2="890"/>
+    <line x1="565" y1="890" x2="575" y2="890"/><line x1="660" y1="890" x2="670" y2="890"/>
+    <line x1="755" y1="890" x2="765" y2="890"/><line x1="850" y1="890" x2="860" y2="890"/>
+    <line x1="945" y1="890" x2="955" y2="890"/>
+  </g>
+  <text x="570" y="950" text-anchor="middle" font-size="11.5" fill="#0e6b64">one 3-wire cable = power + control, daisy-chained port-to-port (ports are interchangeable) · set IDs one servo at a time before assembly · leave slack at every joint (±80° flex)</text>
+  <text x="570" y="970" text-anchor="middle" font-size="10.5" fill="#888">stall worst-case 2.7 A per servo — if screw terminal runs warm, inject 12 V again mid-chain (split-rail upgrade)</text>
+
+  <!-- ============ BASE STATION ============ -->
+  <rect x="1210" y="125" width="240" height="105" rx="10" fill="#fdeef2" stroke="#c74f6d" stroke-width="2.5"/>
+  <text x="1330" y="152" text-anchor="middle" font-size="14" font-weight="700" fill="#7c2140">Raspberry Pi 5</text>
+  <text x="1330" y="170" text-anchor="middle" font-size="10.5" fill="#7c2140">controller UI · gait commands</text>
+  <text x="1330" y="185" text-anchor="middle" font-size="10.5" fill="#7c2140">telemetry dashboard · SSH/web</text>
+  <text x="1330" y="205" text-anchor="middle" font-size="10" fill="#7c2140">powered by its own 5 V USB-C supply</text>
+
+  <line x1="1330" y1="230" x2="1330" y2="290" stroke="#555" stroke-width="3"/>
+  <text x="1340" y="258" font-size="10.5" fill="#555">USB cable</text>
+  <text x="1340" y="272" font-size="10.5" fill="#555">(power + serial)</text>
+
+  <rect x="1210" y="290" width="240" height="90" rx="10" fill="#eef7ee" stroke="#2e933c" stroke-width="2.5"/>
+  <text x="1330" y="317" text-anchor="middle" font-size="14" font-weight="700" fill="#175c22">ESP32 #2 — radio bridge</text>
+  <text x="1330" y="335" text-anchor="middle" font-size="10.5" fill="#175c22">relays commands ↔ telemetry</text>
+  <text x="1330" y="350" text-anchor="middle" font-size="10.5" fill="#175c22">no extra wiring — USB only</text>
+
+  <!-- ESP-NOW dashed link -->
+  <polyline points="1210,355 1165,355 1165,395 450,395 450,420" fill="none" stroke="#7d5ba6" stroke-width="2.5" stroke-dasharray="8 5"/>
+  <text x="815" y="388" text-anchor="middle" font-size="11.5" font-weight="600" fill="#4b3572">ESP-NOW wireless — commands → robot · telemetry (IMU, distance, battery, load) → base</text>
+
+  <!-- ============ LEGEND ============ -->
+  <rect x="1180" y="430" width="300" height="280" rx="14" fill="#ffffff" stroke="#c5c5d0" stroke-width="1.5"/>
+  <text x="1200" y="456" font-size="14" font-weight="700" fill="#444">LEGEND</text>
+  <line x1="1200" y1="475" x2="1240" y2="475" stroke="#d1495b" stroke-width="4"/>
+  <text x="1250" y="479" font-size="11" fill="#333">12 V battery pair (+ and − run together)</text>
+  <line x1="1200" y1="500" x2="1240" y2="500" stroke="#e8871e" stroke-width="2.5"/>
+  <text x="1250" y="504" font-size="11" fill="#333">5 V (buck output)</text>
+  <line x1="1200" y1="525" x2="1240" y2="525" stroke="#c9a227" stroke-width="2.5"/>
+  <text x="1250" y="529" font-size="11" fill="#333">3.3 V (ESP32 3V3 pin)</text>
+  <line x1="1200" y1="550" x2="1240" y2="550" stroke="#2e933c" stroke-width="2.5"/>
+  <text x="1250" y="554" font-size="11" fill="#333">UART (1 Mbps, TX/RX)</text>
+  <line x1="1200" y1="575" x2="1240" y2="575" stroke="#2274a5" stroke-width="2.5"/>
+  <text x="1250" y="579" font-size="11" fill="#333">Sensor signals (I2C / GPIO)</text>
+  <line x1="1200" y1="600" x2="1240" y2="600" stroke="#17a398" stroke-width="4"/>
+  <text x="1250" y="604" font-size="11" fill="#333">Servo bus (+12 V · GND · DATA)</text>
+  <line x1="1200" y1="625" x2="1240" y2="625" stroke="#333" stroke-width="2.5"/>
+  <text x="1250" y="629" font-size="11" fill="#333">Ground</text>
+  <line x1="1200" y1="650" x2="1240" y2="650" stroke="#7d5ba6" stroke-width="2.5" stroke-dasharray="8 5"/>
+  <text x="1250" y="654" font-size="11" fill="#333">Wireless (ESP-NOW)</text>
+  <text x="1200" y="690" font-size="10.5" fill="#a33" font-weight="600">All grounds are common: packs, adapter,</text>
+  <text x="1200" y="704" font-size="10.5" fill="#a33" font-weight="600">buck, ESP32, sensors — one ground net.</text>
+
+  <!-- ============ POWER-UP SEQUENCE ============ -->
+  <rect x="1180" y="730" width="300" height="280" rx="14" fill="#fffbe8" stroke="#d9c26b" stroke-width="1.5"/>
+  <text x="1200" y="758" font-size="14" font-weight="700" fill="#6b5a10">FIRST POWER-UP ORDER</text>
+  <text x="1200" y="784" font-size="11" fill="#4a4a3a">1. Packs + fuses + Y + loop key →</text>
+  <text x="1215" y="799" font-size="11" fill="#4a4a3a">meter reads 11.1–12.6 V</text>
+  <text x="1200" y="822" font-size="11" fill="#4a4a3a">2. Add adapter + capacitor (no servos)</text>
+  <text x="1200" y="845" font-size="11" fill="#4a4a3a">3. Add buck → confirm 5.0 V output</text>
+  <text x="1200" y="868" font-size="11" fill="#4a4a3a">4. Connect ESP32 → flash UART test</text>
+  <text x="1200" y="891" font-size="11" fill="#4a4a3a">5. One servo → position command works</text>
+  <text x="1200" y="914" font-size="11" fill="#4a4a3a">6. Full chain → slow sine wave first</text>
+  <text x="1200" y="945" font-size="10.5" fill="#8a7a20">Parallel rule: connect Y-harness only when</text>
+  <text x="1200" y="959" font-size="10.5" fill="#8a7a20">both packs are within ~0.1 V of each other.</text>
+  <text x="1200" y="983" font-size="10.5" fill="#8a7a20">Pull loop key before flashing over USB.</text>
+
+  <text x="585" y="1040" text-anchor="middle" font-size="11" fill="#999">SURGE 090 · Smart Snake Robot · electrical wiring v1 — 10× ST3215 · Bus Servo Adapter (A) · dual 3S LiPo parallel · ESP32 + ESP-NOW architecture</text>
+</svg>

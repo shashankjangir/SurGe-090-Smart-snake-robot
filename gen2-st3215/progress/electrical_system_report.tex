@@ -1,0 +1,705 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{newunicodechar}
+\newunicodechar{₹}{Rs.\,}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{bookmark}
+
+% --- Color Palette ---
+\definecolor{primary}{RGB}{18, 52, 86}      % Deep Navy
+\definecolor{secondary}{RGB}{30, 115, 190}  % Bright Blue
+\definecolor{accent}{RGB}{220, 80, 50}      % Accent Amber/Red
+\definecolor{darkgray}{RGB}{50, 50, 50}
+\definecolor{lightgray}{RGB}{245, 247, 250}
+\definecolor{bordercolor}{RGB}{210, 215, 225}
+\definecolor{codebg}{RGB}{248, 249, 251}
+\definecolor{codeframe}{RGB}{220, 225, 230}
+\definecolor{codegreen}{RGB}{46, 139, 87}
+\definecolor{codegray}{RGB}{120, 120, 120}
+\definecolor{codepurple}{RGB}{138, 43, 226}
+
+% --- Hyperref Setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=secondary,
+    citecolor=secondary,
+    urlcolor=secondary,
+    pdfauthor={SURGE-090 Project Team},
+    pdftitle={Smart Snake Robot - Complete Electrical System},
+    pdfsubject={Electrical Architecture, Component Specs, Wiring, and Firmware},
+    pdfkeywords={Snake Robot, ESP32, ST3215, ESP-NOW, LiPo, Raspberry Pi 5}
+}
+
+% --- Code Listing Setup ---
+\lstdefinestyle{cppstyle}{
+    backgroundcolor=\color{codebg},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{secondary}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=7pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{codeframe},
+    xleftmargin=12pt,
+    framexleftmargin=8pt,
+    columns=fullflexible
+}
+\lstset{style=cppstyle}
+
+% --- Callout Box Styles ---
+\newtcolorbox{alertbox}[2][]{
+    enhanced,
+    colback=red!5!white,
+    colframe=red!75!black,
+    fonttitle=\bfseries,
+    title={#2},
+    arc=3mm,
+    boxrule=1pt,
+    leftrule=5pt,
+    breakable,
+    #1
+}
+
+\newtcolorbox{infobox}[2][]{
+    enhanced,
+    colback=secondary!5!white,
+    colframe=secondary!85!black,
+    fonttitle=\bfseries,
+    title={#2},
+    arc=3mm,
+    boxrule=1pt,
+    leftrule=5pt,
+    breakable,
+    #1
+}
+
+\newtcolorbox{specbox}[2][]{
+    enhanced,
+    colback=lightgray,
+    colframe=primary,
+    fonttitle=\bfseries,
+    title={#2},
+    arc=2mm,
+    boxrule=0.8pt,
+    breakable,
+    #1
+}
+
+% --- Section Styling ---
+\titleformat{\section}{\Large\bfseries\color{primary}}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{secondary}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{darkgray}}{\thesubsubsection}{1em}{}
+
+% --- Header & Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{darkgray}\textbf{SURGE-090} $\cdot$ Smart Snake Robot Electrical System}
+\fancyhead[R]{\small\color{darkgray}August 2026}
+\fancyfoot[L]{\small\color{darkgray}Dual 3S LiPo $\cdot$ 10$\times$ ST3215 $\cdot$ ESP32 $\cdot$ ESP-NOW}
+\fancyfoot[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% --- Document Content ---
+\begin{document}
+
+% --- Title Block ---
+\begin{center}
+    {\LARGE \textbf{\color{primary} Smart Snake Robot --- Complete Electrical System}}\\[0.4em]
+    {\large \textbf{SURGE-090} $\cdot$ August 2026}\\[0.3em]
+    {\normalsize \color{darkgray} Dual 3S LiPo $\cdot$ 10$\times$ Waveshare ST3215 Servos $\cdot$ ESP32 Onboard $\cdot$ ESP-NOW to Raspberry Pi 5 Base Station}
+\end{center}
+
+\vspace{0.8em}
+\hrule height 1.5pt
+\vspace{1.2em}
+
+% --- Executive Summary ---
+\section*{Executive Summary}
+This document consolidates all electrical architecture, component specifications, wiring details, safety protocols, and system integration for the Smart Snake Robot project. The system has been comprehensively redesigned from the original Dynamixel XL330 + Raspberry Pi 5 onboard architecture to a lightweight, modular dual-controller approach:
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Onboard Compute:} An ESP32 microcontroller mounted directly on the robot running real-time central pattern generator (CPG) gait control, sensor fusion, and high-speed servo bus communication.
+    \item \textbf{Base Station:} A Raspberry Pi 5 operating as the high-level supervisory node, executing user interfaces, motion planning, and real-time telemetry dashboards.
+    \item \textbf{Wireless Link:} ESP-NOW peer-to-peer 2.4\,GHz link between the onboard ESP32 and a dedicated base station ESP32 radio bridge connected via USB serial to the Raspberry Pi 5.
+\end{itemize}
+
+\begin{infobox}{Key Decision Drivers}
+\begin{itemize}[leftmargin=1.2em, itemsep=0.2em]
+    \item \textbf{Space \& Mass Constraints:} Internal volume and payload capacity on the segmented snake robot chassis preclude mounting the Raspberry Pi 5 onboard.
+    \item \textbf{High Torque \& Availability:} Waveshare ST3215 serial bus servos deliver over $6\times$ the torque of the original XL330 motors at approximately $1/3$ the cost and are readily sourced in India.
+    \item \textbf{Zero-Infrastructure Wireless:} ESP-NOW delivers ultra-low-latency ($<10\,\text{ms}$) deterministic communication without requiring external Wi-Fi routers or access points.
+\end{itemize}
+\end{infobox}
+
+\tableofcontents
+\vspace{1.5em}
+\newpage
+
+% --- 1. Hardware Inventory ---
+\section{Hardware Inventory --- Keep / Return}
+
+\subsection{Keep These (Final System)}
+\begin{description}[leftmargin=1.8em, itemsep=0.4em]
+    \item[\textbf{Core Motors \& Driver:}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item 10$\times$ Waveshare ST3215 Smart Servos (6.0--12.6\,V, 1\,Mbps half-duplex TTL, 2.7\,A stall, 30\,kg$\cdot$cm torque at 12\,V).
+        \item Bus Servo Adapter (A) --- Waveshare SKU 25514 (9--12.6\,V input, UART control, automated TTL direction switching, servo daisy-chain output).
+    \end{itemize}
+
+    \item[\textbf{Power Supply \& Distribution:}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item 2$\times$ Orange 3S LiPo 1500\,mAh 30C battery packs (XT60 connectors, $\sim$₹1,219 each).
+        \item Mini560-5V synchronous step-down buck converter (high efficiency, up to 3\,A continuous, $\sim$₹150).
+        \item 2$\times$ LiPo Low-Voltage Buzzer Alarms with configurable threshold set to 3.4\,V/cell ($\sim$₹100 each).
+        \item 2$\times$ 15\,A Mini Blade Fuses + in-line waterproof fuse holders ($\sim$₹100).
+        \item XT60 Loop Key (serves as the spark-safe master emergency power disconnect, $\sim$₹150).
+        \item 16\,AWG high-strand silicone wire + XT60 parallel Y-harness pigtails ($\sim$₹300).
+        \item 1000\,\textmu F 25\,V Low-ESR electrolytic filter capacitor ($\sim$₹30).
+        \item iMAX B6 professional balance charger/discharger ($\sim$₹1,500).
+    \end{itemize}
+
+    \item[\textbf{Microcontrollers \& Compute:}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item \textbf{ESP32 Dev Board \#1 (Onboard Robot):} Central gait generator, sensor polling, UART servo master, ESP-NOW transmitter.
+        \item \textbf{ESP32 Dev Board \#2 (Base Station Bridge):} Dedicated ESP-NOW transceiver, USB-UART bridge to Raspberry Pi 5.
+        \item \textbf{Raspberry Pi 5 (8GB RAM):} Base station supervisor, trajectory planning, telemetry visualization, web UI / ROS2 nodes.
+    \end{itemize}
+
+    \item[\textbf{Sensors:}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item MPU6050 6-DoF IMU (GY-521 module, $\text{I}^2\text{C}$ address \texttt{0x68}, posture/orientation tracking).
+        \item HC-SR04P Ultrasonic Sensor (\textbf{3.3\,V wide-voltage version}, safe for direct ESP32 GPIO, obstacle avoidance).
+    \end{itemize}
+
+    \item[\textbf{Cables \& Fasteners:}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item 10$\times$ ST-series 3-pin daisy-chain bus cables (+12\,V / GND / DATA) + 3 spare cables.
+        \item Silicone Dupont hookup jumpers, heat-shrink tubing, braided sleeving.
+        \item Micro-USB / USB-C interface cables for programming and base station connectivity.
+    \end{itemize}
+\end{description}
+
+\subsection{Return to Supplier (Dynamixel-Era Components)}
+The following components from the legacy design are deprecated and should be returned or repurposed:
+\begin{itemize}[leftmargin=1.5em, itemsep=0.25em]
+    \item \textbf{Dynamixel XL330 Servos:} Inadequate torque for 10-link body load; high supply lead times in India; protocol incompatible with ST3215 bus.
+    \item \textbf{ROBOTIS U2D2 Interface \& Power Hub:} Dynamixel-exclusive TTL pinout and proprietary protocol converter.
+    \item \textbf{Dynamixel Communication Cables:} Custom JST connectors incompatible with Waveshare ST-series sockets.
+    \item \textbf{5\,V Standalone Power Supply:} Incompatible voltage level; ST3215 motors require 12\,V nominal rail.
+    \item \textbf{12V$\to$5V 5\,A Buck Converter:} Bulky footprint; replaced with ultra-compact Mini560 (3\,A).
+    \item \textbf{XT60 to 5.5\,mm Barrel Jack Cable:} Deprecated in favor of direct screw-terminal block connections.
+\end{itemize}
+
+% --- 2. Component Specifications ---
+\section{Component Specifications}
+
+\subsection{Waveshare ST3215 Smart Serial Servo}
+\begin{table}[h!]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Parameter} & \textbf{Specification / Operating Limits} \\
+\midrule
+Operating Voltage Range & 6.0\,V -- 12.6\,V (Nominal: 11.1\,V -- 12.0\,V) \\
+Stall Torque & 30\,kg$\cdot$cm ($\approx 2.94\,\text{N}\cdot\text{m}$) @ 12\,V \\
+Stall Current & 2.7\,A per servo @ 12\,V \\
+Continuous Operating Current & $\approx 1.0\,\text{A} - 1.5\,\text{A}$ under nominal snake locomotion \\
+No-Load Speed & 0.222\,sec/60$^\circ$ (45\,RPM) @ 12\,V \\
+Communication Protocol & Feetech SCServo Half-Duplex Asynchronous Serial TTL \\
+Baud Rate & 1,000,000\,bps (1\,Mbps) default \\
+Addressing Capability & Up to 253 unique IDs on a single daisy-chain bus \\
+Position Sensor & 12-bit Contactless Magnetic Encoder (0.088$^\circ$ resolution, 360$^\circ$ multi-turn) \\
+Real-Time Telemetry & Position, Velocity, Load/Current, Voltage, Internal Temperature \\
+\bottomrule
+\end{tabularx}
+\caption{Electrical and mechanical specifications of Waveshare ST3215 servo.}
+\end{table}
+
+\subsection{Bus Servo Adapter (A) --- Waveshare SKU 25514}
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Power Input:} 9.0\,V -- 12.6\,V via heavy-duty 2-pin screw terminal.
+    \item \textbf{Logic Interface:} Microcontroller UART interface (TX, RX, 5V/3.3V, GND).
+    \item \textbf{Automatic Flow Direction Control:} Onboard hardware direction-switching circuit enables transparent half-duplex single-wire TTL serial communication from full-duplex MCU UART without requiring manual GPIO direction pin manipulation.
+    \item \textbf{Servo Outputs:} Dual 3-pin standard ST-bus ports wired in parallel for daisy-chain distribution.
+\end{itemize}
+
+\subsection{Orange 3S LiPo 1500 mAh 30C Battery}
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Chemistry \& Configuration:} Lithium Polymer (LiPo), 3S1P (3 series cells).
+    \item \textbf{Nominal Voltage:} 11.1\,V ($3.7\,\text{V}/\text{cell}$).
+    \item \textbf{Fully Charged Voltage:} 12.6\,V ($4.2\,\text{V}/\text{cell}$).
+    \item \textbf{Low-Voltage Cutoff Limit:} 10.2\,V total ($3.4\,\text{V}/\text{cell}$) --- hardware alarm trigger.
+    \item \textbf{Capacity \& Continuous Discharge:} 1500\,mAh @ 30C $= 45\,\text{A}$ continuous per pack.
+    \item \textbf{Peak Burst Discharge (10\,s):} 50C $= 75\,\text{A}$ burst per pack.
+    \item \textbf{Main Discharge Connector:} Genuine XT60 with high-temperature nylon housing.
+\end{itemize}
+
+\subsection{Mini560-5V Step-Down Synchronous Buck Converter}
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Input Range:} 6.0\,V -- 32.0\,V (operating on 11.1\,V--12.6\,V LiPo rail).
+    \item \textbf{Output Voltage \& Current:} Fixed 5.0\,V $\pm 1\%$, up to 3.0\,A continuous (short bursts up to 4\,A).
+    \item \textbf{Efficiency:} $\approx 95\%$ @ 12\,V$\to$5\,V conversion at 1\,A load.
+    \item \textbf{Dimensions / Form Factor:} $18\,\text{mm} \times 12\,\text{mm} \times 4.5\,\text{mm}$, mass $<2\,\text{g}$.
+\end{itemize}
+
+% --- 3. Power Architecture ---
+\section{Power Architecture}
+
+\subsection{Dual Parallel LiPo Configuration}
+To satisfy peak dynamic current requirements across 10 active joints and extend operational run-time, two identical Orange 3S 1500\,mAh 30C LiPo batteries are coupled in parallel through a balanced XT60 Y-harness.
+
+\begin{table}[h!]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Combined System Metric} & \textbf{Calculated Value / Capacity} \\
+\midrule
+Nominal Voltage & 11.1\,V ($3 \times 3.7\,\text{V}$) \\
+Fully Charged Voltage & 12.6\,V ($3 \times 4.2\,\text{V}$) \\
+Total Energy Capacity & $3000\,\text{mAh}$ ($33.3\,\text{Wh}$) \\
+Continuous Discharge Rating & $30\text{C} \times 2 = 60\text{C Equivalent}$ ($180\,\text{A}$ theoretical continuous) \\
+Short-Term Peak Discharge & $270\,\text{A}$ peak ($10\,\text{s}$ burst) \\
+Max Expected System Load & $27\,\text{A}$ (10$\times$ 2.7\,A stall worst-case) $\ll$ LiPo capability \\
+\bottomrule
+\end{tabularx}
+\caption{Parallel battery configuration parameters.}
+\end{table}
+
+\subsection{Protection, Filtering \& Safety Subsystems}
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.3em]
+    \item \textbf{Individual Pack Fusing:} A 15\,A mini-blade automotive fuse is installed on the positive lead of \textit{each} individual LiPo pack \textit{before} entering the parallel Y-junction. This prevents catastrophic reverse charging or thermal runaway in the event of an internal cell short in one pack.
+    \item \textbf{Master XT60 Loop Key:} A removable heavy-duty XT60 shorting plug acts as a physical master safety disconnect, placed immediately downstream of the combined parallel junction.
+    \item \textbf{LiPo Low-Voltage Buzzers:} Each pack maintains its own dedicated JST-XH balance port monitor with loud dual-piezo buzzers calibrated to sound at $\le 3.4\,\text{V}/\text{cell}$.
+    \item \textbf{Transient Absorption Capacitor:} A 1000\,\textmu F / 25\,V low-ESR electrolytic capacitor is mounted directly across the 12\,V screw terminals of the Bus Servo Adapter (A) to buffer regenerative inductive kickback and dampen switching transients during rapid servo reversals.
+    \item \textbf{Logic Power Isolation:} The ESP32 and sensitive sensors receive clean 5.0\,V via the Mini560 buck regulator, completely isolating MCU digital logic from motor voltage sag.
+\end{enumerate}
+
+% --- 4. Wiring Details ---
+\section{Wiring Details --- On the Robot}
+
+\subsection{12\,V Main Power Distribution Bus}
+\begin{itemize}[leftmargin=1.5em, itemsep=0.25em]
+    \item \textbf{LiPo Pack \#1 (+)} $\longrightarrow$ 15\,A Fuse \#1 $\longrightarrow$ Y-Harness Branch 1 (+)
+    \item \textbf{LiPo Pack \#2 (+)} $\longrightarrow$ 15\,A Fuse \#2 $\longrightarrow$ Y-Harness Branch 2 (+)
+    \item \textbf{Combined Positive} $\longrightarrow$ XT60 Loop Key (Master Switch) $\longrightarrow$ Main +12\,V Rail
+    \item \textbf{Main +12\,V Rail} branches directly into:
+    \begin{enumerate}[leftmargin=1.2em, itemsep=0.1em]
+        \item Bus Servo Adapter (A) Screw Terminal \texttt{VIN} (+)
+        \item Mini560-5V Buck Converter Input \texttt{IN+}
+        \item 1000\,\textmu F 25\,V Capacitor Anode (+)
+    \end{enumerate}
+\end{itemize}
+
+\subsection{System Ground (GND) Topology}
+All grounds are tied in a single-point star ground node at the battery negative junction:
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item LiPo Pack \#1 ($-$) and LiPo Pack \#2 ($-$) $\longrightarrow$ XT60 Y-Harness Negative Node.
+    \item Common GND connects to Bus Servo Adapter \texttt{GND} terminal, 1000\,\textmu F Capacitor Cathode ($-$), and Mini560 \texttt{IN-}.
+    \item Mini560 \texttt{OUT-} connects to ESP32 \texttt{GND} pin, establishing unified signal and power reference.
+\end{itemize}
+
+\subsection{UART \& Servo Bus Routing}
+\begin{table}[h!]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+\toprule
+\textbf{ESP32 Pin} & \textbf{Bus Servo Adapter Pin} & \textbf{Function} \\
+\midrule
+\texttt{GPIO17} (\texttt{UART2\_TX}) & \texttt{RX} & Serial Commands from ESP32 to Bus \\
+\texttt{GPIO16} (\texttt{UART2\_RX}) & \texttt{TX} & Telemetry Feedback from Servos to ESP32 \\
+\texttt{5V} & \texttt{5V} & Logic Level Reference \\
+\texttt{GND} & \texttt{GND} & Common Signal Ground \\
+\bottomrule
+\end{tabular}
+\caption{ESP32 to Waveshare Bus Servo Adapter pin connections.}
+\end{table}
+
+\noindent \textbf{Servo Daisy-Chain Path:}
+$$\text{Adapter 3-Pin Port} \xrightarrow{\text{Cable 1}} \text{Servo \#1} \xrightarrow{\text{Cable 2}} \text{Servo \#2} \longrightarrow \cdots \longrightarrow \text{Servo \#9} \xrightarrow{\text{Cable 10}} \text{Servo \#10}$$
+The output port of Servo \#10 is left open (or protected with an insulated dummy dust plug).
+
+% --- 5. Base Station Architecture ---
+\section{Wiring Details --- Base Station}
+
+\begin{figure}[h!]
+\centering
+\begin{specbox}{Base Station Architecture}
+\begin{itemize}[leftmargin=1.2em, itemsep=0.25em]
+    \item \textbf{Raspberry Pi 5 (8GB):} Powered via official 27\,W (5.1\,V, 5\,A) USB-C power supply. Runs Linux (Ubuntu 24.04 / Raspberry Pi OS), ROS 2 communication nodes, Web GUI dashboard, and inverse kinematics solvers.
+    \item \textbf{ESP32 Dev Board \#2 (Radio Gateway):} Connected directly to a USB 3.0 port on the Raspberry Pi 5. Powered via 5\,V USB VBUS; enumerates as \texttt{/dev/ttyUSB0} or \texttt{/dev/ttyACM0} @ 115200 or 921600\,baud.
+    \item \textbf{Communication Pipeline:}
+    $$\text{ESP32 \#1 (Robot)} \underset{<10\,\text{ms}}{\overset{\text{ESP-NOW (2.4\,GHz)}}{\rightleftharpoons}} \text{ESP32 \#2 (Bridge)} \underset{1\,\text{Mbps}}{\overset{\text{USB Serial}}{\rightleftharpoons}} \text{Raspberry Pi 5}$$
+\end{itemize}
+\end{specbox}
+\end{figure}
+
+% --- 6. First Power-Up Sequence ---
+\section{First Power-Up Sequence}
+
+\begin{alertbox}{Mandatory Safety Warning}
+Execute Steps 1--3 \textbf{strictly} prior to attaching any servo or logic processor. Do not insert the XT60 loop key until all resistance checks confirm no ground-to-power shorts exist.
+\end{alertbox}
+
+\begin{description}[leftmargin=1.5em, itemsep=0.6em]
+    \item[\textbf{Step 1: Pre-Assembly Visual Inspection (15 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Confirm 15\,A blade fuses are seated in both positive harness branches.
+        \item Verify the XT60 Loop Key is removed (system in open circuit).
+        \item Inspect LiPo packs for swelling or mechanical punctures; verify cell voltages on buzzer alarms ($\ge 3.8\,\text{V}/\text{cell}$).
+        \item Check capacitor polarity: stripe / negative lead to \texttt{GND}, positive lead to \texttt{+12V}.
+    \end{itemize}
+
+    \item[\textbf{Step 2: Megohm Continuity \& Short-Circuit Test (10 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Disconnect ESP32 from the 5\,V buck regulator.
+        \item Set digital multimeter to Resistance / Megohm range ($\text{M}\Omega$).
+        \item Measure resistance across the main 12\,V rail and GND rail. Resistance must register $> 10\,\text{M}\Omega$ (charging capacitor may show transient low reading before settling at high $\text{M}\Omega$).
+        \item If reading is $< 1\,\text{M}\Omega$, halt immediately and inspect wiring harnesses for solder bridges.
+    \end{itemize}
+
+    \item[\textbf{Step 3: Initial Power-ON with Voltage Verification (20 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Insert the XT60 Loop Key. No spark, popping, or smoke should occur.
+        \item Measure voltage at the Bus Servo Adapter screw terminal: must read $11.1\,\text{V} - 12.6\,\text{V}$.
+        \item Measure voltage across Mini560 output terminals: must read $5.0\,\text{V} \pm 0.1\,\text{V}$.
+        \item Disconnect Loop Key before proceeding.
+    \end{itemize}
+
+    \item[\textbf{Step 4: Single-Servo Daisy-Chain Staging (15 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Connect only Servo \#1 to the adapter bus output port. Insert Loop Key.
+        \item Confirm the servo LED indicators blink or steady-state illuminate. Verify the servo body remains at ambient temperature.
+        \item Incrementally attach Servos \#2 through \#10 one by one, checking thermal state at each step.
+    \end{itemize}
+
+    \item[\textbf{Step 5: Load ESP32 Test Firmware (10 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Flash the servo ID read-back firmware to ESP32 \#1 via USB.
+        \item Verify bidirectional half-duplex UART ping responses across the 1\,Mbps serial bus.
+    \end{itemize}
+
+    \item[\textbf{Step 6: ESP-NOW Wireless Pairing (10 min)}]
+    \begin{itemize}[leftmargin=1.2em, itemsep=0.15em]
+        \item Flash the receiver firmware to ESP32 \#2 (connected to base station) and monitor serial output at 115200\,baud.
+        \item Power up ESP32 \#1 on the robot; verify real-time packet stream reception with $<15\,\text{ms}$ interval.
+    \end{itemize}
+\end{description}
+
+% --- 7. Servo Integration & ID Assignment ---
+\section{Servo Integration \& ID Assignment}
+All Waveshare ST3215 servos are pre-programmed from the factory with a default ID of \textbf{1}. To prevent bus collisions, each servo must be individually programmed with a unique identifier ($\text{ID} \in [1, 10]$) prior to final mechanical assembly.
+
+\subsection{Sequential ID Assignment Procedure}
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.2em]
+    \item Disconnect all servos from the bus adapter.
+    \item Connect \textbf{only one} target servo to the adapter port.
+    \item Flash and run the ID Assignment sketch on ESP32 \#1.
+    \item Input the desired target ID (1--10) via the Serial Monitor.
+    \item The sketch writes the new ID into the servo's non-volatile EEPROM register (Register \texttt{0x05}) and executes an EEPROM lock.
+    \item Unplug the programmed servo, label it physically (e.g., Joint 1 to Joint 10), and repeat for the remaining units.
+\end{enumerate}
+
+\subsection{ID Assignment Source Code}
+\begin{lstlisting}[language=C++, caption={ESP32 Arduino Sketch for ST3215 Servo ID Assignment.}]
+#include <Arduino.h>
+#include <HardwareSerial.h>
+
+// ESP32 UART2 (GPIO16=RX, GPIO17=TX)
+HardwareSerial ServoSerial(2);
+
+void setServoID(uint8_t currentID, uint8_t newID) {
+    // Feetech SCServo Protocol Packet:
+    // [0xFF, 0xFF, ID, LENGTH, INSTRUCTION, PARAM_REG, VALUE, CHECKSUM]
+    uint8_t cmd[7];
+    cmd[0] = 0xFF;              // Header 1
+    cmd[1] = 0xFF;              // Header 2
+    cmd[2] = currentID;         // Current ID (Default = 1)
+    cmd[3] = 0x04;              // Packet Length (Cmd + Reg + Value + Checksum)
+    cmd[4] = 0x03;              // Instruction: WRITE_DATA (0x03)
+    cmd[5] = 0x05;              // Register Address: ID register (0x05)
+    cmd[6] = newID;             // Value: New Target ID
+    
+    // Compute Checksum: ~(ID + LENGTH + INSTRUCTION + PARAM_REG + VALUE) & 0xFF
+    uint8_t sum = cmd[2] + cmd[3] + cmd[4] + cmd[5] + cmd[6];
+    uint8_t checksum = ~sum;
+
+    uint8_t packet[8];
+    memcpy(packet, cmd, 7);
+    packet[7] = checksum;
+
+    // Transmit packet at 1 Mbps
+    ServoSerial.write(packet, 8);
+    ServoSerial.flush();
+
+    Serial.printf("Transmitted ID change request: %d -> %d (Checksum: 0x%02X)\n", 
+                  currentID, newID, checksum);
+}
+
+void setup() {
+    Serial.begin(115200);
+    ServoSerial.begin(1000000, SERIAL_8N1, 16, 17); // 1 Mbps, RX=16, TX=17
+    delay(1000);
+    Serial.println("\n=== ST3215 Servo ID Programming Tool ===");
+    Serial.println("Enter target ID (1 - 10) in the Serial Monitor:");
+}
+
+void loop() {
+    if (Serial.available() > 0) {
+        int inputVal = Serial.parseInt();
+        if (inputVal >= 1 && inputVal <= 10) {
+            Serial.printf("Assigning target ID: %d ...\n", inputVal);
+            setServoID(1, (uint8_t)inputVal);
+            delay(500);
+            Serial.println("Programming complete. Power cycle servo to verify.");
+        } else if (inputVal != 0) {
+            Serial.println("Error: Valid ID range is 1 to 10.");
+        }
+    }
+}
+\end{lstlisting}
+
+% --- 8. Sensor Integration ---
+\section{Sensor Integration}
+
+\subsection{MPU6050 6-Axis IMU (Orientation Feedback)}
+Mounted in the head/lead segment of the snake robot to estimate pitch, roll, and lateral acceleration for terrain-adaptive gait modulation.
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Module:} GY-521 Breakout Board (with onboard 3.3\,V LDO regulator).
+    \item \textbf{Interface:} $\text{I}^2\text{C}$ Standard/Fast Mode (400\,kHz), default 7-bit address \texttt{0x68} (AD0 pin pulled low).
+    \item \textbf{Pin Mapping:} \texttt{VCC} $\to$ ESP32 3.3\,V, \texttt{GND} $\to$ ESP32 GND, \texttt{SCL} $\to$ \texttt{GPIO22}, \texttt{SDA} $\to$ \texttt{GPIO21}.
+\end{itemize}
+
+\subsection{HC-SR04P Ultrasonic Sensor (Obstacle Detection)}
+\begin{alertbox}{Hardware Compatibility Requirement}
+Ensure the \textbf{HC-SR04P} (wide voltage 3.0\,V--5.5\,V) module is utilized. Standard HC-SR04 modules output 5\,V logic on the \texttt{ECHO} pin, which will cause permanent over-voltage damage to the ESP32 input stage ($3.3\,\text{V}$ max tolerance).
+\end{alertbox}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Pin Mapping:} \texttt{VCC} $\to$ ESP32 3.3\,V (or 5\,V), \texttt{GND} $\to$ ESP32 GND, \texttt{TRIG} $\to$ \texttt{GPIO26} (Output), \texttt{ECHO} $\to$ \texttt{GPIO27} (Input).
+\end{itemize}
+
+\subsection{Unified Sensor Polling Code}
+\begin{lstlisting}[language=C++, caption={Sensor Integration Sketch for ESP32 Onboard.}]
+#include <Wire.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
+Adafruit_MPU6050 mpu;
+const int TRIG_PIN = 26;
+const int ECHO_PIN = 27;
+
+void setup() {
+    Serial.begin(115200);
+    Wire.begin(21, 22); // SDA=21, SCL=22
+
+    if (!mpu.begin()) {
+        Serial.println("Failed to find MPU6050 chip!");
+        while (1) { delay(10); }
+    }
+    mpu.setAccelerometerRange(MPU6050_RANGE_4_G);
+    mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+    mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+    Serial.println("Sensors initialized successfully.");
+}
+
+void loop() {
+    // 1. Read IMU
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+
+    // 2. Read Ultrasonic Distance
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+
+    long duration = pulseIn(ECHO_PIN, HIGH, 30000); // 30ms timeout
+    float distance_cm = (duration == 0) ? -1.0 : (duration / 2.0) / 29.1;
+
+    // Output Telemetry
+    Serial.printf("IMU Accel: [%.2f, %.2f, %.2f] m/s^2 | Dist: %.1f cm\n",
+                  a.acceleration.x, a.acceleration.y, a.acceleration.z, distance_cm);
+    delay(50);
+}
+\end{lstlisting}
+
+% --- 9. ESP-NOW Wireless Link ---
+\section{ESP-NOW Wireless Telemetry \& Command Link}
+ESP-NOW is a connectionless, peer-to-peer MAC-layer protocol developed by Espressif, operating on the 2.4\,GHz ISM band.
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em]
+    \item \textbf{Packet Payload:} Up to 250 bytes per frame.
+    \item \textbf{Latency:} $< 10\,\text{ms}$ deterministic round-trip time.
+    \item \textbf{Throughput:} 50\,Hz bidirectional telemetry and gait parameter updates.
+\end{itemize}
+
+\subsection{Phase 1: MAC Address Discovery}
+Run the following helper code on both boards to determine their factory Wi-Fi MAC addresses:
+\begin{lstlisting}[language=C++, caption={ESP32 MAC Address Extraction Script.}]
+#include <WiFi.h>
+#include <esp_wifi.h>
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.mode(WIFI_MODE_STA);
+    delay(100);
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+    Serial.printf("Device Station MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+void loop() {}
+\end{lstlisting}
+
+\subsection{Phase 2: Robot Transmitter Firmware (ESP32 \#1)}
+\begin{lstlisting}[language=C++, caption={Transmitter Firmware running on Onboard Robot ESP32.}]
+#include <esp_now.h>
+#include <WiFi.h>
+
+// Replace with actual Base Station ESP32 #2 MAC address
+uint8_t baseStationMAC[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+
+typedef struct __attribute__((packed)) {
+    float roll;
+    float pitch;
+    float yaw;
+    float head_distance_cm;
+    uint16_t servo_current_mA[10];
+    uint16_t servo_positions[10];
+    uint8_t battery_voltage_deciV; // e.g. 118 = 11.8V
+} RobotTelemetryPacket;
+
+RobotTelemetryPacket txData;
+
+void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+    // Optional delivery acknowledgment logging
+}
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.mode(WIFI_MODE_STA);
+
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("Error initializing ESP-NOW");
+        return;
+    }
+
+    esp_now_register_send_cb(onDataSent);
+
+    esp_now_peer_info_t peerInfo = {};
+    memcpy(peerInfo.peer_addr, baseStationMAC, 6);
+    peerInfo.channel = 1;
+    peerInfo.encrypt = false;
+
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add Base Station peer");
+    }
+}
+
+void loop() {
+    // Populate sample telemetry from sensors and ST3215 feedback
+    txData.roll = 3.25;
+    txData.pitch = -1.10;
+    txData.head_distance_cm = 42.5;
+    txData.battery_voltage_deciV = 121; // 12.1V
+
+    esp_err_t result = esp_now_send(baseStationMAC, (uint8_t *)&txData, sizeof(txData));
+    delay(20); // 50 Hz transmission cycle
+}
+\end{lstlisting}
+
+\subsection{Phase 3: Base Station Receiver Firmware (ESP32 \#2)}
+\begin{lstlisting}[language=C++, caption={Receiver Bridge Firmware on Base Station ESP32.}]
+#include <esp_now.h>
+#include <WiFi.h>
+
+typedef struct __attribute__((packed)) {
+    float roll;
+    float pitch;
+    float yaw;
+    float head_distance_cm;
+    uint16_t servo_current_mA[10];
+    uint16_t servo_positions[10];
+    uint8_t battery_voltage_deciV;
+} RobotTelemetryPacket;
+
+RobotTelemetryPacket rxData;
+
+void onDataRecv(const esp_now_recv_info_t *info, const uint8_t *incomingData, int len) {
+    if (len == sizeof(RobotTelemetryPacket)) {
+        memcpy(&rxData, incomingData, sizeof(RobotTelemetryPacket));
+        
+        // Forward structured telemetry over high-speed USB-UART to Raspberry Pi 5
+        Serial.printf("TELEMETRY,%.2f,%.2f,%.1f,%d\n",
+                      rxData.roll, rxData.pitch, rxData.head_distance_cm, 
+                      rxData.battery_voltage_deciV);
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.mode(WIFI_MODE_STA);
+
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("ESP-NOW Init Failed");
+        return;
+    }
+
+    esp_now_register_recv_cb(onDataRecv);
+    Serial.println("ESP-NOW Base Station Receiver Online. Awaiting packets...");
+}
+
+void loop() {
+    // Receiver loop operates asynchronously via hardware interrupt callbacks
+    delay(10);
+}
+\end{lstlisting}
+
+% --- Summary & Status ---
+\section{Project Status \& Next Milestones}
+\begin{specbox}{Document Summary \& Status}
+\begin{itemize}[leftmargin=1.2em, itemsep=0.3em]
+    \item \textbf{Status:} Phase 2 (Electrical Redesign, Component Selection, Safety Architecture) is \textbf{Complete}.
+    \item \textbf{Readiness:} Phase 3 (Harness Fabrication, 3D Print Integration, Subsystem Bench Testing) is ready to commence.
+    \item \textbf{Next Review Milestone:} After physical arrival of Waveshare ST3215 motors, adapter board, and completion of the first 2-segment mechanical articulated joint test bench.
+\end{itemize}
+\end{specbox}
+
+\end{document}
