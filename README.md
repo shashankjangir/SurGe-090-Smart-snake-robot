@@ -378,9 +378,9 @@ Supervisor: **Prof. Amartansh Dubey**
 
 | Member | Entry No. | Role |
 |---|---|---|
-| Shashank Jangir | 2024EE11048 | Project lead · software · CAD |
-| Bhavesh Bansiwal | 2024ME10487 | Hardware · mechanical |
-| Mahima Chotiya | 2024ME11187 | Electronics · wiring |
+| Shashank Jangir | 2024EE11048 | Project lead · hardware · CAD · Electronics |
+| Bhavesh Bansiwal | 2024ME10487 | software · mechanical . CAD |
+| Mahima Chotiya | 2024ME11187 | Mathematics . physics |
 
 ---
 
