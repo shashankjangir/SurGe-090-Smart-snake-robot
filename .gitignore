@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+
+# Visual Studio
+.vs/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
