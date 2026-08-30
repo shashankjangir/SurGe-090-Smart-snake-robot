@@ -208,6 +208,6 @@ Print from **`cad/segments/v6/`** (CadQuery). v5 had a dimensional error; v4/v5 
 
 | Member | Role |
 |---|---|
-| Shashank Jangir | Project Lead / Software |
-| Bhavesh | Hardware & Mechanical |
-| Mahima | Electronics & Wiring |
+| Shashank Jangir | Project Lead / Software / Electronics & Wiring |
+| Bhavesh | Hardware & Mechanical/ Software |
+| Mahima | Mechanical / Mathematics |
