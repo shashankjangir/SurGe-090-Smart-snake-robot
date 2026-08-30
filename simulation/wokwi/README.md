@@ -1,28 +1,51 @@
-# SURGE-SNAKE ESP32 Sensor Node Wokwi Simulation
+# SURGE-090 · ESP32 Serpentine Robot Wokwi Simulation
 
-This directory contains the Wokwi simulation configuration and source code for the head-mounted distance sensor node.
+Interactive browser simulation of the 5-segment snake robot on **Wokwi**:  
+🔗 **[wokwi.com/projects/467623718124707841](https://wokwi.com/projects/467623718124707841)**
+
+---
 
 ## Hardware Configuration (`diagram.json`)
 
-The simulation runs on an **ESP32 DevKit v4** connected to a **HC-SR04 Ultrasonic Distance Sensor**:
-*   **VCC** -> ESP32 5V
-*   **GND** -> ESP32 GND
-*   **TRIG** -> ESP32 GPIO 5 (Output)
-*   **ECHO** -> ESP32 GPIO 18 (Input)
+The simulation runs on an **ESP32 DevKit v1** connected to:
+- **5× SG90 PWM Servos** on GPIOs `26, 27, 14, 12, 13`
+- **HC-SR04 Ultrasonic Distance Sensor** on `TRIG = GPIO 5`, `ECHO = GPIO 18`
+- **MPU6050 6-DOF IMU** on I²C (`SDA = GPIO 21`, `SCL = GPIO 22`, addr `0x68`)
+- **SSD1306 128×64 I²C OLED** on I²C (`SDA = GPIO 21`, `SCL = GPIO 22`, addr `0x3C`)
 
-## Firmware (`sketch.ino`)
+---
 
-The firmware:
-1.  Triggers the HC-SR04 sensor at **10 Hz**.
-2.  Reads the pulse-width echo response.
-3.  Calculates the distance to any head-on obstacles in centimeters.
-4.  Initializes the ESP32's Bluetooth stack and broadcasts as a Classic Bluetooth Serial device named `SURGE-SNAKE-ESP32`.
-5.  Continuously transmits the data packet format `"DIST:<distance_cm>\r\n"` over Bluetooth Serial.
+## Key Firmware Features (`sketch.ino`)
 
-## How to Run the Wokwi Simulation
+1. **Serpenoid Gait Engine:**
+   $$\text{angle}_i = \text{center} + \text{trim}_i + \text{bias} + \text{dir}_i \cdot A \cdot \sin(\text{phase} + d \cdot i \cdot \text{lag})$$
+   - Real-time travelling wave propagation across all 5 joint servos.
+   - Modes: `FWD`, `REV`, `LEFT`, `RIGHT`, `IDLE`, `AUTO` (autonomous collision avoidance).
 
-1.  Open [Wokwi.com](https://wokwi.com).
-2.  Start a new ESP32 project.
-3.  Replace the default `diagram.json`, `sketch.ino`, and `libraries.txt` with the files in this directory.
-4.  Click the **Start Simulation** button in Wokwi.
-5.  Observe the distance output printed in the virtual Serial Terminal. Drag the slider on the simulated HC-SR04 component to change the distance and see the outputs update dynamically.
+2. **Sensorless / Ultrasonic Collision & Safety Stack:**
+   - **Exponential smoothing** on distance ($\alpha = 0.4$) to filter ultrasonic noise.
+   - **Hysteresis switching:** triggers avoidance below $20\text{ cm}$, resumes normal slither above $25\text{ cm}$.
+   - **MPU6050 flip detection:** pauses gait motion if pitch/roll indicates the robot tipped over.
+   - **Graceful degradation:** missing OLED or IMU will not block startup or gait execution.
+
+3. **Non-blocking Scheduling:**
+   - Uses `millis()` timers for servos (50 Hz), sensors (10 Hz), and OLED display (5 Hz) with zero `delay()` stalls.
+
+4. **Live Serial Tuning Console (115200 baud):**
+   Type commands into the Serial Monitor to tune gait parameters live:
+   - `f` / `b` / `l` / `r` / `s` / `a`: Forward / Reverse / Left / Right / Stop / Auto
+   - `A<deg>`: Set wave amplitude (e.g. `A40`)
+   - `S<speed>`: Set gait frequency / speed (e.g. `S1.2`)
+   - `W<deg>`: Set phase lag between joints (e.g. `W45`)
+   - `T<deg>`: Set turn bias offset (e.g. `T25`)
+   - `C<deg>`: Set center trim position (e.g. `C90`)
+   - `?`: Print current configuration and help menu
+
+---
+
+## How to Run
+
+1. Open **[wokwi.com/projects/467623718124707841](https://wokwi.com/projects/467623718124707841)** directly, or copy `diagram.json`, `sketch.ino`, and `libraries.txt` into a new Wokwi ESP32 project.
+2. Click **Start Simulation**.
+3. Adjust the HC-SR04 distance slider to test obstacle detection and evasion.
+4. Interact via the Serial Monitor at 115200 baud.

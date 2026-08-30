@@ -73,6 +73,7 @@ gen2-st3215/
 │   ├── robot_esp32/
 │   └── base_esp32/
 └── cad/
+    ├── assembly/                # SolidWorks snake assembly
     └── segments/v6/             # Design of record (CadQuery)
 ```
 
