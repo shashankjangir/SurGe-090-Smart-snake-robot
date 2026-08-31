@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="gen1-dynamixel/media/CAD_Model.png" alt="SURGE-090 body segment, SolidWorks render" width="560"/>
+  <img src="gen2-st3215/media/assembly%20prototype.png" alt="SURGE-090 gen2 assembly prototype" width="48%"/>
+  <img src="gen2-st3215/media/assembly%20prototype%202.0.png" alt="SURGE-090 gen2 assembly prototype 2.0" width="48%"/>
 </p>
 
 <h1 align="center">SURGE-090 · Smart Snake Robot 🐍</h1>
