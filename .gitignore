@@ -1,6 +1,13 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+snake_env/
 
 # Visual Studio
 .vs/
@@ -12,3 +19,10 @@ desktop.ini
 
 # PlatformIO
 .pio/
+
+# Flask / Web
+instance/
+*.log
+
+# Claude / AI tools
+.claude/

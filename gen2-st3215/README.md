@@ -39,6 +39,11 @@ Servo UART on the Waveshare Servo Driver with ESP32 defaults to **GPIO 18 RX / 1
 | **10-DOF planar gait** | All joints yaw (shaft along Z). Travelling sine wave; parameters in `src/robot_config.py` |
 | **Current stall detection** | `PRESENT_CURRENT` (addr 69), sign-magnitude, 6.5 mA/count. Trip starts at **1200 mA** — calibrate on hardware |
 | **Evasion FSM** | SLITHER → reverse 2.5 s → turn 4.0 s → resume. Detection is off during the 6.5 s manoeuvre |
+| **Pure pursuit path following** | `src/path_engine.py` — kinematic forward prediction + pure pursuit steering for waypoint tracking |
+| **ESP32 receiver firmware** | `firmware/esp32_st3215_receiver/` — OLED + NeoPixel status, USB + ESP-NOW dual input, ST3215 SCServo bridge |
+| **ESP-NOW wireless transmitter** | `firmware/esp_now_transmitter/` — relays serial commands wirelessly to the receiver ESP32 |
+| **Serial bridge interface** | `src/st3215_interface.py` — PySerial bridge to ESP32 with P/T/I command protocol |
+| **Interactive terminal tester** | `tools/test_st3215_terminal.py` — CLI for position control, centering, telemetry, and ID assignment |
 | **Mock bus** | `SURGE_MOCK=1 python main.py` runs the loop with no serial |
 | **ID programming** | One servo at a time: Arduino `firmware/assign_ids` or `python tools/assign_id.py` |
 
@@ -59,6 +64,8 @@ gen2-st3215/
 │   ├── servo_driver.py          # HAL: ping, torque, sync goal, current
 │   ├── snake_locomotion.py      # Active gait (all-yaw when PLANAR_ALL_YAW)
 │   ├── obstacle_avoidance.py    # Current FSM
+│   ├── st3215_interface.py      # Serial bridge to ESP32 (P/T/I protocol)   ★ NEW
+│   ├── path_engine.py           # Pure pursuit path following engine         ★ NEW
 │   ├── utils.py                 # Sign-magnitude current, encoder ↔ rad
 │   ├── kinematics.py            # Bellows model — not used by main.py
 │   └── torque_controller.py     # PD torque — unused; bus is position mode
@@ -66,12 +73,15 @@ gen2-st3215/
 │   ├── test_st3215_ping.py
 │   └── test_motor_feedback.py
 ├── tools/
-│   └── assign_id.py             # EEPROM unlock + ID write
+│   ├── assign_id.py             # EEPROM unlock + ID write
+│   └── test_st3215_terminal.py  # Interactive CLI servo tester              ★ NEW
 ├── firmware/                    # Arduino: ESP32 Dev Module
 │   ├── assign_ids/
 │   ├── usb_servo_bridge/
 │   ├── robot_esp32/
-│   └── base_esp32/
+│   ├── base_esp32/
+│   ├── esp32_st3215_receiver/   # OLED+NeoPixel receiver (USB+ESP-NOW)      ★ NEW
+│   └── esp_now_transmitter/     # Wireless command relay transmitter        ★ NEW
 └── cad/
     ├── assembly/                # SolidWorks snake assembly
     └── segments/v6/             # Design of record (CadQuery)
@@ -148,6 +158,25 @@ Serial monitor on the robot board (115200) prints MAC and telemetry. Type `RUN` 
 
 Details: [`firmware/README.md`](firmware/README.md).
 
+### ESP32 Receiver + Transmitter (from Snake_SURGE)
+
+The `esp32_st3215_receiver` firmware is a standalone receiver that:
+- Accepts commands over **USB Serial** and **ESP-NOW** simultaneously
+- Drives ST3215 servos via `SCServo.h` library
+- Shows connection status on **SSD1306 OLED** (MAC address, USB/Wireless/Both)
+- **NeoPixel LED** indicators: breathing white (idle), blue (USB), green (wireless), red (overload)
+- Supports `P` (position), `T` (telemetry), `I` (ID assign) commands
+
+The `esp_now_transmitter` relays commands from any USB host to the receiver wirelessly. Plug it into a laptop or Pi, send serial commands, and they are forwarded over ESP-NOW.
+
+### Interactive Terminal Tester
+
+```bash
+python tools/test_st3215_terminal.py --port COM10
+```
+
+Commands: `p <id> <pos>` (move), `c` (center), `t` (telemetry), `i <new_id>` (assign ID), `q` (quit).
+
 ---
 
 ## Control table (implemented)
@@ -185,6 +214,20 @@ SLITHER ──(|I| > 1200 mA)──► SLITHER_REV (2.5 s) ──► SLITHER_TUR
 Turn direction still uses the **sign of present current**, which is torque direction, not obstacle side. Treat side-awareness as a known limitation until joint-index / phase comparison is added.
 
 `kinematics.py` and `torque_controller.py` are present for experiments; **live control is position-mode `SnakeKinematics`**.
+
+### Path Engine (`src/path_engine.py`)
+
+Pure pursuit path following with predictive forward kinematics:
+- `predict_path()` — projects the snake's future kinematic path
+- `calculate_pure_pursuit()` — calculates steering curvature to reach the next lookahead waypoint
+- Used by the [Web Dashboard](../shared/web-dashboard/) and [Desktop App](../shared/desktop-app/) for autonomous path tracking
+
+### ST3215 Interface (`src/st3215_interface.py`)
+
+Serial bridge interface for controlling ST3215 servos via an ESP32 bridge board:
+- `connect()` / `disconnect()` — serial port management
+- `write_positions({id: pos, ...})` — sends `P,id:pos,...\n` commands
+- `read_telemetry()` — sends `T\n` and parses `T,id:load:vel:pos,...` response
 
 ---
 

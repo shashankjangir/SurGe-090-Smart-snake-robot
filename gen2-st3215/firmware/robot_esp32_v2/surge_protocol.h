@@ -1,10 +1,7 @@
 #pragma once
-// Shared ESP-NOW payload (robot ESP32 on Waveshare driver <-> base ESP32).
-
 #include <stdint.h>
 
 #define SURGE_NUM_JOINTS 10
-#define SURGE_ESPNOW_CHANNEL 1
 
 enum SurgeState : uint8_t {
   STATE_SLITHER = 0,
@@ -25,5 +22,5 @@ struct __attribute__((packed)) RobotTelemetry {
 };
 
 struct __attribute__((packed)) RobotCommand {
-  uint8_t run;  // 0=stop/disable torque, 1=gait
+  uint8_t run;
 };
