@@ -15,11 +15,11 @@ const char* ssid = "NF-07-STATS";
 #endif
 const char* password = SURGE_SENSOR_PASSWORD;
 
-WebServer server(80); 
+WebServer server(80);
 
 // --- PIN MAPPING ---
-const int trigPin = 32; 
-const int echoPin = 34; 
+const int trigPin = 32;
+const int echoPin = 34;
 
 // --- OLED SETTINGS ---
 #define SCREEN_WIDTH 128
@@ -27,7 +27,7 @@ const int echoPin = 34;
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-Adafruit_BMP280 bmp; 
+Adafruit_BMP280 bmp;
 Adafruit_MPU6050 mpu;
 bool bmpReady = false, mpuReady = false;
 
@@ -54,10 +54,10 @@ float getAccurateDistance(float tempC) {
     digitalWrite(trigPin, HIGH);
     delayMicroseconds(10);
     digitalWrite(trigPin, LOW);
-    
-    long duration = pulseIn(echoPin, HIGH, 15000); 
+
+    long duration = pulseIn(echoPin, HIGH, 15000);
     if (duration > 0) samples[validCount++] = (duration * soundSpeed_cm_us) / 2.0;
-    delayMicroseconds(500); 
+    delayMicroseconds(500);
   }
 
   if (validCount == 0) return 0.0;
@@ -68,7 +68,7 @@ float getAccurateDistance(float tempC) {
   if (samples[1] > samples[2]) { float t = samples[1]; samples[1] = samples[2]; samples[2] = t; }
   if (samples[0] > samples[1]) { float t = samples[0]; samples[0] = samples[1]; samples[1] = t; }
 
-  return samples[1]; 
+  return samples[1];
 }
 
 // --- FRONTEND UI (100ms Refresh) ---
@@ -95,18 +95,18 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <body>
   <div class="card">
     <h1>Precision Sentry Node</h1>
-    
+
     <h2>Live High-Speed Data (100ms)</h2>
     <div class="row highlight"><div class="label-group"><span class="label">Distance</span><span class="sensor">(HC-SR04)</span></div><div class="value"><span id="dist">--</span> cm</div></div>
-    
+
     <div class="row"><div class="label-group"><span class="label">X-Axis Accel</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="tiltX">--</span> g</div></div>
     <div class="row"><div class="label-group"><span class="label">Y-Axis Accel</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="tiltY">--</span> g</div></div>
     <div class="row"><div class="label-group"><span class="label">Z-Axis Accel</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="tiltZ">--</span> g</div></div>
-    
+
     <div class="row"><div class="label-group"><span class="label">X-Axis Gyro</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="gyroX">--</span> &deg;/s</div></div>
     <div class="row"><div class="label-group"><span class="label">Y-Axis Gyro</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="gyroY">--</span> &deg;/s</div></div>
     <div class="row"><div class="label-group"><span class="label">Z-Axis Gyro</span><span class="sensor">(MPU6050)</span></div><div class="value"><span id="gyroZ">--</span> &deg;/s</div></div>
-    
+
     <div class="row"><div class="label-group"><span class="label">Micro-Temp</span><span class="sensor">(BMP280)</span></div><div class="value"><span id="bmpT">--</span> &deg;C</div></div>
     <div class="row"><div class="label-group"><span class="label">Pressure</span><span class="sensor">(BMP280)</span></div><div class="value"><span id="bmpP">--</span> hPa</div></div>
     <div class="row"><div class="label-group"><span class="label">Altitude</span><span class="sensor">(BMP280)</span></div><div class="value"><span id="bmpA">--</span> m</div></div>
@@ -121,16 +121,16 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
           document.getElementById('tiltX').innerText = data.tiltX.toFixed(2);
           document.getElementById('tiltY').innerText = data.tiltY.toFixed(2);
           document.getElementById('tiltZ').innerText = data.tiltZ.toFixed(2);
-          
+
           document.getElementById('gyroX').innerText = data.gyroX.toFixed(1);
           document.getElementById('gyroY').innerText = data.gyroY.toFixed(1);
           document.getElementById('gyroZ').innerText = data.gyroZ.toFixed(1);
-          
-          document.getElementById('bmpT').innerText = data.bmpT.toFixed(2); 
+
+          document.getElementById('bmpT').innerText = data.bmpT.toFixed(2);
           document.getElementById('bmpP').innerText = data.bmpP.toFixed(1);
           document.getElementById('bmpA').innerText = data.bmpA.toFixed(1);
         }).catch(err => {});
-    }, 100); 
+    }, 100);
   </script>
 </body>
 </html>
@@ -156,14 +156,14 @@ void handleData() {
 
 void setup() {
   Serial.begin(115200);
-  
+
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  
+
   // Standard ESP32 I2C Pins (SDA=21, SCL=22)
-  Wire.begin(); 
+  Wire.begin();
   Wire.setClock(100000); // Standard Mode (Fixes freezing on MPU6050 clones)
-  
+
   // Initialize OLED
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -173,7 +173,7 @@ void setup() {
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.println("Scanning I2C Bus...");
-  
+
   int foundCount = 0;
   int yPos = 10;
   for (byte address = 1; address < 127; address++) {
@@ -209,7 +209,7 @@ void setup() {
     display.display();
     delay(2000);
   }
-  
+
   // Initialize MPU6050 (Try both common addresses)
   mpuReady = mpu.begin(0x68) || mpu.begin(0x69);
   if (mpuReady) {
@@ -227,12 +227,12 @@ void setup() {
 
   // Setup WiFi AP + Station (Allows both SoftAP Web UI and ESP-NOW)
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(ssid, password); 
-  
+  WiFi.softAP(ssid, password);
+
   // Setup ESP-NOW Broadcasting
   if (esp_now_init() == ESP_OK) {
     memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-    peerInfo.channel = 1;  
+    peerInfo.channel = 1;
     peerInfo.encrypt = false;
     esp_now_add_peer(&peerInfo);
   }
@@ -243,7 +243,7 @@ void setup() {
 }
 
 void loop() {
-  server.handleClient(); 
+  server.handleClient();
   unsigned long currentMillis = millis();
 
   // --- MAX SPEED LOOP (100ms) ---
@@ -259,7 +259,7 @@ void loop() {
     accelX = a.acceleration.x / 9.81;
     accelY = a.acceleration.y / 9.81;
     accelZ = a.acceleration.z / 9.81;
-    
+
     // Convert rad/s to Degrees/sec for Gyro
     gyroX = g.gyro.x * 57.2958;
     gyroY = g.gyro.y * 57.2958;
@@ -271,31 +271,31 @@ void loop() {
     bmpTemp = bmp.readTemperature();
     bmpPressure = bmp.readPressure() / 100.0;
     bmpAltitude = bmp.readAltitude(1013.25);
-    } 
-    
+    }
+
     // 4. ESP-NOW Broadcast
     char payload[150];
-    snprintf(payload, sizeof(payload), "T:%.1f P:%.1f D:%.1f X:%.1f Y:%.1f Z:%.1f BMP:%d MPU:%d", 
+    snprintf(payload, sizeof(payload), "T:%.1f P:%.1f D:%.1f X:%.1f Y:%.1f Z:%.1f BMP:%d MPU:%d",
              bmpTemp, bmpPressure, currentDistance, accelX, accelY, accelZ, bmpReady, mpuReady);
     esp_now_send(broadcastAddress, (uint8_t *)payload, strlen(payload));
 
     // 5. Update OLED (Max Data Design)
     display.clearDisplay();
     display.setTextSize(1);
-    
+
     // Line 1: Temp & Distance
     display.setCursor(0, 0);
     display.print("T:"); display.print(bmpTemp, 1); display.print("C  ");
     display.print("D:"); display.print(currentDistance, 1); display.print("cm");
-    
+
     // Line 2: Press & Alt
     display.setCursor(0, 10);
     display.print("P:"); display.print(bmpPressure, 1); display.print("hPa ");
     display.print("A:"); display.print(bmpAltitude, 1); display.print("m");
-    
+
     // Divider
-    display.drawLine(0, 20, 128, 20, SSD1306_WHITE); 
-    
+    display.drawLine(0, 20, 128, 20, SSD1306_WHITE);
+
     // Line 3: Accel
     display.setCursor(0, 24);
     display.print("Accl(G):");
@@ -303,16 +303,16 @@ void loop() {
     display.print("X:"); display.print(accelX, 1);
     display.print(" Y:"); display.print(accelY, 1);
     display.print(" Z:"); display.print(accelZ, 1);
-    
+
     // Line 4: Gyro
     display.setCursor(0, 44);
     display.print("Gyro(d/s):");
     display.print("X:"); display.print(gyroX, 0);
-    
+
     display.setCursor(0, 54);
     display.print("Y:"); display.print(gyroY, 0);
     display.print(" Z:"); display.print(gyroZ, 0);
-    
+
     display.display();
 
     lastFastRead = currentMillis;

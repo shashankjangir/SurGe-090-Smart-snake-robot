@@ -18,13 +18,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   xQueueSend(replies, &reply, 0);
 }
 void setup() {
-  // Keep brownout protection enabled. 
+  // Keep brownout protection enabled.
   pinMode(2, OUTPUT);
   Serial.begin(115200);
   Serial.setTimeout(10);
   replies = xQueueCreate(16, sizeof(RadioReply));
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect(); 
+  WiFi.disconnect();
   esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");

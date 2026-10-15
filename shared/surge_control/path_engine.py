@@ -10,7 +10,7 @@ class PathEngine:
         """Predicts the future kinematic path of the snake."""
         predicted_path = []
         x, y, yaw = current_x, current_y, current_yaw
-        angular_velocity = -turn_offset * speed * 2.0 
+        angular_velocity = -turn_offset * speed * 2.0
         for _ in range(steps):
             x += speed * math.cos(yaw) * dt
             y += speed * math.sin(yaw) * dt
