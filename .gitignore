@@ -26,3 +26,9 @@ instance/
 
 # Claude / AI tools
 .claude/
+
+# Raw historical checkout metadata (history is also in the preserved .bundle).
+removed/baselines/control-checkout-git/
+
+# Local full-resolution videos and other unselected media
+/gen2-st3215/media/local-only/

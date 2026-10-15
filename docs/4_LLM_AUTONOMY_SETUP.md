@@ -1,3 +1,5 @@
+> **Proposal only (Gen 2.1):** no Ollama/LLM client is implemented in the active control loop. The examples below are planning notes, not observed operation.
+
 # LLM Autonomy Setup on Raspberry Pi 5
 
 This guide details how to turn your Raspberry Pi 5 into the "Brain" of the Snake SURGE robot using lightweight Local LLMs.
@@ -16,7 +18,7 @@ Ollama runs as a background service and exposes a REST API on `localhost:11434`.
 
 The Pi 5 relies entirely on its CPU and RAM for AI (it does not have a dedicated AI accelerator out of the box). Therefore, we must use heavily quantized (compressed), small parameter models to achieve real-time responsiveness.
 
-We highly recommend **avoiding Vision/Image models (like LLaVA)**. Analyzing camera frames with a local LLM on a Pi 5 takes several seconds per frame, which is far too slow for real-time robotic control. 
+We highly recommend **avoiding Vision/Image models (like LLaVA)**. Analyzing camera frames with a local LLM on a Pi 5 takes several seconds per frame, which is far too slow for real-time robotic control.
 
 Instead, use these text-based reasoning models:
 

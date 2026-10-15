@@ -1,85 +1,38 @@
-# SURGE-090 · Web Dashboard (Flask)
+# Gen 2.1 Web Dashboard
 
-Browser-based control dashboard for the Snake SURGE robot. Runs a **Flask** web server with a real-time REST API, 2D trajectory canvas, 3D Three.js viewer, motor telemetry, and simulation parameter tuning — all accessible from any device on the network.
+From the repository root:
 
-> **Source:** Integrated from the `Snake_SURGE` standalone prototype.
+```sh
+python -m pip install -r shared/web-dashboard/requirements.txt
+python shared/web-dashboard/web_app.py
+```
 
----
+Open http://127.0.0.1:5000. Select an engine, connect, then explicitly start motion.
+STOP requests torque-off on hardware. A selected hardware serial port or SURGE_PORT
+is required. Flash `receiver_gen2_1`; use `transmitter_gen2_1` for wireless.
 
-## Features
+The worker starts in the command-line entry point; importing `create_app()` has no
+thread, serial or GUI side effects. Embedded users must call `runtime.start_worker()`
+and `runtime.close()`. App routes and the worker serialize access to the interface.
 
-| Feature | Description |
+| Endpoint | Purpose |
 |---|---|
-| **Dual Engine Support** | Switch between PyBullet simulation and ST3215 hardware via the web UI |
-| **2D Path Canvas** | Draw paths with mouse or generate mathematically (`sin(x)`, `cos(x)`, etc.) |
-| **3D Snake Viewer** | Three.js-based real-time 3D visualization of the snake (`/3d` route) |
-| **Live Telemetry** | Real-time angle, speed, and torque for all 10 motors |
-| **Simulation Sliders** | Tune friction, amplitude, frequency, phase lag, motor force, and sim speed |
-| **Path Accuracy Report** | Auto-generates accuracy % and deviation metrics when path is completed |
-| **System Stats** | Live CPU, RAM, and temperature monitoring (ideal for Raspberry Pi) |
-| **Auto-Stop** | Automatically stops and reports when the snake reaches the end of a target path |
+| GET `/`, `/3d` | Dashboard and Three.js viewer |
+| POST `/api/connect` | Connect or disconnect; body engine, port, headless |
+| POST `/api/start`, `/api/stop` | Explicit motion start and torque-off |
+| POST `/api/params` | Validated gait/friction/force/speed settings |
+| POST `/api/set_path` | Simulation path only |
+| POST `/api/controller` | Gamepad input |
+| GET `/api/status` | State, motor validity, sensor values and age |
+| GET `/api/3d_status` | Simplified simulated segment transforms |
+| GET `/api/report` | Mean distance to target polyline and display score |
+| GET `/api/system_stats` | Host CPU/RAM (temperature may be unavailable) |
 
----
+Hardware pose/localization is not implemented. Actual physical trajectory and
+physical accuracy are not inferred from commanded joint positions. Sensor
+broadcasts are displayed separately; missing samples are not normal readings.
+Three.js/font CDN resources need network access in the browser.
 
-## Repository Layout
-
-```
-web-dashboard/
-├── web_app.py              # Flask server + background physics thread
-├── requirements.txt        # Python dependencies
-├── templates/
-│   ├── index.html          # Main dashboard UI
-│   └── 3d_viewer.html      # Three.js 3D snake viewer
-└── static/
-    ├── script.js           # Client-side canvas, API polling, UI logic
-    └── style.css           # Dashboard styling
-```
-
----
-
-## Setup
-
-```bash
-cd web-dashboard
-pip install -r requirements.txt
-```
-
-Dependencies: `flask>=2.0.0`, `psutil>=5.8.0`, `pyserial>=3.5`, `pybullet>=3.2.0`
-
----
-
-## Running
-
-```bash
-python web_app.py
-```
-
-Opens on **http://localhost:5000**. Access the 3D viewer at **http://localhost:5000/3d**.
-
-> **On Raspberry Pi:** Access from any device on the same Wi-Fi network using `http://<pi-ip>:5000`
-
----
-
-## REST API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Main dashboard HTML |
-| `GET` | `/3d` | Three.js 3D viewer HTML |
-| `POST` | `/api/connect` | Connect/disconnect engine (`{"engine": "SIM"` or `"ST3215"}`) |
-| `POST` | `/api/params` | Set simulation parameters (`fric`, `amp`, `freq`, `phase`, `force`, `speed`) |
-| `POST` | `/api/set_path` | Set target path (`{"path": [[x1,y1], [x2,y2], ...]}`) |
-| `GET` | `/api/status` | Get running state, robot pose, telemetry, segments, actual path |
-| `GET` | `/api/3d_status` | Get 3D segment positions + quaternions for Three.js |
-| `GET` | `/api/system_stats` | Get CPU %, RAM %, and Pi temperature |
-| `GET` | `/api/report` | Get path accuracy % and deviation metrics |
-
-> Full protocol details: [`../../docs/API_DOCUMENTATION.md`](../../docs/API_DOCUMENTATION.md)
-
----
-
-## See Also
-
-- **Desktop App:** [`../desktop-app/`](../desktop-app/) — Tkinter desktop control suite (offline use)
-- **PyBullet Simulation:** [`../simulation/pybullet/`](../simulation/pybullet/) — Physics engine details
-- **API Documentation:** [`../../docs/API_DOCUMENTATION.md`](../../docs/API_DOCUMENTATION.md) — Serial protocol templates
+See [operating guide](../../docs/1_APP_USAGE_MANUAL.md) and
+[protocol](../../docs/API_DOCUMENTATION.md). Previous versions are preserved in
+[removed](../../removed/INDEX.md).

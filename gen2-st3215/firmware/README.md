@@ -1,3 +1,28 @@
+# Firmware version guide
+
+## Gen 2.1 integrated targets
+
+Build with `pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e sensor_gen2_1 -e get_mac_oled`.
+Dependencies are declared in root `platformio.ini`; these builds do not flash boards.
+
+The receiver boots torque-off. HELLO identifies Gen 2.1; RUN arms it; targets
+set per-joint speed and enable torque; STOP disables torque. A 750 ms target
+watchdog also disables torque. Wireless acknowledgements return through the relay.
+The established receiver MAC/channel-1 pairing is retained. Do not operate two
+receivers with that same configured MAC together. Radio is not encrypted.
+
+The separate sensor node uses MPU6050 + BMP280 + distance input (TRIG32/ECHO34)
+and OLED on I2C21/22. Its browser dashboard is on its local hotspot. Configure
+SURGE_SENSOR_PASSWORD before use. Use the existing project's 3.3 V-safe sensor
+wiring; code cannot determine which ultrasonic hardware is attached.
+
+**Gen 2.1 is host-driven.** It has not inherited the Gen 2.0 per-group soft start,
+current-evasion FSM, battery cutoff or over-temperature cutoff. Slow commands
+and diagnostic LEDs do not replace those protections. No new firmware has been
+physically tested by the repository integration.
+
+## Gen 2.0 retained firmware
+
 > **Updated 24 Sep 2026.** What we did before and what we do now is recorded in [What changed](#what-changed) at the end of this file.
 
 PlatformIO (VS Code). The project root is the **repo root** — `platformio.ini`
@@ -17,6 +42,12 @@ pio device monitor -e spin_all     # serial monitor
 | `robot_esp32_v2` | **Field firmware of record** (split power bus v3): gait + MPU6050 + ESP-NOW, safe start — see below |
 | `robot_esp32` | *Superseded* by `robot_esp32_v2`. Kept for reference only; do not flash on the v3 power bus |
 | `base_esp32` | ESP32 #2 on the Pi USB |
+| `receiver_gen2_1` | **Gen 2.1 planar receiver** — `HELLO`/`RUN`/`STOP`, per-joint speed, torque watchdog (dashboard / gamepad) |
+| `transmitter_gen2_1` | Gen 2.1 USB↔ESP-NOW command/telemetry relay |
+| `sensor_gen2_1` | Gen 2.1 sensory ESP32 (BMP280 / MPU6050 / ultrasonic / OLED hotspot) |
+| `get_mac_oled` | Show STA MAC on OLED (pairing helper) |
+
+Older `esp32_st3215_receiver` / `esp_now_transmitter` sketches remain for Gen 2.0-era bring-up; Gen 2.1 host control should flash the `*_gen2_1` envs.
 
 Servo UART on the Waveshare driver: GPIO **18 RX / 19 TX**, 1 Mbps. If ping is
 silent, swap those pins. Never put Mean Well 5 V on driver VIN.
@@ -30,7 +61,7 @@ sketches as `.cpp` and give each one its own `[env:...]` block with
 `build_src_filter = -<*> +<folder/*>` — without the leading `-<*>` all folders
 compile into one binary and collide on `setup()`/`loop()`.
 
-## robot_esp32_v2 — field firmware (flash this one)
+## robot_esp32_v2 — Gen 2.0 autonomous field firmware
 
 Written for **split power bus v3** (`docs/hardware/power_split_bus_v3.md`):
 3S LiPo → 15 A fuse → loop key → main line, tapped into 5 groups of 2 servos

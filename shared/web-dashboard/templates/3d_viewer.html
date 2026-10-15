@@ -3,66 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake SURGE 3D Viewer</title>
+    <title>SURGE 090 — 3D Snake Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700;800&family=Bowlby+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #111; color: #eee; font-family: sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; }
-        #status { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; }
+        :root {
+            --color-carbon: #000000;
+            --color-paper-white: #ffffff;
+            --color-sky-wash: #dceeff;
+            --color-electric-blue: #4da2ff;
+            --color-mint-pop: #55db9c;
+            --color-lavender: #e9ccff;
+            --color-ember: #fb4903;
+            --color-sunburst: #ffd731;
+            --radius-pills: 1600px;
+            --radius-cards: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--color-sky-wash);
+            color: var(--color-carbon);
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Slush Top HUD Overlay */
+        .hud-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-left, .hud-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .hud-pill {
+            background-color: var(--color-paper-white);
+            border: 1px solid var(--color-carbon);
+            border-radius: var(--radius-pills);
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.032em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .hud-title {
+            font-family: 'Bowlby One', 'Antonio', sans-serif;
+            font-size: 15px;
+            background-color: var(--color-sunburst);
+        }
+
+        .hud-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid var(--color-carbon);
+            background-color: var(--color-ember);
+        }
+
+        .hud-status-dot.active {
+            background-color: var(--color-mint-pop);
+        }
+
+        .hud-btn {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .hud-btn:hover {
+            transform: translateY(-1px);
+            background-color: var(--color-lavender);
+        }
+
+        /* Bottom Legend */
+        .hud-legend {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .legend-tag {
+            background-color: var(--color-paper-white);
+            border: 1px solid var(--color-carbon);
+            border-radius: var(--radius-pills);
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.032em;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
-    <div id="status">Connecting to 3D Stream...</div>
+    <div class="hud-overlay">
+        <div class="hud-left">
+            <div class="hud-pill hud-title">🐍 SURGE 090 • 3D ENVIRONMENT</div>
+            <div class="hud-pill" id="status-pill">
+                <span class="hud-status-dot" id="status-dot"></span>
+                <span id="status-text">Connecting to 3D Stream...</span>
+            </div>
+        </div>
+        <div class="hud-right">
+            <button class="hud-pill hud-btn" id="btn-reset-cam">Reset View</button>
+            <button class="hud-pill hud-btn" onclick="window.close()" style="background-color: var(--color-carbon); color: var(--color-paper-white);">Close</button>
+        </div>
+    </div>
+
+    <div class="hud-legend">
+        <span class="legend-tag" style="background-color: var(--color-electric-blue); color: #fff;">● Inflatable Blue Body</span>
+        <span class="legend-tag" style="background-color: var(--color-ember); color: #fff;">● Ember Head</span>
+        <span class="legend-tag" style="background-color: var(--color-sunburst);">● Target Trajectory</span>
+    </div>
+
     <div id="canvas-container"></div>
-    
+
     <!-- Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    
+
     <script>
         const container = document.getElementById('canvas-container');
-        const statusEl = document.getElementById('status');
-        
-        // Setup Scene
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.getElementById('status-dot');
+        const btnResetCam = document.getElementById('btn-reset-cam');
+
+        // Setup Scene — Sky Wash pastel background
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x222222);
-        
+        scene.background = new THREE.Color(0xdceeff);
+
         // Setup Camera
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
-        camera.position.set(0, 1.5, 2);
-        
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 100);
+        const DEFAULT_CAM_POS = new THREE.Vector3(0, 1.6, 2.2);
+        camera.position.copy(DEFAULT_CAM_POS);
+
         // Setup Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
-        
+
         // Setup Controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.target.set(0, 0, 0);
-        
-        // Add Lighting
-        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Soft white light
+
+        if (btnResetCam) {
+            btnResetCam.addEventListener('click', () => {
+                camera.position.copy(DEFAULT_CAM_POS);
+                controls.target.set(0, 0, 0);
+            });
+        }
+
+        // Lighting for soft pastel aesthetic
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambientLight);
-        
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        dirLight.position.set(5, 10, 5);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 12, 6);
         dirLight.castShadow = true;
         scene.add(dirLight);
-        
-        // Add Ground Plane (Checkerboard like PyBullet)
-        const gridHelper = new THREE.GridHelper(200, 400, 0x888888, 0x444444);
+
+        // Ground Plane — Crisp cartoon grid on paper white ground
+        const gridHelper = new THREE.GridHelper(100, 200, 0x000000, 0xc0d8f0);
         gridHelper.position.y = 0;
         scene.add(gridHelper);
-        
+
+        const groundGeo = new THREE.PlaneGeometry(100, 100);
+        const groundMat = new THREE.MeshBasicMaterial({ color: 0xf5f9ff });
+        const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+        groundMesh.rotation.x = -Math.PI / 2;
+        groundMesh.position.y = -0.001;
+        scene.add(groundMesh);
+
         // Setup Paths
-        const targetMaterial = new THREE.LineBasicMaterial({ color: 0x0088ff, linewidth: 2, depthTest: false });
+        const targetMaterial = new THREE.LineBasicMaterial({ color: 0xffd731, linewidth: 3, depthTest: false });
         const targetLine = new THREE.Line(new THREE.BufferGeometry(), targetMaterial);
         targetLine.renderOrder = 1;
         targetLine.frustumCulled = false;
         scene.add(targetLine);
-        
-        const actualMaterial = new THREE.LineBasicMaterial({ color: 0xff3333, linewidth: 2, depthTest: false });
+
+        const actualMaterial = new THREE.LineBasicMaterial({ color: 0xfb4903, linewidth: 2, depthTest: false });
         const actualLine = new THREE.Line(new THREE.BufferGeometry(), actualMaterial);
         actualLine.renderOrder = 2;
         actualLine.frustumCulled = false;
@@ -74,29 +229,38 @@
                 return;
             }
             const points = [];
-            for(let i=0; i<pathData.length; i++) {
-                points.push(new THREE.Vector3(pathData[i][0], 0.01, -pathData[i][1]));
+            for (let i = 0; i < pathData.length; i++) {
+                points.push(new THREE.Vector3(pathData[i][0], 0.015, -pathData[i][1]));
             }
             lineObj.geometry.setFromPoints(points);
         }
-        
+
         // Snake Segments Array
         const segments = [];
         let previousHeadPos = new THREE.Vector3(0, 0, 0);
         let firstFrame = true;
 
-        // Helper to create a snake segment mesh
+        // Slush Inflatable Ribbon styling for snake segment meshes
         function createSegmentMesh(isHead) {
-            // URDF size roughly 40x40x80 mm
-            const geometry = new THREE.BoxGeometry(0.04, 0.04, 0.08);
-            const material = new THREE.MeshPhongMaterial({ 
-                color: isHead ? 0xff0000 : 0x00aaff,
-                specular: 0x222222,
-                shininess: 30
+            // Rounded box geometry roughly 40x40x80 mm
+            const geometry = new THREE.BoxGeometry(0.045, 0.045, 0.085);
+
+            // Slush Electric Blue (#4da2ff) body, Ember (#fb4903) head
+            const material = new THREE.MeshStandardMaterial({
+                color: isHead ? 0xfb4903 : 0x4da2ff,
+                roughness: 0.35,
+                metalness: 0.05
             });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+
+            // Black outline effect around each segment
+            const wireGeo = new THREE.EdgesGeometry(geometry);
+            const wireMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+            const wireMesh = new THREE.LineSegments(wireGeo, wireMat);
+            mesh.add(wireMesh);
+
             return mesh;
         }
 
@@ -104,75 +268,56 @@
             try {
                 const res = await fetch('/api/3d_status');
                 const data = await res.json();
-                
+
                 if (data.segments && data.segments.length > 0) {
-                    statusEl.textContent = "Live 3D Stream (PyBullet)";
-                    statusEl.style.color = "#00ff00";
-                    
-                    // Create meshes if they don't exist
+                    statusText.textContent = "Live 3D Stream (PyBullet)";
+                    statusDot.className = "hud-status-dot active";
+
                     while (segments.length < data.segments.length) {
                         const isHead = segments.length === 0;
                         const mesh = createSegmentMesh(isHead);
                         scene.add(mesh);
                         segments.push(mesh);
                     }
-                    
-                    // Update positions and rotations
+
                     for (let i = 0; i < data.segments.length; i++) {
                         const sData = data.segments[i];
-                        // PyBullet coordinates: Z is up. Three.js: Y is up.
-                        // Wait, let's map: PyBullet (X, Y, Z) -> Three.js (X, Z, -Y) 
-                        // Actually, Threejs camera setup makes Y up.
-                        // Let's just directly map it and see, or we can just apply a quaternion rotation to the whole scene to flip Z to Y.
-                        
                         segments[i].position.set(sData.pos[0], sData.pos[2], -sData.pos[1]);
-                        
-                        // Quaternions need to be mapped similarly if axes are swapped.
-                        // PyBullet: qx, qy, qz, qw
-                        // Three.js: x, y, z, w
-                        // If we map positions as x=x, y=z, z=-y, we must map quat as well.
                         segments[i].quaternion.set(sData.quat[0], sData.quat[2], -sData.quat[1], sData.quat[3]);
                     }
-                    
-                    // Optional: Make camera follow the head
+
                     if (segments.length > 0) {
                         const headPos = segments[0].position;
-                        
+
                         if (!firstFrame) {
                             const delta = new THREE.Vector3().subVectors(headPos, previousHeadPos);
                             camera.position.add(delta);
                         } else {
                             firstFrame = false;
                         }
-                        
+
                         controls.target.copy(headPos);
                         previousHeadPos.copy(headPos);
-                        
-                        // Make grid strictly follow the snake, snapping to 0.5m grid lines
+
                         gridHelper.position.x = Math.round(headPos.x / 0.5) * 0.5;
                         gridHelper.position.z = Math.round(headPos.z / 0.5) * 0.5;
                     }
-                    
-                    // Update paths
+
                     updatePath(targetLine, data.target_path);
                     updatePath(actualLine, data.actual_path);
                 } else {
-                    statusEl.textContent = "Waiting for Simulation...";
-                    statusEl.style.color = "#ffaa00";
-                    
-                    // Hide meshes
+                    statusText.textContent = "Waiting for Simulation Engine...";
+                    statusDot.className = "hud-status-dot";
                     segments.forEach(m => m.visible = false);
                 }
             } catch (e) {
-                statusEl.textContent = "Stream Disconnected";
-                statusEl.style.color = "#ff0000";
+                statusText.textContent = "Stream Disconnected";
+                statusDot.className = "hud-status-dot";
             }
         }
-        
-        // Start polling
-        setInterval(poll3DStatus, 50); // 20 FPS
-        
-        // Render Loop
+
+        setInterval(poll3DStatus, 50);
+
         function animate() {
             requestAnimationFrame(animate);
             segments.forEach(m => m.visible = true);
@@ -180,8 +325,7 @@
             renderer.render(scene, camera);
         }
         animate();
-        
-        // Handle Resize
+
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();

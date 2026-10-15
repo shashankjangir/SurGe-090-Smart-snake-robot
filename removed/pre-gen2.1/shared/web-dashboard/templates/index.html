@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake SURGE Web Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Nav / System Stats -->
+        <header class="top-nav">
+            <div class="logo">
+                <h1>🐍 Snake SURGE</h1>
+                <span class="badge">Web Control</span>
+            </div>
+            <div class="system-stats">
+                <div class="stat-box">
+                    <span class="label">CPU</span>
+                    <span class="value" id="sys-cpu">--%</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">RAM</span>
+                    <span class="value" id="sys-ram">--%</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">TEMP</span>
+                    <span class="value temp" id="sys-temp">--°C</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Controls -->
+            <aside class="control-panel">
+                <section class="card">
+                    <h2>Connection Engine</h2>
+                    <div class="engine-selector">
+                        <label>
+                            <input type="radio" name="engine" value="ST3215" checked>
+                            Hardware (ST3215 on COM10)
+                        </label>
+                        <label>
+                            <input type="radio" name="engine" value="SIM">
+                            Simulation (PyBullet)
+                        </label>
+                        <label style="margin-left: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" id="sim-headless" checked>
+                            Run Headless (Fast)
+                        </label>
+                    </div>
+                    
+                    <button id="btn-connect" class="btn-primary">Connect Engine</button>
+                    <div class="status-indicator">
+                        <span class="dot" id="status-dot"></span>
+                        <span id="conn-status">Disconnected</span>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Mathematical Path</h2>
+                    <div class="input-group">
+                        <label>Function (y=)</label>
+                        <input type="text" id="math-func" value="sin(x)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>From x=</label>
+                            <input type="number" id="math-a" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label>To x=</label>
+                            <input type="number" id="math-b" value="10">
+                        </div>
+                    </div>
+                    <button id="btn-generate" class="btn-secondary">Generate Path</button>
+                </section>
+            </aside>
+
+            <!-- Center Panel: Canvas -->
+            <main class="canvas-container card">
+                <h2>Live Trajectory Tracking</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="pathCanvas" width="700" height="500"></canvas>
+                </div>
+            </main>
+
+            <!-- Right Panel: Sim Controls -->
+            <aside class="control-panel right">
+                <section class="card" id="sim-controls-card">
+                    <h2>Simulation Controls</h2>
+                    <div class="input-group">
+                        <label>Friction Wheel Ratio: <span id="val-fric">20.0</span></label>
+                        <input type="range" id="param-fric" class="sim-param" min="1" max="50" step="0.5" value="20.0">
+                    </div>
+                    <div class="input-group">
+                        <label>Sine Amplitude: <span id="val-amp">0.8</span></label>
+                        <input type="range" id="param-amp" class="sim-param" min="0.1" max="1.5" step="0.1" value="0.8">
+                    </div>
+                    <div class="input-group">
+                        <label>Sine Frequency: <span id="val-freq">2.0</span></label>
+                        <input type="range" id="param-freq" class="sim-param" min="0.1" max="5.0" step="0.1" value="2.0">
+                    </div>
+                    <div class="input-group">
+                        <label>Phase Lag: <span id="val-phase">1.0</span></label>
+                        <input type="range" id="param-phase" class="sim-param" min="0.1" max="3.0" step="0.1" value="1.0">
+                    </div>
+                    <div class="input-group">
+                        <label>Max Motor Force: <span id="val-force">5.0</span></label>
+                        <input type="range" id="param-force" class="sim-param" min="0.1" max="20.0" step="0.5" value="5.0">
+                    </div>
+                    <div class="input-group">
+                        <label>Simulation Speed: <span id="val-speed">1.0</span>x</label>
+                        <input type="range" id="param-speed" class="sim-param" min="0.1" max="10.0" step="0.1" value="1.0">
+                    </div>
+                    <button id="btn-open-3d" class="btn-secondary" style="margin-top: 15px; width: 100%;">Open 3D Viewer 🌐</button>
+                </section>
+
+                <section class="card">
+                    <h2>Manual Draw</h2>
+                    <p class="help-text">Click and drag on the canvas to trace a custom path for the robot.</p>
+                    <button id="btn-clear" class="btn-danger">Clear Canvas</button>
+                </section>
+            </aside>
+        </div>
+        
+        <!-- Bottom Panel: Telemetry -->
+        <footer class="telemetry-panel card">
+            <h2>Actuator Telemetry</h2>
+            <div class="telemetry-grid" id="telemetry-grid">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </footer>
+
+        <!-- Accuracy Report Modal -->
+        <div id="accuracy-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content card">
+                <h2>Path Tracking Accuracy Report</h2>
+                <div class="report-stats">
+                    <div class="stat">
+                        <span>Accuracy</span>
+                        <span id="report-accuracy" class="value">--%</span>
+                    </div>
+                    <div class="stat">
+                        <span>Avg Deviation</span>
+                        <span id="report-deviation" class="value">-- m</span>
+                    </div>
+                </div>
+                <div class="modal-canvas-wrapper">
+                    <canvas id="reportCanvas" width="600" height="400"></canvas>
+                </div>
+                <button id="btn-close-modal" class="btn-primary">Close Report</button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

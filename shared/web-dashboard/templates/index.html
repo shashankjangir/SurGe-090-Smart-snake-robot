@@ -3,157 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake SURGE Web Dashboard</title>
+    <title>SURGE 090 — Smart Snake Robot Dashboard</title>
+    <!-- Google Fonts: Antonio & Bowlby One for crushed display, Inter for UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700;800&family=Bowlby+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Top Nav / System Stats -->
-        <header class="top-nav">
-            <div class="logo">
-                <h1>🐍 Snake SURGE</h1>
-                <span class="badge">Web Control</span>
+    <!-- Full-bleed Marquee Scrolling Banner (Slush signature announcement strip) -->
+    <aside class="marquee-banner" aria-label="Announcement strip">
+        <div class="marquee-track">
+            <div class="marquee-content">
+                <span class="star">✦</span>
+                <span>SURGE-090 SMART SNAKE ROBOT</span>
+                <span class="star">✦</span>
+                <span class="accent-mint">GEN 2.1 ACTIVE CONTROL OF RECORD</span>
+                <span class="star">✦</span>
+                <span>10-SEGMENT SERPENOID KINEMATICS</span>
+                <span class="star">✦</span>
+                <span class="accent-lavender">PyBullet 3D SIM & ST3215 BUS COMPATIBLE</span>
+                <span class="star">✦</span>
+                <span class="accent-ember">50HZ REAL-TIME TELEMETRY LOOP</span>
+                <span class="star">✦</span>
+                <span>±70° HARDWARE POSITION CLAMP</span>
             </div>
-            <div class="system-stats">
-                <div class="stat-box">
-                    <span class="label">CPU</span>
-                    <span class="value" id="sys-cpu">--%</span>
+            <div class="marquee-content" aria-hidden="true">
+                <span class="star">✦</span>
+                <span>SURGE-090 SMART SNAKE ROBOT</span>
+                <span class="star">✦</span>
+                <span class="accent-mint">GEN 2.1 ACTIVE CONTROL OF RECORD</span>
+                <span class="star">✦</span>
+                <span>10-SEGMENT SERPENOID KINEMATICS</span>
+                <span class="star">✦</span>
+                <span class="accent-lavender">PyBullet 3D SIM & ST3215 BUS COMPATIBLE</span>
+                <span class="star">✦</span>
+                <span class="accent-ember">50HZ REAL-TIME TELEMETRY LOOP</span>
+                <span class="star">✦</span>
+                <span>±70° HARDWARE POSITION CLAMP</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <div class="logo-badge" title="SurGe Snake Logo">S</div>
+                <div class="brand-text">
+                    <span class="brand-title">SURGE 090</span>
+                    <span class="brand-subtitle">Smart Snake System</span>
                 </div>
-                <div class="stat-box">
-                    <span class="label">RAM</span>
-                    <span class="value" id="sys-ram">--%</span>
-                </div>
-                <div class="stat-box">
-                    <span class="label">TEMP</span>
-                    <span class="value temp" id="sys-temp">--°C</span>
+            </div>
+
+            <nav class="nav-pills" aria-label="Quick links">
+                <a href="#control-hub" class="nav-pill active">🎮 Controls</a>
+                <a href="#canvas-hub" class="nav-pill">📍 Trajectory</a>
+                <a href="#telemetry-hub" class="nav-pill">⚡ Telemetry</a>
+                <button id="btn-open-3d" class="nav-pill" style="border: 1px solid var(--color-carbon); background: var(--color-paper-white);">🌐 3D Viewer</button>
+            </nav>
+
+            <div class="nav-right">
+                <div class="system-stats">
+                    <div class="stat-pill pill-cpu" title="Host CPU utilization">
+                        <span class="stat-label">CPU</span>
+                        <span class="stat-value" id="sys-cpu">--%</span>
+                    </div>
+                    <div class="stat-pill pill-ram" title="Host RAM utilization">
+                        <span class="stat-label">RAM</span>
+                        <span class="stat-value" id="sys-ram">--%</span>
+                    </div>
+                    <div class="stat-pill pill-temp" title="System temperature">
+                        <span class="stat-label">TEMP</span>
+                        <span class="stat-value" id="sys-temp">--°C</span>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div class="main-content">
-            <!-- Left Panel: Controls -->
-            <aside class="control-panel">
-                <section class="card">
-                    <h2>Connection Engine</h2>
-                    <div class="engine-selector">
-                        <label>
-                            <input type="radio" name="engine" value="ST3215" checked>
-                            Hardware (ST3215 on COM10)
-                        </label>
-                        <label>
-                            <input type="radio" name="engine" value="SIM">
-                            Simulation (PyBullet)
-                        </label>
-                        <label style="margin-left: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox" id="sim-headless" checked>
-                            Run Headless (Fast)
-                        </label>
-                    </div>
-                    
-                    <button id="btn-connect" class="btn-primary">Connect Engine</button>
+        <!-- Slush Hero Poster: Inflatable Blue Ribbon + Crushed Display Headline -->
+        <section class="hero-section">
+            <!-- 3D Electric Blue Tubular Ribbon sculpture in background -->
+            <div class="hero-ribbon-bg">
+                <img src="/static/images/inflatable_blue_ribbon.jpg" alt="3D Inflatable Electric Blue Snake Ribbon">
+            </div>
+
+            <!-- Scattered 2D Sticker Confetti -->
+            <div class="sticker sticker-ember sticker-pos-1">🚀 11 LINKS / 10 JOINTS</div>
+            <div class="sticker sticker-sunburst sticker-pos-2">⭐ PLANAR SERPENOID</div>
+            <div class="sticker sticker-mint sticker-pos-3">✔ ±70° ANGLE LIMIT</div>
+            <div class="sticker sticker-violet sticker-pos-4">⚡ ST3215 PROTOCOL</div>
+
+            <div class="hero-content">
+                <h1 class="display-headline">SURGE 090</h1>
+                <p class="hero-tagline">Gen 2.1 Modular Snake Control</p>
+                <div class="hero-actions">
+                    <label>Serial port <input id="serial-port" placeholder="COM3 or /dev/ttyUSB0"></label>
+                    <button id="btn-start" class="btn btn-primary">Start motion</button>
+                    <button id="btn-stop" class="btn btn-danger">STOP / torque off</button>
+                    <button id="btn-connect" class="btn btn-primary">Connect Engine</button>
+                    <a href="#canvas-hub" class="btn btn-secondary">Trace Trajectory</a>
                     <div class="status-indicator">
                         <span class="dot" id="status-dot"></span>
                         <span id="conn-status">Disconnected</span>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard 3-Column Layout -->
+        <div class="main-content" id="control-hub">
+            <!-- Left Column: Connection & Math Engine & Gamepad -->
+            <aside class="control-panel">
+                <!-- Connection Engine Card -->
+                <section class="card">
+                    <div class="card-header-row">
+                        <h2>Connection Engine</h2>
+                        <span class="card-tag">Gen 2.1</span>
+                    </div>
+                    <div class="engine-selector">
+                        <label class="pill-option">
+                            <input type="radio" name="engine" value="SIM" checked>
+                            <span>Simulation (PyBullet Planar)</span>
+                        </label>
+                        <label class="pill-option">
+                            <input type="radio" name="engine" value="ST3215">
+                            <span>Hardware (ST3215 + ESP32)</span>
+                        </label>
+                        <label class="pill-option" style="background-color: var(--color-soft-mist);">
+                            <input type="checkbox" id="sim-headless" checked>
+                            <span>Headless Sim (Safe Default)</span>
+                        </label>
+                    </div>
                 </section>
 
-                <section class="card">
-                    <h2>Mathematical Path</h2>
+                <!-- Mathematical Path Card -->
+                <section class="card card-lavender">
+                    <div class="card-header-row">
+                        <h2>Mathematical Path</h2>
+                        <span class="card-tag">Generator</span>
+                    </div>
                     <div class="input-group">
-                        <label>Function (y=)</label>
-                        <input type="text" id="math-func" value="sin(x)">
+                        <label for="math-func">Function y = f(x)</label>
+                        <input type="text" id="math-func" value="sin(x)" placeholder="e.g. sin(x) * 0.5">
                     </div>
                     <div class="input-row">
-                        <div class="input-group">
-                            <label>From x=</label>
+                        <div class="input-group" style="flex: 1;">
+                            <label for="math-a">From x</label>
                             <input type="number" id="math-a" value="0">
                         </div>
-                        <div class="input-group">
-                            <label>To x=</label>
+                        <div class="input-group" style="flex: 1;">
+                            <label for="math-b">To x</label>
                             <input type="number" id="math-b" value="10">
                         </div>
                     </div>
-                    <button id="btn-generate" class="btn-secondary">Generate Path</button>
+                    <button id="btn-generate" class="btn btn-primary" style="margin-top: 4px;">Generate Path</button>
                 </section>
+
+                <!-- Gamepad State Card -->
+                <section class="card" id="gamepad-card">
+                    <div class="card-header-row">
+                        <h2>Gamepad State</h2>
+                        <span class="card-tag">Live Feed</span>
+                    </div>
+                    <div class="gamepad-layout">
+                        <div class="stick-container">
+                            <label>Left Stick (Steer)</label>
+                            <div class="stick-box">
+                                <div class="stick-dot" id="stick-dot"></div>
+                            </div>
+                        </div>
+                        <div class="gamepad-controls">
+                            <div class="trigger-bar-container">
+                                <label>RT (input display)</label>
+                                <div class="trigger-bar-bg">
+                                    <div class="trigger-bar-fill" id="rt-fill"></div>
+                                </div>
+                            </div>
+                            <div class="face-buttons">
+                                <div class="gamepad-btn" id="btn-vis-preset">PRESET <span>(Y)</span></div>
+                                <div class="gamepad-btn" id="btn-vis-reverse">REV <span>(X)</span></div>
+                                <div class="gamepad-btn" id="btn-vis-stop">STOP <span>(B)</span></div>
+                                <div class="gamepad-btn" id="btn-vis-start">START <span>(A)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slush QR Download Card -->
+                <div class="qr-card">
+                    <div class="qr-panel">
+                        <!-- Stylized QR Code SVG icon with 1px black outline -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
+                            <rect x="14" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
+                            <rect x="2" y="14" width="8" height="8" rx="2" fill="#000000"></rect>
+                            <circle cx="6" cy="6" r="1.5" fill="#ffffff"></circle>
+                            <circle cx="18" cy="6" r="1.5" fill="#ffffff"></circle>
+                            <circle cx="6" cy="18" r="1.5" fill="#ffffff"></circle>
+                            <rect x="14" y="14" width="4" height="4" fill="#000000"></rect>
+                            <rect x="18" y="18" width="4" height="4" fill="#000000"></rect>
+                        </svg>
+                    </div>
+                    <div class="qr-label-panel">
+                        <div class="qr-badge-title">GAMEPAD NODE</div>
+                        <div class="qr-badge-desc">Run controller_node.py to steer snake wirelessly</div>
+                    </div>
+                </div>
             </aside>
 
-            <!-- Center Panel: Canvas -->
-            <main class="canvas-container card">
-                <h2>Live Trajectory Tracking</h2>
+            <!-- Center Column: Trajectory Tracking Canvas -->
+            <main class="canvas-container" id="canvas-hub">
+                <div class="canvas-toolbar">
+                    <h2>Live Trajectory Tracking</h2>
+                    <div class="canvas-badges">
+                        <span class="badge-pill badge-target">● Target Path</span>
+                        <span class="badge-pill badge-actual">● Actual Path</span>
+                        <span class="badge-pill badge-snake">● 10 Segments</span>
+                    </div>
+                </div>
                 <div class="canvas-wrapper">
                     <canvas id="pathCanvas" width="700" height="500"></canvas>
                 </div>
+                <div class="canvas-controls-footer">
+                    <p class="canvas-instructions">
+                        💡 <strong>Controls:</strong> Left click & drag to draw custom path • Right click & drag or Arrow keys to pan • Scroll to zoom
+                    </p>
+                    <button id="btn-clear" class="btn btn-danger btn-sm">Clear Canvas</button>
+                </div>
             </main>
 
-            <!-- Right Panel: Sim Controls -->
-            <aside class="control-panel right">
+            <!-- Right Column: Simulation & Physics Tuning -->
+            <aside class="control-panel">
                 <section class="card" id="sim-controls-card">
-                    <h2>Simulation Controls</h2>
+                    <div class="card-header-row">
+                        <h2>Simulation Physics</h2>
+                        <span class="card-tag">Tuning</span>
+                    </div>
                     <div class="input-group">
-                        <label>Friction Wheel Ratio: <span id="val-fric">20.0</span></label>
+                        <label>Friction Wheel Ratio: <span id="val-fric" style="font-family: monospace;">20.0</span></label>
                         <input type="range" id="param-fric" class="sim-param" min="1" max="50" step="0.5" value="20.0">
                     </div>
                     <div class="input-group">
-                        <label>Sine Amplitude: <span id="val-amp">0.8</span></label>
-                        <input type="range" id="param-amp" class="sim-param" min="0.1" max="1.5" step="0.1" value="0.8">
+                        <label>Sine Amplitude: <span id="val-amp" style="font-family: monospace;">0.8</span></label>
+                        <input type="range" id="param-amp" class="sim-param" min="0.1" max="1.2" step="0.1" value="0.8">
                     </div>
                     <div class="input-group">
-                        <label>Sine Frequency: <span id="val-freq">2.0</span></label>
+                        <label>Sine Frequency: <span id="val-freq" style="font-family: monospace;">2.0</span></label>
                         <input type="range" id="param-freq" class="sim-param" min="0.1" max="5.0" step="0.1" value="2.0">
                     </div>
                     <div class="input-group">
-                        <label>Phase Lag: <span id="val-phase">1.0</span></label>
+                        <label>Phase Lag: <span id="val-phase" style="font-family: monospace;">1.0</span></label>
                         <input type="range" id="param-phase" class="sim-param" min="0.1" max="3.0" step="0.1" value="1.0">
                     </div>
                     <div class="input-group">
-                        <label>Max Motor Force: <span id="val-force">5.0</span></label>
-                        <input type="range" id="param-force" class="sim-param" min="0.1" max="20.0" step="0.5" value="5.0">
+                        <label>Max Motor Force: <span id="val-force" style="font-family: monospace;">5.0</span></label>
+                        <input type="range" id="param-force" class="sim-param" min="0.1" max="2.94" step="0.01" value="2.0">
                     </div>
                     <div class="input-group">
-                        <label>Simulation Speed: <span id="val-speed">1.0</span>x</label>
-                        <input type="range" id="param-speed" class="sim-param" min="0.1" max="10.0" step="0.1" value="1.0">
+                        <label>Gait Speed: <span id="val-speed" style="font-family: monospace;">1.0</span>x</label>
+                        <input type="range" id="param-speed" class="sim-param" min="0.1" max="3.0" step="0.1" value="1.0">
                     </div>
-                    <button id="btn-open-3d" class="btn-secondary" style="margin-top: 15px; width: 100%;">Open 3D Viewer 🌐</button>
+                    <div class="input-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-carbon);">
+                        <label class="pill-option" style="background-color: var(--color-sunburst); margin-bottom: 0;">
+                            <input type="checkbox" id="param-lowpower" class="sim-param">
+                            <span>Low Power Mode (&lt; 2A Safe)</span>
+                        </label>
+                    </div>
                 </section>
 
-                <section class="card">
-                    <h2>Manual Draw</h2>
-                    <p class="help-text">Click and drag on the canvas to trace a custom path for the robot.</p>
-                    <button id="btn-clear" class="btn-danger">Clear Canvas</button>
+                <section class="card card-mint">
+                    <div class="card-header-row">
+                        <h2>Quick Actions</h2>
+                        <span class="card-tag">Tools</span>
+                    </div>
+                    <p class="help-text">Inspect real-time snake kinematics in the standalone 3D Three.js environment.</p>
+                    <button onclick="window.open('/3d', 'Snake 3D Viewer', 'width=960,height=720')" class="btn btn-secondary w-full">Launch 3D Viewer 🌐</button>
                 </section>
             </aside>
         </div>
-        
-        <!-- Bottom Panel: Telemetry -->
-        <footer class="telemetry-panel card">
-            <h2>Actuator Telemetry</h2>
-            <div class="telemetry-grid" id="telemetry-grid">
-                <!-- Dynamically populated by JS -->
+
+        <!-- Bottom Panel: 10-Joint Actuator Telemetry -->
+        <section class="telemetry-section" id="telemetry-hub">
+            <div class="telemetry-section-header">
+                <div class="telemetry-title-block">
+                    <h2>10-Joint Actuator Telemetry</h2>
+                    <span class="card-tag">ST3215 Bus</span>
+                </div>
+                <div class="canvas-badges">
+                    <span class="badge-pill" style="background-color: var(--color-lavender);">Angle (°)</span>
+                    <span class="badge-pill" style="background-color: var(--color-mint-pop);">Speed (raw)</span>
+                    <span class="badge-pill" style="background-color: var(--color-sunburst);">Torque (kg·cm)</span>
+                </div>
             </div>
-        </footer>
+            <div class="telemetry-grid" id="telemetry-grid">
+                <!-- Dynamically populated by script.js -->
+            </div>
+        </section>
 
         <!-- Accuracy Report Modal -->
         <div id="accuracy-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content card">
-                <h2>Path Tracking Accuracy Report</h2>
+            <div class="modal-content">
+                <h2>Simulation Path Deviation</h2>
                 <div class="report-stats">
                     <div class="stat">
-                        <span>Accuracy</span>
+                        <span>Accuracy Score</span>
                         <span id="report-accuracy" class="value">--%</span>
                     </div>
                     <div class="stat">
                         <span>Avg Deviation</span>
-                        <span id="report-deviation" class="value">-- m</span>
+                        <span id="report-deviation" class="value" style="font-family: monospace; font-size: 24px;">-- m</span>
                     </div>
                 </div>
                 <div class="modal-canvas-wrapper">
-                    <canvas id="reportCanvas" width="600" height="400"></canvas>
+                    <canvas id="reportCanvas" width="600" height="320"></canvas>
                 </div>
-                <button id="btn-close-modal" class="btn-primary">Close Report</button>
+                <button id="btn-close-modal" class="btn btn-primary w-full">Close Report</button>
             </div>
         </div>
     </div>
+
+    <section class="card"><h2>Sensor node</h2><pre id="sensor-status">No sensor data</pre></section>
     <script src="/static/script.js"></script>
 </body>
 </html>

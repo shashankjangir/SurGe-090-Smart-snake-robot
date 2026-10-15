@@ -1,21 +1,25 @@
+> **Project status — 16 October 2026:** Gen 2.0 and Gen 2.1 are working in project trials, confirmed by the project maintainer. See the [photos](media/README.md).
+
+> **Versions:** Gen 2.0 is the planar design baseline. Gen 2.1 host control uses `receiver_gen2_1` and `shared/surge_control`; Gen 3.0 remains experimental. See [version map](../docs/versions/VERSIONS.md).
+
 # SURGE-090 · Generation 2 (Waveshare ST3215)
 
 Python bench stack and ESP32 firmware for the **ST3215** snake. This is **not** a Dynamixel / XL330 tree. Generation 1 lives in [`../gen1-dynamixel/`](../gen1-dynamixel/). Project-wide context: [`../README.md`](../README.md). Porting notes: [`PORTING_STATUS.md`](PORTING_STATUS.md).
 
-**Motors:** Waveshare / Feetech ST3215 (SMS/STS, 12-bit encoder, ~2.94 N·m @ 12 V).  
-**Bus:** Feetech Protocol 1-style, **1 Mbps**, daisy-chained 3-pin TTL.  
-**Power:** 3S LiPo into driver **VIN (6.0–12.6 V)**. Never 5 V Mean Well on the servo rail.
+**Motors:** Waveshare / Feetech ST3215 (SMS/STS, 12-bit encoder, ~2.94 N·m @ 12 V).
+**Bus:** Feetech Protocol 1-style, **1 Mbps**, daisy-chained 3-pin TTL.
+**Power:** split bus v3: 3S LiPo to five fused servo pairs; separate 7.5 V buck to driver, servo-port +V disconnected. See `../docs/hardware/power_split_bus_v3.md`.
 
 ---
 
-## Two ways to run
+## Gen 2.0 execution modes
 
 | Mode | Master | When |
 |---|---|---|
 | **Bench** | PC / Pi Python (`main.py`) | USB CDC through the Waveshare ESP32 flashed as a **transparent 1 Mbps bridge** |
-| **Field** | Robot ESP32 (`firmware/robot_esp32`) | Onboard gait, current stall FSM, MPU6050, ESP-NOW telemetry |
+| **Field** | Robot ESP32 (`firmware/robot_esp32_v2`) | Onboard gait, current stall FSM, MPU6050, ESP-NOW telemetry |
 
-The two modes are mutually exclusive on the same board: flash **either** `usb_servo_bridge` **or** `robot_esp32`.
+The two modes are mutually exclusive on the same board: flash **either** `usb_servo_bridge` **or** `robot_esp32_v2`.
 
 ```
 Bench
@@ -150,7 +154,7 @@ Ctrl+C disables torque in the `finally` block.
 
 ### Field
 
-1. Flash `firmware/robot_esp32` on the Waveshare driver (gait master).
+1. Flash `firmware/robot_esp32_v2` on the Waveshare driver (gait master).
 2. Flash `firmware/base_esp32` on a second ESP32 plugged into the Pi.
 3. On the Pi: `python base_station.py --port /dev/ttyUSB0`
 
