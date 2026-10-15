@@ -1,5 +1,9 @@
 # Gen 2.1 Desktop and Headless App
 
+Gen 2.1 is working in project trials, confirmed on 16 October 2026. See the
+[Gen 2 prototype photos](../../gen2-st3215/media/README.md) and
+[version map](../../docs/versions/VERSIONS.md). Gen 3.0 is in development.
+
 The launcher `app.py` uses the shared Gen 2.1 package. `dashboard.py` retains the
 Tkinter path drawing, math-path generator, PyBullet controls and plotting interface.
 GUI dependencies load only when `--gui` is selected.

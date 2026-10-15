@@ -12,14 +12,15 @@ parameter has been measured.
 
 ![Gen 2 physical prototype](gen2-st3215/media/20260925_164442.jpg)
 
-See the [Gen 2 photo gallery](gen2-st3215/media/README.md).
+See the [Gen 2 photo gallery](gen2-st3215/media/README.md): nine photos, including
+the cropped images updated on 16 October 2026. Videos have not been added.
 
 | Version | Name | Scope and location |
 |---|---|---|
 | **Gen 1** | **Dynamixel prototype** | Original XL330 work in [gen1-dynamixel](gen1-dynamixel/README.md). Preserved unchanged. |
-| **Gen 2.0** | **Planar ST3215 design** | [gen2-st3215](gen2-st3215/README.md): Python bench control, autonomous ESP32 firmware, v6 CAD and split power bus v3. |
-| **Gen 2.1** | **Integrated control software** | [Shared apps](docs/1_APP_USAGE_MANUAL.md): dashboard, desktop/headless CLI, gamepad, serial receiver/transmitter and separate sensor node. |
-| **Gen 3.0** | **Experimental 3D motion** | [gen3-experimental-3d](gen3-experimental-3d/README.md): alternating yaw/pitch experiments and mechanical candidates. |
+| **Gen 2.0** | **Planar ST3215 design — working** | [gen2-st3215](gen2-st3215/README.md): Python bench control, autonomous ESP32 firmware, v6 CAD and split power bus v3. |
+| **Gen 2.1** | **Integrated control software — working** | [Shared apps](docs/1_APP_USAGE_MANUAL.md): dashboard, desktop/headless CLI, gamepad, serial receiver/transmitter and separate sensor node. |
+| **Gen 3.0** | **Experimental 3D motion — in development** | [gen3-experimental-3d](gen3-experimental-3d/README.md): alternating yaw/pitch experiments and mechanical candidates. |
 
 ## What to run
 
@@ -39,13 +40,13 @@ For LAN access, launch with `--host 0.0.0.0`; this local research app has no log
 
 ```sh
 # Finite headless simulation; no serial port opened
-python shared/desktop-app/app.py --sim --duration 3
+.venv/Scripts/python.exe shared/desktop-app/app.py --sim --duration 3
 # Desktop GUI
-python shared/desktop-app/app.py --gui
+.venv/Scripts/python.exe shared/desktop-app/app.py --gui
 # Gamepad, while the web dashboard runs
-python shared/gamepad/controller_node.py
+.venv/Scripts/python.exe shared/gamepad/controller_node.py
 # Offline tests; no physical motors
-python -B -m unittest discover -s tests -v
+.venv/Scripts/python.exe -B -m unittest discover -s tests -v
 ```
 
 See the [operating guide](docs/1_APP_USAGE_MANUAL.md),
@@ -91,8 +92,9 @@ status require physical confirmation; this integration did not inspect hardware.
 ## Verification and remaining limits
 
 See [verification](docs/versions/VERIFICATION.md) for the commands and results.
-Hardware movement, radio delivery, stop latency, current thresholds, power wiring,
-and CAD tolerances were not physically tested. Hardware path following is disabled
+Gen 2.0 and Gen 2.1 operation is confirmed by the project maintainer. The
+repository checks cover software behavior; they do not independently measure
+radio reliability, stop latency, current thresholds, power wiring or CAD tolerances. Hardware path following is disabled
 until localization exists. Sensor failures/missing servo feedback are shown as
 missing, rather than invented normal readings. The LLM guide is a proposal, not
 an implemented controller.

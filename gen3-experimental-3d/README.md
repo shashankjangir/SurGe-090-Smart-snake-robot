@@ -24,3 +24,10 @@ clearances before any trial; there is no matching validated 3D simulation yet.
 Alignment checks encoders; cleanup requests torque-off instead of commanding an
 unverified recentering movement. CAD files have been retained but not modified
 or geometrically verified during this integration.
+
+## Current reference build
+
+The working Gen 2.0 / Gen 2.1 planar prototype is shown in the
+[Gen 2 gallery](../gen2-st3215/media/README.md), updated with cropped photos on
+16 October 2026. Those images document Gen 2; they do not depict a completed
+Gen 3.0 build. See the [project overview](../README.md) for the generation map.

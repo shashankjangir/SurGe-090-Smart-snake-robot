@@ -6,6 +6,17 @@
 
 Python bench stack and ESP32 firmware for the **ST3215** snake. This is **not** a Dynamixel / XL330 tree. Generation 1 lives in [`../gen1-dynamixel/`](../gen1-dynamixel/). Project-wide context: [`../README.md`](../README.md). Porting notes: [`PORTING_STATUS.md`](PORTING_STATUS.md).
 
+## Working prototype
+
+Gen 2.0 provides planar bench and onboard control. Gen 2.1 adds the shared host
+controller, dashboard, desktop app and gamepad. Both are working in project trials.
+Gen 3.0 development is tracked [separately](../gen3-experimental-3d/README.md).
+
+![Gen 2 assembled prototype](media/20260925_164442.jpg)
+
+The [photo gallery](media/README.md) contains nine photos, including the latest
+cropped images from 16 October 2026. No videos have been added yet.
+
 **Motors:** Waveshare / Feetech ST3215 (SMS/STS, 12-bit encoder, ~2.94 N·m @ 12 V).
 **Bus:** Feetech Protocol 1-style, **1 Mbps**, daisy-chained 3-pin TTL.
 **Power:** split bus v3: 3S LiPo to five fused servo pairs; separate 7.5 V buck to driver, servo-port +V disconnected. See `../docs/hardware/power_split_bus_v3.md`.
@@ -36,7 +47,7 @@ Servo UART on the Waveshare Servo Driver with ESP32 defaults to **GPIO 18 RX / 1
 
 ---
 
-## Features
+## Gen 2.0 features and Gen 2.1 integration
 
 | Feature | Detail |
 |---|---|
@@ -44,10 +55,10 @@ Servo UART on the Waveshare Servo Driver with ESP32 defaults to **GPIO 18 RX / 1
 | **Current stall detection** | `PRESENT_CURRENT` (addr 69), sign-magnitude, 6.5 mA/count. Trip starts at **1200 mA** — calibrate on hardware |
 | **Evasion FSM** | SLITHER → reverse 2.5 s → turn 4.0 s → resume. Detection is off during the 6.5 s manoeuvre |
 | **Pure pursuit path following** | `src/path_engine.py` — kinematic forward prediction + pure pursuit steering for waypoint tracking |
-| **ESP32 receiver firmware** | `firmware/esp32_st3215_receiver/` — OLED + NeoPixel status, USB + ESP-NOW dual input, ST3215 SCServo bridge |
-| **ESP-NOW wireless transmitter** | `firmware/esp_now_transmitter/` — relays serial commands wirelessly to the receiver ESP32 |
-| **Serial bridge interface** | `src/st3215_interface.py` — PySerial bridge to ESP32 with P/T/I command protocol |
-| **Interactive terminal tester** | `tools/test_st3215_terminal.py` — CLI for position control, centering, telemetry, and ID assignment |
+| **ESP32 receiver firmware** | `firmware/receiver_gen2_1/` — OLED + NeoPixel status, USB + ESP-NOW dual input, ST3215 SCServo bridge |
+| **ESP-NOW wireless transmitter** | `firmware/transmitter_gen2_1/` — relays serial commands wirelessly to the receiver ESP32 |
+| **Serial bridge interface** | `src/st3215_interface.py` — Compatibility import for the shared Gen 2.1 handshake and RUN/STOP protocol |
+| **Interactive terminal tester** | `tools/test_st3215_terminal.py` — Legacy two-servo CLI; not migrated to the Gen 2.1 RUN handshake (use versioned bench tools) |
 | **Mock bus** | `SURGE_MOCK=1 python main.py` runs the loop with no serial |
 | **ID programming** | One servo at a time: Arduino `firmware/assign_ids` or `python tools/assign_id.py` |
 
@@ -68,8 +79,8 @@ gen2-st3215/
 │   ├── servo_driver.py          # HAL: ping, torque, sync goal, current
 │   ├── snake_locomotion.py      # Active gait (all-yaw when PLANAR_ALL_YAW)
 │   ├── obstacle_avoidance.py    # Current FSM
-│   ├── st3215_interface.py      # Serial bridge to ESP32 (P/T/I protocol)   ★ NEW
-│   ├── path_engine.py           # Pure pursuit path following engine         ★ NEW
+│   ├── st3215_interface.py      # Compatibility import for shared Gen 2.1 transport
+│   ├── path_engine.py           # Pure pursuit path following engine
 │   ├── utils.py                 # Sign-magnitude current, encoder ↔ rad
 │   ├── kinematics.py            # Bellows model — not used by main.py
 │   └── torque_controller.py     # PD torque — unused; bus is position mode
@@ -78,14 +89,16 @@ gen2-st3215/
 │   └── test_motor_feedback.py
 ├── tools/
 │   ├── assign_id.py             # EEPROM unlock + ID write
-│   └── test_st3215_terminal.py  # Interactive CLI servo tester              ★ NEW
+│   └── test_st3215_terminal.py  # Interactive CLI servo tester     
 ├── firmware/                    # Arduino: ESP32 Dev Module
 │   ├── assign_ids/
 │   ├── usb_servo_bridge/
-│   ├── robot_esp32/
+│   ├── robot_esp32_v2/
 │   ├── base_esp32/
-│   ├── esp32_st3215_receiver/   # OLED+NeoPixel receiver (USB+ESP-NOW)      ★ NEW
-│   └── esp_now_transmitter/     # Wireless command relay transmitter        ★ NEW
+│   ├── receiver_gen2_1/        # Gen 2.1 host-command receiver
+│   ├── transmitter_gen2_1/     # Gen 2.1 wireless command relay
+│   ├── sensor_gen2_1/          # Separate sensor node
+│   └── get_mac_oled/           # MAC/OLED helper
 └── cad/
     ├── assembly/                # SolidWorks snake assembly
     └── segments/v6/             # Design of record (CadQuery)
@@ -162,24 +175,27 @@ Serial monitor on the robot board (115200) prints MAC and telemetry. Type `RUN` 
 
 Details: [`firmware/README.md`](firmware/README.md).
 
-### ESP32 Receiver + Transmitter (from Snake_SURGE)
+### Gen 2.1 host control
 
-The `esp32_st3215_receiver` firmware is a standalone receiver that:
-- Accepts commands over **USB Serial** and **ESP-NOW** simultaneously
-- Drives ST3215 servos via `SCServo.h` library
-- Shows connection status on **SSD1306 OLED** (MAC address, USB/Wireless/Both)
-- **NeoPixel LED** indicators: breathing white (idle), blue (USB), green (wireless), red (overload)
-- Supports `P` (position), `T` (telemetry), `I` (ID assign) commands
+Use `firmware/receiver_gen2_1` directly over USB or pair it with
+`firmware/transmitter_gen2_1` for ESP-NOW relay. The receiver drives the servo bus
+and provides OLED/NeoPixel status. `sensor_gen2_1` is a separate sensor node.
 
-The `esp_now_transmitter` relays commands from any USB host to the receiver wirelessly. Plug it into a laptop or Pi, send serial commands, and they are forwarded over ESP-NOW.
+From the repository root, using the shared Python 3.11 environment:
 
-### Interactive Terminal Tester
-
-```bash
-python tools/test_st3215_terminal.py --port COM10
+```powershell
+.venv/Scripts/python.exe shared/web-dashboard/web_app.py
 ```
 
-Commands: `p <id> <pos>` (move), `c` (center), `t` (telemetry), `i <new_id>` (assign ID), `q` (quit).
+Select Hardware, provide the serial port, Connect, then Start motion. STOP requests
+torque-off. The `HELLO` handshake identifies the receiver; `RUN` arms motion;
+`P,id:position:speed` sends targets; `T` requests feedback. See the
+[protocol](../docs/API_DOCUMENTATION.md) and [operating guide](../docs/1_APP_USAGE_MANUAL.md).
+
+Versioned bench tools are `tools/align_gen2_1.py`, `tools/sine_gen2_1.py`, and
+`tools/spiral_gen2_1.py`. They require an explicit port or `SURGE_PORT`.
+The older `test_st3215_terminal.py` is retained as a legacy utility and has not
+been adapted to the Gen 2.1 start handshake; it is not the current run path.
 
 ---
 
@@ -219,19 +235,21 @@ Turn direction still uses the **sign of present current**, which is torque direc
 
 `kinematics.py` and `torque_controller.py` are present for experiments; **live control is position-mode `SnakeKinematics`**.
 
-### Path Engine (`src/path_engine.py`)
+### Shared path engine and ST3215 interface
 
-Pure pursuit path following with predictive forward kinematics:
-- `predict_path()` — projects the snake's future kinematic path
-- `calculate_pure_pursuit()` — calculates steering curvature to reach the next lookahead waypoint
-- Used by the [Web Dashboard](../shared/web-dashboard/) and [Desktop App](../shared/desktop-app/) for autonomous path tracking
+The current web and desktop apps use `shared/surge_control/path_engine.py`.
+Waypoint following and accuracy reports are simulation-only; hardware mode
+requires localization before physical path tracking can be supported.
+`src/path_engine.py` remains an earlier implementation.
 
-### ST3215 Interface (`src/st3215_interface.py`)
+`src/st3215_interface.py` forwards to `shared/surge_control/hardware.py`:
 
-Serial bridge interface for controlling ST3215 servos via an ESP32 bridge board:
-- `connect()` / `disconnect()` — serial port management
-- `write_positions({id: pos, ...})` — sends `P,id:pos,...\n` commands
-- `read_telemetry()` — sends `T\n` and parses `T,id:load:vel:pos,...` response
+- `connect()` performs the version handshake and leaves motion stopped.
+- `start()` arms the receiver; `write_positions()` sends per-joint targets and speed.
+- `read_telemetry()` reports valid/missing servo readings separately from sensor data.
+- `stop()` requests torque-off; `disconnect()` closes the serial connection.
+
+The Gen 2.0 raw-bus driver used by `main.py` remains a separate control path.
 
 ---
 

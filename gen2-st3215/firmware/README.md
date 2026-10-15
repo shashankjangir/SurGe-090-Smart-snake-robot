@@ -1,5 +1,8 @@
 # Firmware version guide
 
+Gen 2.0 and Gen 2.1 are working in project trials, confirmed on 16 October 2026.
+See the [working prototype photos](../media/README.md). Gen 3.0 remains in development.
+
 ## Gen 2.1 integrated targets
 
 Build with `pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e sensor_gen2_1 -e get_mac_oled`.
@@ -18,8 +21,8 @@ wiring; code cannot determine which ultrasonic hardware is attached.
 
 **Gen 2.1 is host-driven.** It has not inherited the Gen 2.0 per-group soft start,
 current-evasion FSM, battery cutoff or over-temperature cutoff. Slow commands
-and diagnostic LEDs do not replace those protections. No new firmware has been
-physically tested by the repository integration.
+and diagnostic LEDs do not replace those protections. The repository build checks do not
+independently validate physical protection thresholds or radio timing.
 
 ## Gen 2.0 retained firmware
 
