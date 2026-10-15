@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1600" height="1000" fill="#fafaf7"/>
+<text x="800" y="36" text-anchor="middle" font-size="25" font-weight="700" fill="#1a1a2e">Split power bus — one DATA wire, three power groups</text>
+<text x="800" y="60" text-anchor="middle" font-size="13.5" fill="#555">One controller talks to all 10 servos on one wire · each group of 3–4 servos gets its own +12 V feed from the main power line</text>
+<rect x="30" y="95" width="160" height="70" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+<text x="110" y="124" text-anchor="middle" font-size="14" font-weight="700" fill="#8f1f30">3S LiPo</text>
+<text x="110" y="142" text-anchor="middle" font-size="11" font-weight="400" fill="#8f1f30">11.1–12.6 V · XT60</text>
+<line x1="190" y1="118" x2="240" y2="118" stroke="#d1495b" stroke-width="4"/>
+<rect x="240" y="103" width="80" height="30" rx="6" fill="#fff" stroke="#d1495b" stroke-width="2"/>
+<text x="280" y="123" text-anchor="middle" font-size="12" font-weight="700" fill="#8f1f30">15 A fuse</text>
+<line x1="320" y1="118" x2="370" y2="118" stroke="#d1495b" stroke-width="4"/>
+<line x1="190" y1="145" x2="370" y2="145" stroke="#222" stroke-width="4"/>
+<rect x="370" y="95" width="120" height="70" rx="8" fill="#fdecea" stroke="#d1495b" stroke-width="2"/>
+<text x="430" y="124" text-anchor="middle" font-size="12" font-weight="700" fill="#8f1f30">XT60 loop key</text>
+<text x="430" y="141" text-anchor="middle" font-size="11" font-weight="400" fill="#8f1f30">(ON / OFF)</text>
+<polyline points="490,118 560,118 560,300" fill="none" stroke="#d1495b" stroke-width="4"/>
+<polyline points="490,145 540,145 540,320" fill="none" stroke="#222" stroke-width="4"/>
+<line x1="100" y1="300" x2="1230" y2="300" stroke="#d1495b" stroke-width="5"/>
+<line x1="100" y1="320" x2="1230" y2="320" stroke="#222" stroke-width="5"/>
+<circle cx="560" cy="300" r="6" fill="#d1495b"/>
+<circle cx="540" cy="320" r="6" fill="#222"/>
+<text x="860" y="288" text-anchor="middle" font-size="12.5" font-weight="700" fill="#8f1f30">MAIN POWER LINE  +12 V / GND  ·  16–18 AWG silicone  ·  runs along the whole body, with slack at every joint</text>
+<line x1="100" y1="300" x2="100" y2="420" stroke="#d1495b" stroke-width="3"/>
+<line x1="125" y1="320" x2="125" y2="420" stroke="#222" stroke-width="3"/>
+<circle cx="100" cy="300" r="5" fill="#d1495b"/>
+<circle cx="125" cy="320" r="5" fill="#222"/>
+<rect x="40" y="420" width="150" height="62" rx="8" fill="#fef3e2" stroke="#e8871e" stroke-width="2"/>
+<text x="115" y="445" text-anchor="middle" font-size="12" font-weight="700" fill="#8a4d0f">Small buck</text>
+<text x="115" y="462" text-anchor="middle" font-size="11" font-weight="400" fill="#8a4d0f">set to 7.5 V</text>
+<line x1="100" y1="482" x2="100" y2="620" stroke="#e8871e" stroke-width="3"/>
+<line x1="125" y1="482" x2="125" y2="620" stroke="#222" stroke-width="3"/>
+<text x="92" y="555" text-anchor="end" font-size="10.5" font-weight="600" fill="#8a4d0f">7.5 V</text>
+<rect x="30" y="620" width="170" height="120" rx="8" fill="#eef7ee" stroke="#2e933c" stroke-width="2.5"/>
+<text x="115" y="648" text-anchor="middle" font-size="13" font-weight="700" fill="#175c22">Servo Driver</text>
+<text x="115" y="665" text-anchor="middle" font-size="13" font-weight="700" fill="#175c22">with ESP32</text>
+<text x="115" y="690" text-anchor="middle" font-size="10.5" font-weight="400" fill="#175c22">one UART · IDs 1–10</text>
+<text x="115" y="706" text-anchor="middle" font-size="10.5" font-weight="400" fill="#175c22">servo port →</text>
+<text x="115" y="724" text-anchor="middle" font-size="10" font-weight="400" fill="#175c22">(GND + DATA only)</text>
+<rect x="225" y="590" width="475" height="180" rx="12" fill="none" stroke="#9aa" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="462.5" y="788" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0e6b64">GROUP 1 · ID1–ID4 · 4 servos</text>
+<rect x="715" y="590" width="385" height="180" rx="12" fill="none" stroke="#9aa" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="907.5" y="788" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0e6b64">GROUP 2 · ID5–ID7 · 3 servos</text>
+<rect x="1115" y="590" width="385" height="180" rx="12" fill="none" stroke="#9aa" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1307.5" y="788" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0e6b64">GROUP 3 · ID8–ID10 · 3 servos</text>
+<text x="462.5" y="805" text-anchor="middle" font-size="10.5" font-weight="400" fill="#0e6b64">walking ~1.2–2 A · heavy ≤3.6 A</text>
+<text x="907.5" y="805" text-anchor="middle" font-size="10.5" font-weight="400" fill="#0e6b64">walking ~1.2–2 A · heavy ≤3.6 A</text>
+<text x="1307.5" y="805" text-anchor="middle" font-size="10.5" font-weight="400" fill="#0e6b64">walking ~1.2–2 A · heavy ≤3.6 A</text>
+<circle cx="295" cy="300" r="5" fill="#d1495b"/>
+<circle cx="265" cy="320" r="5" fill="#222"/>
+<line x1="295" y1="300" x2="295" y2="535" stroke="#d1495b" stroke-width="3"/>
+<rect x="280" y="535" width="30" height="36" rx="4" fill="#fff" stroke="#d1495b" stroke-width="2"/>
+<text x="295" y="558" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8f1f30">5A</text>
+<line x1="295" y1="571" x2="295" y2="620" stroke="#d1495b" stroke-width="3"/>
+<line x1="265" y1="320" x2="265" y2="620" stroke="#222" stroke-width="3"/>
+<rect x="240" y="620" width="80" height="120" rx="8" fill="#f3effa" stroke="#7d5ba6" stroke-width="2.5"/>
+<text x="280" y="722" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4b3572">INJECT 1</text>
+<text x="280" y="735" text-anchor="middle" font-size="9.5" font-weight="400" fill="#4b3572">perfboard</text>
+<polyline points="295,620 295,655 320,655" fill="none" stroke="#d1495b" stroke-width="3"/>
+<circle cx="295" cy="655" r="3.5" fill="#d1495b"/>
+<line x1="265" y1="620" x2="265" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="240" y1="680" x2="320" y2="680" stroke="#222" stroke-width="3"/>
+<circle cx="265" cy="680" r="5" fill="#222"/>
+<line x1="240" y1="705" x2="320" y2="705" stroke="#2274a5" stroke-width="3"/>
+<circle cx="785" cy="300" r="5" fill="#d1495b"/>
+<circle cx="755" cy="320" r="5" fill="#222"/>
+<line x1="785" y1="300" x2="785" y2="535" stroke="#d1495b" stroke-width="3"/>
+<rect x="770" y="535" width="30" height="36" rx="4" fill="#fff" stroke="#d1495b" stroke-width="2"/>
+<text x="785" y="558" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8f1f30">5A</text>
+<line x1="785" y1="571" x2="785" y2="620" stroke="#d1495b" stroke-width="3"/>
+<line x1="755" y1="320" x2="755" y2="620" stroke="#222" stroke-width="3"/>
+<rect x="730" y="620" width="80" height="120" rx="8" fill="#f3effa" stroke="#7d5ba6" stroke-width="2.5"/>
+<text x="770" y="722" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4b3572">INJECT 2</text>
+<text x="770" y="735" text-anchor="middle" font-size="9.5" font-weight="400" fill="#4b3572">perfboard</text>
+<polyline points="785,620 785,655 810,655" fill="none" stroke="#d1495b" stroke-width="3"/>
+<circle cx="785" cy="655" r="3.5" fill="#d1495b"/>
+<line x1="755" y1="620" x2="755" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="730" y1="680" x2="810" y2="680" stroke="#222" stroke-width="3"/>
+<circle cx="755" cy="680" r="5" fill="#222"/>
+<line x1="730" y1="705" x2="810" y2="705" stroke="#2274a5" stroke-width="3"/>
+<circle cx="1185" cy="300" r="5" fill="#d1495b"/>
+<circle cx="1155" cy="320" r="5" fill="#222"/>
+<line x1="1185" y1="300" x2="1185" y2="535" stroke="#d1495b" stroke-width="3"/>
+<rect x="1170" y="535" width="30" height="36" rx="4" fill="#fff" stroke="#d1495b" stroke-width="2"/>
+<text x="1185" y="558" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8f1f30">5A</text>
+<line x1="1185" y1="571" x2="1185" y2="620" stroke="#d1495b" stroke-width="3"/>
+<line x1="1155" y1="320" x2="1155" y2="620" stroke="#222" stroke-width="3"/>
+<rect x="1130" y="620" width="80" height="120" rx="8" fill="#f3effa" stroke="#7d5ba6" stroke-width="2.5"/>
+<text x="1170" y="722" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4b3572">INJECT 3</text>
+<text x="1170" y="735" text-anchor="middle" font-size="9.5" font-weight="400" fill="#4b3572">perfboard</text>
+<polyline points="1185,620 1185,655 1210,655" fill="none" stroke="#d1495b" stroke-width="3"/>
+<circle cx="1185" cy="655" r="3.5" fill="#d1495b"/>
+<line x1="1155" y1="620" x2="1155" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1130" y1="680" x2="1210" y2="680" stroke="#222" stroke-width="3"/>
+<circle cx="1155" cy="680" r="5" fill="#222"/>
+<line x1="1130" y1="705" x2="1210" y2="705" stroke="#2274a5" stroke-width="3"/>
+<rect x="360" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="392.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 1</text>
+<text x="392.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="448" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="480.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 2</text>
+<text x="480.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="536" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="568.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 3</text>
+<text x="568.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="624" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="656.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 4</text>
+<text x="656.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="850" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="882.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 5</text>
+<text x="882.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="938" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="970.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 6</text>
+<text x="970.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="1026" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="1058.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 7</text>
+<text x="1058.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="1250" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="1282.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 8</text>
+<text x="1282.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="1338" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="1370.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 9</text>
+<text x="1370.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<rect x="1426" y="620" width="64" height="120" rx="8" fill="#e2f5f3" stroke="#17a398" stroke-width="2"/>
+<text x="1458.0" y="710" text-anchor="middle" font-size="14" font-weight="700" fill="#0e6b64">ID 10</text>
+<text x="1458.0" y="726" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0e6b64">ST3215</text>
+<line x1="200" y1="655" x2="216.0" y2="655" stroke="#d1495b" stroke-width="3"/>
+<g stroke="#c00" stroke-width="3.5"><line x1="211.0" y1="646" x2="229.0" y2="664"/><line x1="229.0" y1="646" x2="211.0" y2="664"/></g>
+<line x1="200" y1="680" x2="240" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="200" y1="705" x2="240" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="320" y1="655" x2="360" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="320" y1="680" x2="360" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="320" y1="705" x2="360" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="424" y1="655" x2="448" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="424" y1="680" x2="448" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="424" y1="705" x2="448" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="512" y1="655" x2="536" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="512" y1="680" x2="536" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="512" y1="705" x2="536" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="600" y1="655" x2="624" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="600" y1="680" x2="624" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="600" y1="705" x2="624" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="688" y1="655" x2="705.0" y2="655" stroke="#d1495b" stroke-width="3"/>
+<g stroke="#c00" stroke-width="3.5"><line x1="700.0" y1="646" x2="718.0" y2="664"/><line x1="718.0" y1="646" x2="700.0" y2="664"/></g>
+<line x1="688" y1="680" x2="730" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="688" y1="705" x2="730" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="810" y1="655" x2="850" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="810" y1="680" x2="850" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="810" y1="705" x2="850" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="914" y1="655" x2="938" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="914" y1="680" x2="938" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="914" y1="705" x2="938" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="1002" y1="655" x2="1026" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="1002" y1="680" x2="1026" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1002" y1="705" x2="1026" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="1090" y1="655" x2="1106.0" y2="655" stroke="#d1495b" stroke-width="3"/>
+<g stroke="#c00" stroke-width="3.5"><line x1="1101.0" y1="646" x2="1119.0" y2="664"/><line x1="1119.0" y1="646" x2="1101.0" y2="664"/></g>
+<line x1="1090" y1="680" x2="1130" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1090" y1="705" x2="1130" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="1210" y1="655" x2="1250" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="1210" y1="680" x2="1250" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1210" y1="705" x2="1250" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="1314" y1="655" x2="1338" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="1314" y1="680" x2="1338" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1314" y1="705" x2="1338" y2="705" stroke="#2274a5" stroke-width="3"/>
+<line x1="1402" y1="655" x2="1426" y2="655" stroke="#d1495b" stroke-width="3"/>
+<line x1="1402" y1="680" x2="1426" y2="680" stroke="#222" stroke-width="3"/>
+<line x1="1402" y1="705" x2="1426" y2="705" stroke="#2274a5" stroke-width="3"/>
+<text x="800" y="840" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2274a5">BLUE DATA wire is one continuous wire: controller → ID1 → … → ID10  ·  BLACK GND is continuous too  ·  RED +12 V is cut (✕) before every inject board</text>
+<rect x="30" y="865" width="480" height="120" rx="10" fill="#fff" stroke="#c5c5d0" stroke-width="1.5"/>
+<text x="48" y="888" text-anchor="start" font-size="13" font-weight="700" fill="#444">LEGEND</text>
+<line x1="48" y1="904" x2="88" y2="904" stroke="#d1495b" stroke-width="4"/>
+<text x="98" y="908" text-anchor="start" font-size="11" font-weight="400" fill="#333">+12 V (servo power)</text>
+<line x1="48" y1="924" x2="88" y2="924" stroke="#222" stroke-width="4"/>
+<text x="98" y="928" text-anchor="start" font-size="11" font-weight="400" fill="#333">GND — all grounds joined</text>
+<line x1="48" y1="944" x2="88" y2="944" stroke="#2274a5" stroke-width="4"/>
+<text x="98" y="948" text-anchor="start" font-size="11" font-weight="400" fill="#333">DATA — one shared servo wire</text>
+<line x1="48" y1="964" x2="88" y2="964" stroke="#e8871e" stroke-width="4"/>
+<text x="98" y="968" text-anchor="start" font-size="11" font-weight="400" fill="#333">7.5 V — controller only</text>
+<circle cx="300" cy="904" r="5" fill="#333"/>
+<text x="312" y="908" text-anchor="start" font-size="11" font-weight="400" fill="#333">dot = wires joined</text>
+<text x="292" y="928" text-anchor="start" font-size="11" font-weight="400" fill="#333">no dot = wires only cross</text>
+<g stroke="#c00" stroke-width="3.5"><line x1="291" y1="935" x2="309" y2="953"/><line x1="309" y1="935" x2="291" y2="953"/></g>
+<text x="312" y="948" text-anchor="start" font-size="11" font-weight="600" fill="#a00">= red wire cut &amp; taped</text>
+<text x="292" y="968" text-anchor="start" font-size="11" font-weight="400" fill="#333">every inject board: + 470–1000 µF cap</text>
+<rect x="560" y="865" width="480" height="120" rx="10" fill="#fffbe8" stroke="#d9c26b" stroke-width="1.5"/>
+<text x="578" y="888" text-anchor="start" font-size="13" font-weight="700" fill="#6b5a10">INSIDE ONE INJECT BOARD</text>
+<text x="578" y="910" text-anchor="start" font-size="11" font-weight="400" fill="#4a4a3a">IN from previous servo:  GND → through · DATA → through · +V → cut ✕</text>
+<text x="578" y="929" text-anchor="start" font-size="11" font-weight="400" fill="#4a4a3a">IN from main line:  +12 V (via 5 A fuse) → +V out · GND → GND out</text>
+<text x="578" y="948" text-anchor="start" font-size="11" font-weight="400" fill="#4a4a3a">OUT to first servo of the group:  +12 V · GND · DATA (3-pin plug)</text>
+<text x="578" y="967" text-anchor="start" font-size="11" font-weight="400" fill="#4a4a3a">Result: each group is powered only by its own feed</text>
+<rect x="1090" y="865" width="480" height="120" rx="10" fill="#e8f1fb" stroke="#2274a5" stroke-width="1.5"/>
+<text x="1108" y="888" text-anchor="start" font-size="13" font-weight="700" fill="#14496b">BUILD ORDER</text>
+<text x="1108" y="910" text-anchor="start" font-size="11" font-weight="400" fill="#14496b">1. Battery → fuse → key → main line: meter 12.x V</text>
+<text x="1108" y="927" text-anchor="start" font-size="11" font-weight="400" fill="#14496b">2. Set buck to 7.5 V, then connect the controller</text>
+<text x="1108" y="944" text-anchor="start" font-size="11" font-weight="400" fill="#14496b">3. Group 1 only → test each servo by ID</text>
+<text x="1108" y="961" text-anchor="start" font-size="11" font-weight="400" fill="#14496b">4. Add group 2, then group 3 (check 12 V at each inject)</text>
+<text x="1108" y="978" text-anchor="start" font-size="11" font-weight="400" fill="#14496b">5. Slow sine gait; every servo reads ≥ 11.5 V</text>
+</svg>

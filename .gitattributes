@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Historical snapshots must retain byte-exact content across checkouts.
+removed/pre-gen2.1/** -text
+removed/pre-recheck-2026-10-15/** -text
+removed/gen2.1-source-snapshot/** -text
+removed/baselines/** -text

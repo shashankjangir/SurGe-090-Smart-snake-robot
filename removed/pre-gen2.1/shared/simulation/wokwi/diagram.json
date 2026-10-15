@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "author": "Shashank",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -19.2,
+      "left": -494.36,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo1",
+      "top": 333.2,
+      "left": -938,
+      "rotate": 180,
+      "attrs": {
+        "horn": "cross",
+        "hornColor": "red"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo2",
+      "top": 227.6,
+      "left": -938,
+      "rotate": 180,
+      "attrs": {
+        "horn": "cross",
+        "hornColor": "green"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo3",
+      "top": 122,
+      "left": -938,
+      "rotate": 180,
+      "attrs": {
+        "horn": "cross",
+        "hornColor": "blue"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo4",
+      "top": 26,
+      "left": -928.4,
+      "rotate": 180,
+      "attrs": {
+        "horn": "cross",
+        "hornColor": "black"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo5",
+      "top": -70,
+      "left": -928.4,
+      "rotate": 180,
+      "attrs": {
+        "hornColor": "white",
+        "horn": "cross"
+      }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled1",
+      "top": 310.34,
+      "left": -134.17,
+      "attrs": {
+        "i2cAddress": "0x3c"
+      }
+    },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "ultrasonic1",
+      "top": 299.1,
+      "left": -455.3,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu1",
+      "top": -168.98,
+      "left": -554.48,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "servo1:PWM",
+      "esp:13",
+      "blue",
+      [
+        "h220.8",
+        "v-240.2"
+      ]
+    ],
+    [
+      "servo2:PWM",
+      "esp:12",
+      "blue",
+      [
+        "v-0.2",
+        "h182.4",
+        "v-201.6"
+      ]
+    ],
+    [
+      "servo3:PWM",
+      "esp:14",
+      "blue",
+      [
+        "v-0.2",
+        "h144",
+        "v-57.6"
+      ]
+    ],
+    [
+      "servo4:PWM",
+      "esp:27",
+      "blue",
+      [
+        "h86.4",
+        "v28.6"
+      ]
+    ],
+    [
+      "servo5:PWM",
+      "esp:26",
+      "blue",
+      [
+        "h192",
+        "v153.4"
+      ]
+    ],
+    [
+      "servo3:V+",
+      "esp:5V",
+      "red",
+      [
+        "h172.8",
+        "v-19.3"
+      ]
+    ],
+    [
+      "servo2:V+",
+      "esp:5V",
+      "red",
+      [
+        "h201.6",
+        "v-153.7"
+      ]
+    ],
+    [
+      "servo1:V+",
+      "esp:5V",
+      "red",
+      [
+        "h249.6",
+        "v-211.3"
+      ]
+    ],
+    [
+      "servo4:V+",
+      "esp:5V",
+      "red",
+      [
+        "h144",
+        "v95.9"
+      ]
+    ],
+    [
+      "servo5:V+",
+      "esp:5V",
+      "red",
+      [
+        "h163.2",
+        "v191.9"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "servo1:GND",
+      "black",
+      [
+        "h-28.65",
+        "v268.8"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "servo2:GND",
+      "black",
+      [
+        "h-38.25",
+        "v163.2"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "servo3:GND",
+      "black",
+      [
+        "h-47.85",
+        "v57.6",
+        "h-211.2"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "servo4:GND",
+      "black",
+      [
+        "h-76.65",
+        "v-38.4"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "servo5:GND",
+      "black",
+      [
+        "h-67.05",
+        "v-134.4"
+      ]
+    ],
+    [
+      "oled1:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v-19.2",
+        "h-201.6",
+        "v-67.2"
+      ]
+    ],
+    [
+      "oled1:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v-9.6",
+        "h-201.45",
+        "v-326.4",
+        "h-201.75"
+      ]
+    ],
+    [
+      "oled1:SCL",
+      "esp:22",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "esp:21",
+      "oled1:SDA",
+      "green",
+      [
+        "h326.4",
+        "v259.2"
+      ]
+    ],
+    [
+      "esp:5V",
+      "ultrasonic1:VCC",
+      "red",
+      [
+        "h0.15",
+        "v211.2"
+      ]
+    ],
+    [
+      "esp:GND.1",
+      "ultrasonic1:GND",
+      "black",
+      [
+        "h-9.45",
+        "v268.8",
+        "h126"
+      ]
+    ],
+    [
+      "esp:5",
+      "ultrasonic1:TRIG",
+      "green",
+      [
+        "h19.2",
+        "v297.6"
+      ]
+    ],
+    [
+      "esp:18",
+      "ultrasonic1:ECHO",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "imu1:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0",
+        "h38.48",
+        "v105.6",
+        "h-48"
+      ]
+    ],
+    [
+      "esp:GND.2",
+      "imu1:GND",
+      "black",
+      [
+        "v-192",
+        "h-96"
+      ]
+    ],
+    [
+      "esp:21",
+      "imu1:SDA",
+      "green",
+      [
+        "h38.4",
+        "v-249.6",
+        "h-144"
+      ]
+    ],
+    [
+      "esp:22",
+      "imu1:SCL",
+      "green",
+      [
+        "h19.2",
+        "v-249.6",
+        "h-19.2"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

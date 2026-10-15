@@ -1,3 +1,8 @@
+> **Archive restored — 16 October 2026:** Both bundles are valid and the original
+> source snapshot is complete again (66/66 SHA-256 matches). The earlier missing
+> archive notes below describe the previous sync. See [archive audit](../../removed/AUDIT.md).
+> This update used targeted integrity checks, not a rerun of the full test suite.
+
 ## GitHub sync check — 16 October 2026
 
 - Regression suite: **24 passed, 1 skipped**. The skipped test needs the original

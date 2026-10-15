@@ -100,8 +100,8 @@ missing, rather than invented normal readings. The LLM guide is a proposal, not
 an implemented controller.
 
 The earlier [research log](removed/pre-gen2.1/README.md), reports, images and design
-history remain available in Git. The earlier full local archive was missing at
-this sync; recovered originals and the available baseline are indexed under
+history remain available in Git. The full local archive has now been restored and rechecked, including both
+Git bundles and the complete original source snapshot. Its contents are indexed under
 [removed](removed/INDEX.md). Gen 1 has not been rewritten.
 
 ## Team and license

@@ -1,0 +1,665 @@
+{
+  "date": "2026-10-16",
+  "files": {
+    "baselines/control-software-pre-gen2.1.bundle": {
+      "bytes": 12117165,
+      "sha256": "5b5d5fa0432ec823ff9e2bfc5f8c0b4669c46ee8224c7a22557ecc772fff539d"
+    },
+    "baselines/gen1-sha256.json": {
+      "bytes": 44976,
+      "sha256": "b27f931178a5e6b504fb4bd56da9dbcab2883d9e739cbc562cc9d64df36831ae"
+    },
+    "baselines/incoming-sha256.json": {
+      "bytes": 7187,
+      "sha256": "5d9524d819eaa3126a99923c97dc7e016e58f08a70aa3ddeb8eff49fdfe60992"
+    },
+    "baselines/preserved-active-sha256.json": {
+      "bytes": 4929,
+      "sha256": "9a9250c49f0aa30faf3aacc6d5ade8817392c972c7150d461bf46fdbb5ed3793"
+    },
+    "baselines/project-pre-gen2.1.bundle": {
+      "bytes": 47067827,
+      "sha256": "7ae7a9e0abb034b8722cae97c7ed6f79280f78dd7bee6970c197ad09f5dfc72e"
+    },
+    "baselines/working-tree-pre-finalize-sha256.json": {
+      "bytes": 89702,
+      "sha256": "70adb34ae4ba86e94175c8862f8d54cddd190fcf41c987aa93e171ecc27ed484"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/3D_motion_parts/alternate_connector.SLDPRT": {
+      "bytes": 315758,
+      "sha256": "b5c4e25f65323c26bb69582c7094b361906839e7ec7cf90977fed6cb8aa3533e"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/3D_motion_parts/alternate_connector.STEP": {
+      "bytes": 206969,
+      "sha256": "35f8e3035eb14fe1fc8c59ae298aa2dd42ee0142acbe1f35630c07e77e891d1b"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/3D_motion_parts/~$alternate_connector.SLDPRT": {
+      "bytes": 6,
+      "sha256": "58261677052da19a523a3e43596ba972b9ae22e4365d6efa04e526db46a1c5af"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/down_plate_power.SLDPRT": {
+      "bytes": 136816,
+      "sha256": "2ffdbed5e522669f29a93176e8053df1d2ff4681ad00fe6374cfafd04cd3cb44"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/down_plate_power.STEP": {
+      "bytes": 123134,
+      "sha256": "aff8969427732a31b38f4e9e1f81e8ba71dcc6c1d0d2bef3011291a783b34f5f"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/esp_transmittor_case.SLDPRT": {
+      "bytes": 119978,
+      "sha256": "872cacfeaa2ca4e489f2e0df784d7f06ffb9950157ed6c0b74d10eb243a41489"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/esp_transmittor_case.STEP": {
+      "bytes": 75924,
+      "sha256": "73d0f1e5d003369a6328f8c76b3bb1aa1ed5db770aaf971f783e45cb1231009e"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/esp_transmittor_case_shell.SLDPRT": {
+      "bytes": 122684,
+      "sha256": "c6dba474fcece10d1368c6d5593122ab94cdcc8b470eec62e939f78d53784f77"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/esp_transmittor_case_shell.STEP": {
+      "bytes": 83252,
+      "sha256": "212a3af302a5fd8eb39703d40aaa50b98e344eaab66a7f1c5a7d28028f157417"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/tail_column.SLDPRT": {
+      "bytes": 59017,
+      "sha256": "23e6bbf335b77b5648da8d14780ed45593764809479b7cf4858d47f967485e8a"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/tail_column.STEP": {
+      "bytes": 9392,
+      "sha256": "0db61eb8723da93ff00b8e8dc50d703447825feda40f3db1e46ed4032c73cf3a"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/tail_esp32_waveshare_holder.SLDPRT": {
+      "bytes": 170885,
+      "sha256": "2665caf0e2e2da04864b19a980f98f559a2eab1d68e7027f34d07e9f99f08061"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/tail_esp32_waveshare_holder.STEP": {
+      "bytes": 182168,
+      "sha256": "12108ed9a42eb320a4445c2c234d0a4ce20bd61b36d6eb706cb7f01b9da2528d"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/up_plate_non_power.SLDPRT": {
+      "bytes": 153287,
+      "sha256": "fa936bfec9fe76c4fbdc5ed7ff4446fd7efd70b6a4bcd15d4f0ab07a304b2a87"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/up_plate_non_power.STEP": {
+      "bytes": 120372,
+      "sha256": "8a30b4347dc2e5f6b4ab96225ac55f1456d03b203d7d9833efb5031c7f93c809"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/waveshare_esp32_holder.SLDPRT": {
+      "bytes": 307425,
+      "sha256": "f27bf6fd62ad7dd82e93be4269e7584463ce92bf351fa4abb20b0a19955cd6f0"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/waveshare_esp32_holder.STEP": {
+      "bytes": 717499,
+      "sha256": "2831ba14656f27f15dedee1058561582c9ba42654c5b81684b67e4739378f5de"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/plate chains/~$tail_esp32_waveshare_holder.SLDPRT": {
+      "bytes": 6,
+      "sha256": "58261677052da19a523a3e43596ba972b9ae22e4365d6efa04e526db46a1c5af"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/snake_segment.3mf": {
+      "bytes": 307582,
+      "sha256": "9daebdbd43a94242d606b0e75c6fa6286d033f8c6834785f0d6626cc9e536b05"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/snake_segment.step": {
+      "bytes": 554407,
+      "sha256": "1b287b67469ea796b52dd4275b0c988d4a25f30f35f67030d7dc34e20f8989fe"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/3d_parts/ST3215.step": {
+      "bytes": 3025101,
+      "sha256": "58e38e4dc49f97df738c5f229f9aa8a7dce64a0a1d01335486a52d53e6017e8a"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/__pycache__/web_app.cpython-310.pyc": {
+      "bytes": 9138,
+      "sha256": "c7aa09149b59c40dc236e2a7c28cc6c7ad17cc9c47fb2a87fcbd1640254456ea"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/adxl_history.txt": {
+      "bytes": 32020,
+      "sha256": "4ed6be171df22e1819588c5eade7ebe5a238440eed06274b1f2322311d4ff777"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/align_snake.py": {
+      "bytes": 1863,
+      "sha256": "037c05667f4de008754abe2a6be0ba78a49194ec4a8300ee97bed62d2590e7bd"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/app.py": {
+      "bytes": 19227,
+      "sha256": "bed24259ccdb19350211d07c0fa8f0f77ed0e82a7bc8a59762e0ac2421bbe195"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/controller_node.py": {
+      "bytes": 2979,
+      "sha256": "69bdd1cdd9c95679f780f9cabd534c883e411df98cd1ceb41ddc4cdf07767211"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/1_APP_USAGE_MANUAL.md": {
+      "bytes": 3035,
+      "sha256": "1f526780a2f8574c44eff187bfac1a12e01fcbc0c9dcd94324e81b7d5b52e51c"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/2_HARDWARE_BOM.md": {
+      "bytes": 3544,
+      "sha256": "b3f77309711f1db47d5b83eddcc39a71814fc3e6649134fef312f277c5473791"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/3_RASPBERRY_PI_SETUP.md": {
+      "bytes": 9136,
+      "sha256": "91eefbea7ecc8a34fff8b6ac11c34db473ec3949f9cb06309557a0fba2c42db2"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/4_LLM_AUTONOMY_SETUP.md": {
+      "bytes": 3057,
+      "sha256": "4ddf30e5f19e53778315b5e3023e19bcaab95566d8dd519a9534ba6f9511eca2"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/4_WIRING_DIAGRAM.md": {
+      "bytes": 4262,
+      "sha256": "159646c4de25e5a2e202625d33fd7e0ef1265f4ddfb8d47c5eece4769c614e27"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/5_PARTS_AND_SAFETY.md": {
+      "bytes": 3892,
+      "sha256": "9e8583e43cb01ec4871ebdc4fca785a7164975d9a917b21d6102bdeb3dcc8bce"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/6_ADDITIONAL_PARTS.md": {
+      "bytes": 3923,
+      "sha256": "516e6f48e667adc3509adbff2ab6a8c14eccd6c2b6e6242b6efe12b33443cd81"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/7_TELEMETRY_AND_PERFORMANCE.md": {
+      "bytes": 3319,
+      "sha256": "dd8593e96c1484e90b8c9d97bf9bfaf032a6a26809b5ab48b02fc564bed7970f"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/api_documentation.md": {
+      "bytes": 3777,
+      "sha256": "7bbbc66177c7e2cc4130c7ff52c78695d86f70ad3f418ac5c21411227e00813d"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/docs/smart-snake-calculations.pdf": {
+      "bytes": 5593216,
+      "sha256": "3dab5222ce49679380ca7d8e0bd3a89c9dcd005e2889da7cdca5e5990a2616a9"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/install_requirements.cmd": {
+      "bytes": 176,
+      "sha256": "a53784afb6aca75ba9ca89603845fb384f68e5c56dacfa8e692c0dcea173cde0"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/requirements.txt": {
+      "bytes": 94,
+      "sha256": "aa8b6db33b3233b6804c5c291f73e611bba60b4c32c259aa77d463386949932c"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/snake.urdf": {
+      "bytes": 7408,
+      "sha256": "7f36cb76710146e533b3834a2b62125c74be99ee64a463f9a3023f1e8c37d0bb"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/dynamixel_interface.cpython-310.pyc": {
+      "bytes": 2754,
+      "sha256": "988c7748247a2252fd238342966795dd4b2e5bd39e8323476ab0f05dc2259c4e"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/kinematics.cpython-310.pyc": {
+      "bytes": 1670,
+      "sha256": "418a009a822ec0d9cecc116551c2992ad91a3abc6b6c869466c401435d14bb81"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/obstacle_avoidance.cpython-310.pyc": {
+      "bytes": 1580,
+      "sha256": "880f7f1613f732510ffa6230e49e8bdc351604145bd33b7b989aebed7dfe0878"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/path_engine.cpython-310.pyc": {
+      "bytes": 1947,
+      "sha256": "4ade5862a1e71db6d4d7c159ab1296f7b467024eb2a0813251413287f0bf08b6"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/robot_config.cpython-310.pyc": {
+      "bytes": 755,
+      "sha256": "3f3e02dabaa3940095a95c735d240cfd77bcf0056587dbb9ab2080cc02500bee"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/servo_driver.cpython-310.pyc": {
+      "bytes": 2825,
+      "sha256": "eb9629cacb853ffa0e04d33dfa04afbe340b6989178c76fbe3fb797ed8518bb1"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/simulation_interface.cpython-310.pyc": {
+      "bytes": 7509,
+      "sha256": "300e48a0e688d2945995007e5b44d6937ab6f6c809405591ccd47491a6f71e3b"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/snake_locomotion.cpython-310.pyc": {
+      "bytes": 1337,
+      "sha256": "ef67c09a285bb5768217740e2a59979c61fcfb5783344e669af089f95ca44963"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/st3215_interface.cpython-310.pyc": {
+      "bytes": 2989,
+      "sha256": "fea1d0762b553565e0cb0d51d93a243d7bd8b403916f88371cb248f552e22d08"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/__pycache__/torque_controller.cpython-310.pyc": {
+      "bytes": 2597,
+      "sha256": "a8082faf012c698808f5f207cf810f2240072501bca5612ed776dff29a7b0dd4"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/esp32_st3215/esp32_st3215.ino": {
+      "bytes": 7998,
+      "sha256": "30b0bb4948d7d9cbafca1d7b626ef8e43ddc2951d0a0e1887c8e25190e39b698"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/esp_now_transmitter/esp_now_transmitter.ino": {
+      "bytes": 1636,
+      "sha256": "14511988fcff073290beaec92e91949eb1d1fc003fe0dead4cb97608216f9cfc"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/get_mac_oled/get_mac_oled.ino": {
+      "bytes": 1033,
+      "sha256": "291698e1ddf57b756712679a681d82ba2d69bb1c8dc64ab284b769bc974cd147"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/path_engine.py": {
+      "bytes": 2080,
+      "sha256": "8def69d0fe2ee235a567815d38caf90053d188c9ecb726e36013176c023bb510"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/sensory_esp32/sensory_esp32.ino": {
+      "bytes": 12062,
+      "sha256": "064507802e9d28b3f86802bd4e2a762b8da481d8ab114b5ac2ce1dd01b677099"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/simulation_interface.py": {
+      "bytes": 9887,
+      "sha256": "9bf585c1a9fee9241a98f35930c3d60db3d11065c5f155917a20517662807f26"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/snake_locomotion.py": {
+      "bytes": 1176,
+      "sha256": "6f813f3ded31e9d3fea735540ca5caf6b671d39b1df9415ca136bfc6541415a9"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/src/st3215_interface.py": {
+      "bytes": 3808,
+      "sha256": "03d965011cea7f3b49c46f3a35b6a27c819bf2651f7196e4da76cc97e82f4171"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/static/script.js": {
+      "bytes": 16922,
+      "sha256": "af9d41c5d394a0cfda9561ac13fda461f80eb365c738a02cf5950c94426c621d"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/static/socket.io.min.js": {
+      "bytes": 49739,
+      "sha256": "857f6a627e51417e2e7910f11dc1527cf4e2ed57ee8c94afc96f0cbf535ab8ff"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/static/style.css": {
+      "bytes": 9753,
+      "sha256": "7adad969e260bbfc84154d1692f1c231a1d0cae7fc26163ae1fd7bb1280c9bea"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/templates/3d_viewer.html": {
+      "bytes": 8462,
+      "sha256": "e70e6791833442d2f1a88cac68ef553d0965573cdeb4a7099a1cf9bfc15e569b"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/templates/index.html": {
+      "bytes": 9584,
+      "sha256": "0102e98571efc37bc025d50049686d4c5c28daafd752497a15eb3dc5522583ab"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/test_3d_snake.py": {
+      "bytes": 4084,
+      "sha256": "1da3ce33e781253996144493dbadec640afba1fd4ad924675fed0e65932cc20f"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/test_sine_wave.py": {
+      "bytes": 3452,
+      "sha256": "d63d56ab570176be1f6482a69fe25af897c5c3caedbb5e3926d3df1b01e3a6fc"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/test_spiral.py": {
+      "bytes": 3488,
+      "sha256": "d97005ef520c250e9ed1c37368bb8cfb8a61653852087edc9904aeff7ab592c3"
+    },
+    "gen2.1-source-snapshot/Snake_SURGE/web_app.py": {
+      "bytes": 13466,
+      "sha256": "36769efc39916ef1b43bf31ba91d658df19e6c10453561f15a2ae4626b1a3ce3"
+    },
+    "pre-gen2.1/.gitignore": {
+      "bytes": 235,
+      "sha256": "d0b188e2ac00970bb950ac0f84b5bedf6b3cc898cbbb81a4bb7b5f741f7139e1"
+    },
+    "pre-gen2.1/docs/1_APP_USAGE_MANUAL.md": {
+      "bytes": 8548,
+      "sha256": "708de76942abfc9844c857004af4bc7c2fa2938abc3df15ea858964781fdaf9f"
+    },
+    "pre-gen2.1/docs/3_RASPBERRY_PI_SETUP.md": {
+      "bytes": 9053,
+      "sha256": "e516240b611e1cdc17419d5ef4fb27dc0179c33aca2f0fa7bb61c1343dc834f7"
+    },
+    "pre-gen2.1/docs/4_LLM_AUTONOMY_SETUP.md": {
+      "bytes": 3057,
+      "sha256": "4ddf30e5f19e53778315b5e3023e19bcaab95566d8dd519a9534ba6f9511eca2"
+    },
+    "pre-gen2.1/docs/4_WIRING_DIAGRAM.md": {
+      "bytes": 10786,
+      "sha256": "d36d0a33881e4c032f241e7a036843bf38b95527754760d915e18fdf16dfa64d"
+    },
+    "pre-gen2.1/docs/5_PARTS_AND_SAFETY.md": {
+      "bytes": 8518,
+      "sha256": "602504879133078a989c84404d70ef708a13a0e1052f09c28404e303efc500b4"
+    },
+    "pre-gen2.1/docs/6_ADDITIONAL_PARTS.md": {
+      "bytes": 7978,
+      "sha256": "285508b131210077c983be10799715bbef03c5ef78e8bb3cc6744f9dc2476446"
+    },
+    "pre-gen2.1/docs/7_TELEMETRY_AND_PERFORMANCE.md": {
+      "bytes": 3320,
+      "sha256": "9bc58aefb24b7b1f349a192036277de34c3faf6f730363b7cab7bbb700c32b7a"
+    },
+    "pre-gen2.1/docs/ai_outputs/wiring_split_bus_v2.svg": {
+      "bytes": 19176,
+      "sha256": "85bf276fdf158984f7107412eaa98e264f920827d3d91f33fd8546c86fe4bec2"
+    },
+    "pre-gen2.1/docs/ai_outputs/wiring_split_bus_v3.svg": {
+      "bytes": 23237,
+      "sha256": "e550a8719c97d47b2256d53d2396a540e4919520984ad663f3f09e2d12c33761"
+    },
+    "pre-gen2.1/docs/API_DOCUMENTATION.md": {
+      "bytes": 3777,
+      "sha256": "7bbbc66177c7e2cc4130c7ff52c78695d86f70ad3f418ac5c21411227e00813d"
+    },
+    "pre-gen2.1/docs/Component_flow.png": {
+      "bytes": 62911,
+      "sha256": "4af529b4a2d99b2011121b1525ea96a1916962ad4105dede62ab313d49bba567"
+    },
+    "pre-gen2.1/docs/hardware/power_centre_fed_v1.md": {
+      "bytes": 2580,
+      "sha256": "00d3c2fdbceb9145313bd561c6863a397f0c711705ae5f63cd49befca2a0955e"
+    },
+    "pre-gen2.1/docs/hardware/power_split_bus_v2.md": {
+      "bytes": 1659,
+      "sha256": "9ad3148c7b6203c6cec420916b6dbd9b86499ceb23dc0e93a9d3a9c4674c0d65"
+    },
+    "pre-gen2.1/docs/hardware/power_split_bus_v3.md": {
+      "bytes": 3022,
+      "sha256": "66cb94445db6d7b7938120ed68b3ee12f850176c7615ebb0cf91f0831cc20e92"
+    },
+    "pre-gen2.1/docs/hardware/README.md": {
+      "bytes": 3061,
+      "sha256": "e58fcd9cdf04f3c981df03e21e2cdfb3bcbd282ed632ea623098ca87038e6e5d"
+    },
+    "pre-gen2.1/docs/hardware/system_architecture.svg": {
+      "bytes": 15687,
+      "sha256": "3441320b5fd3ceebddf796328301c1f771ba06a30268eb8dd4f03ab3cdebdef4"
+    },
+    "pre-gen2.1/docs/hardware/Updated_Hardware_Inventory.md": {
+      "bytes": 15930,
+      "sha256": "0c13c9080f7f540be6333d7b3f03dec0a689f9573e7b942b475847497a54b2a0"
+    },
+    "pre-gen2.1/docs/hardware/wiring_centre_fed_v1.svg": {
+      "bytes": 24877,
+      "sha256": "69270b1d7c61dfc52514540ed5cb2a3ba9bd6af6cb823a9f0917bfbe28c4624e"
+    },
+    "pre-gen2.1/docs/hardware/wiring_diagram_v1.svg": {
+      "bytes": 21416,
+      "sha256": "ec880cbb1845f5a68c5dcccc4e59b180fb783a61024f986e64901df8219087b3"
+    },
+    "pre-gen2.1/docs/hardware/wiring_split_bus_v2.svg": {
+      "bytes": 26950,
+      "sha256": "3f2ea2c790da0bf99cdec35acfd1938ca8a73547d3be611c308a1f383ff2302d"
+    },
+    "pre-gen2.1/docs/hardware/wiring_split_bus_v3.svg": {
+      "bytes": 31011,
+      "sha256": "5e8bceb685a98767394d0f646ebd655b0f55362edccac1dea25a626185dfe64c"
+    },
+    "pre-gen2.1/docs/smart-snake-calculations.pdf": {
+      "bytes": 5593216,
+      "sha256": "3dab5222ce49679380ca7d8e0bd3a89c9dcd005e2889da7cdca5e5990a2616a9"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/GE_27_1.step.SLDPRT": {
+      "bytes": 568285,
+      "sha256": "ce8b1c5fe3f3d180c90d901c03b664643e9e4f355622307d4b0db35acbc26b4a"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/GE_27_2.step.SLDPRT": {
+      "bytes": 572955,
+      "sha256": "c0351b6fa81166545a87d830f94c2fb22dbb896a5b75dc83618f2bdf080372d5"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/GE_27_3.step.SLDPRT": {
+      "bytes": 567648,
+      "sha256": "86591e6378166658d83be48a80ebbc40df65b6683d595f6716e31244ee1d9af1"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/GE_27_4.step.SLDPRT": {
+      "bytes": 566281,
+      "sha256": "ea45e1c5d6cf85f7ab4d2899be59f48897ce138932977d8ae05b0e7cb2ca8edd"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/MOTOR-1723_3_1.step.SLDPRT": {
+      "bytes": 41950,
+      "sha256": "83bd4dcb5657e2b6e2857e0be904491b4cc29d7fe318dacfb49f2dd662aa9839"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/MOTOR-1723_3_2.step.SLDPRT": {
+      "bytes": 40710,
+      "sha256": "8f819e54924050515a2289f015f52952ce59c41ced7a30d06eb3c2f16f862693"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/MOTOR-1723_3_3.step.SLDPRT": {
+      "bytes": 41276,
+      "sha256": "26857654b986bc3f9e73b5a30811c3e0ec6f298d3daf8896aebe73edd253b870"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/MOTOR-1723_3_4.step.SLDPRT": {
+      "bytes": 40905,
+      "sha256": "42c702a91302043629b0214d246885d0aa77502cca3eab19ef2f9a01a6f0dfad"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.1_1.step.SLDPRT": {
+      "bytes": 88340,
+      "sha256": "5b5dab3b451239062360a43dabed6c17bbccb116508c7bcfc892cb608ab0f51e"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.1_2.step.SLDPRT": {
+      "bytes": 89251,
+      "sha256": "d417ac8ced35126e13f3af22cf631681ea65db8075e3840b46b000957be0455e"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.1_4.step.SLDPRT": {
+      "bytes": 88625,
+      "sha256": "9552827cc0550dcc8673d371e54137d107c6fbdd0c23c831049e003e5644d018"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.1_5.step.SLDPRT": {
+      "bytes": 89165,
+      "sha256": "7d61c53e305e0e0cde01d38f259758d7b65361aac6bd1bcc88376a68a89be2af"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.2_1.step.SLDPRT": {
+      "bytes": 31986,
+      "sha256": "c2f7d36ad41a7297fe38c6482d67b91347191785cae152c29c8127738990ad1b"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.2_2.step.SLDPRT": {
+      "bytes": 32438,
+      "sha256": "53036f0299a973cdbf2055fe7d742e755603640b2b0583359d96cbaa5387848f"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.2_4.step.SLDPRT": {
+      "bytes": 32023,
+      "sha256": "8ef99ba6be2486851286c1470380c8b6c6ef60beedc3433af29d9dd4b89c11c1"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/Open CASCADE STEP translator 7.9 1.2_5.step.SLDPRT": {
+      "bytes": 31611,
+      "sha256": "0125c56335d60d043415e893776bad9ec32148dd2d11d5bd48e2cbea45112ca7"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/PCB-CHAZUO_92_1.step.SLDPRT": {
+      "bytes": 38634,
+      "sha256": "898450d3c284df024fd8ecc905577a9b781618e343ef3c339bf9ccb10ecfb171"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/PCB-CHAZUO_92_2.step.SLDPRT": {
+      "bytes": 38120,
+      "sha256": "b961023b4931adab43af136ac5ee0c414c9daad5314f2633aa1c8ff8f36e977c"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/PCB-CHAZUO_92_3.step.SLDPRT": {
+      "bytes": 38976,
+      "sha256": "b61f32fef70c0e82f186e49013400108ee887b28a208505627c7315a41ccb8d0"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/PCB-CHAZUO_92_4.step.SLDPRT": {
+      "bytes": 38456,
+      "sha256": "be7ddafc046c85879e97b8792bb70abe5e405874add5b1afd7f41710725fea44"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/SG-ZIJI_15_1.step.SLDPRT": {
+      "bytes": 177296,
+      "sha256": "19d4795cfd52a4c371402b1a5d3be06346761ceaa97aff9d91e6454654d5eff5"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/SG-ZIJI_15_2.step.SLDPRT": {
+      "bytes": 176529,
+      "sha256": "d97697baf282a951aee51f2e779d955879fd66a24bf17ce17024463227268122"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/SG-ZIJI_15_3.step.SLDPRT": {
+      "bytes": 179421,
+      "sha256": "81330414c31ef5983d57bca1eeedb607e5bc6a2593e8b1ac9b77ad4fe9fc114d"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/SG-ZIJI_15_4.step.SLDPRT": {
+      "bytes": 179322,
+      "sha256": "7dc6487cdd2ab264e328caf80c6be81469b8295fd41a1769864092f11b30742a"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/XG-ZIJI_16_1.step.SLDPRT": {
+      "bytes": 174849,
+      "sha256": "99fd54f4df6ecd2b3382090af7e18199aa37147b5e08f088a4b8d1d2599527e6"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/XG-ZIJI_16_2.step.SLDPRT": {
+      "bytes": 178194,
+      "sha256": "0a4d281f78748910d827163efc945245a021d826c1250fec8b3e3f701d3bbddd"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/XG-ZIJI_16_3.step.SLDPRT": {
+      "bytes": 176194,
+      "sha256": "7ed056239e16004a18de55b943e4cce97b4e56dc127991965411c2be5710d2a3"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/XG-ZIJI_16_4.step.SLDPRT": {
+      "bytes": 177204,
+      "sha256": "7b5e4e049b32100bbe31b3388fae1baff1d4140fd8241511ea8159798b6efcb7"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/ZK_122_1.step.SLDPRT": {
+      "bytes": 71996,
+      "sha256": "8e8ed52e05025114f74edbd22e081fc0b528c0f543ef1083ece5d5320d13fcff"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/ZK_122_2.step.SLDPRT": {
+      "bytes": 71748,
+      "sha256": "eaf4dfbf4d7201fd4041074d68680a729b2cbf9a616eaedb7fd77442a13e1899"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/ZK_122_3.step.SLDPRT": {
+      "bytes": 70895,
+      "sha256": "f94cfeb9dd74e0e8e237fd5d78ac74475a479e3359c6884116b23f9170c8f5d0"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/ZK_122_4.step.SLDPRT": {
+      "bytes": 71152,
+      "sha256": "4046a2cfc47fbb587b39dafa07c7860f732a2bd5801c4b439bd70ed6c3de3910"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u4ece\u52a8\uff09_1.step.SLDPRT": {
+      "bytes": 33688,
+      "sha256": "da9d22b638aa33f310f2f2797abe4643d2824e17243328ab1c76f159168cbe69"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u4ece\u52a8\uff09_2.step.SLDPRT": {
+      "bytes": 33295,
+      "sha256": "8a92d8495d7cdf4ce68053036923e1f92bfb1a15e26e24d0ac407daf87960517"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u4ece\u52a8\uff09_3.step.SLDPRT": {
+      "bytes": 33198,
+      "sha256": "5f156ba4f90d0450611a32b2736a82a5cdcda3d185491df3a097c0538c2140b7"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u4ece\u52a8\uff09_4.step.SLDPRT": {
+      "bytes": 32914,
+      "sha256": "4031d2c0f48b97ebd58d5d14901391e28a6b9783cdb25cacecc9322409734ee2"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u9a71\u52a8\uff09_1.step.SLDPRT": {
+      "bytes": 110160,
+      "sha256": "85e0e6e9fcf0ffebd7b138ddc6004f9b37c23db21bfdc3fc624edcd2f7bcebf8"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u9a71\u52a8\uff09_2.step.SLDPRT": {
+      "bytes": 111005,
+      "sha256": "4b30250e83d307744b63111e0e6e0b64f47cdea09ca608480a10f393f75ad290"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u9a71\u52a8\uff09_3.step.SLDPRT": {
+      "bytes": 109211,
+      "sha256": "2be6e6d8ec6ac8024a113ef50064812dc87a26b9a6f617d07bc1162ed02254cc"
+    },
+    "pre-gen2.1/gen2-st3215/cad/motor-ref/\u91d1\u5c5e\u8235\u76d8\uff08\u9a71\u52a8\uff09_4.step.SLDPRT": {
+      "bytes": 108458,
+      "sha256": "64a6689899d417b5d7ffe1125d71dfd56e4cd2dc1c659463b8bbbee3f6dcca80"
+    },
+    "pre-gen2.1/gen2-st3215/firmware/README.md": {
+      "bytes": 4411,
+      "sha256": "c407e348e68b7d6d972798d9eb8811d3059c4d39a7f89dd5261d4e44ce2ff64f"
+    },
+    "pre-gen2.1/gen2-st3215/README.md": {
+      "bytes": 10753,
+      "sha256": "f26adee62b05b28fc4448fdd845302dc53677d037a986799474dcbf6dce33261"
+    },
+    "pre-gen2.1/gen2-st3215/src/st3215_interface.py": {
+      "bytes": 3298,
+      "sha256": "5815ed43fca925a6849ed6976104b110767788d9a125324995ebcc580c74b9a3"
+    },
+    "pre-gen2.1/platformio.ini": {
+      "bytes": 1842,
+      "sha256": "b9f0cfd4af8b4a43c4a6604a6f67e1afa052a8544488c90d238a6fec6c199efe"
+    },
+    "pre-gen2.1/README.md": {
+      "bytes": 29333,
+      "sha256": "4655876b80a89e2922c880349b433bfe7f7a3dc037d614545456fd70fb9b0117"
+    },
+    "pre-gen2.1/shared/desktop-app/app.py": {
+      "bytes": 19227,
+      "sha256": "bed24259ccdb19350211d07c0fa8f0f77ed0e82a7bc8a59762e0ac2421bbe195"
+    },
+    "pre-gen2.1/shared/desktop-app/README.md": {
+      "bytes": 2900,
+      "sha256": "836298a5f8afaec611e4216181beeee59a409dfdd649077458d4c63e6c5d9d09"
+    },
+    "pre-gen2.1/shared/simulation/pybullet/README.md": {
+      "bytes": 3263,
+      "sha256": "b05370f3dc905ecc094e4db38fab53dd219e07a4a20d68a7f906cc810475d583"
+    },
+    "pre-gen2.1/shared/simulation/pybullet/simulation_interface.py": {
+      "bytes": 9887,
+      "sha256": "9bf585c1a9fee9241a98f35930c3d60db3d11065c5f155917a20517662807f26"
+    },
+    "pre-gen2.1/shared/simulation/pybullet/snake.urdf": {
+      "bytes": 7408,
+      "sha256": "7f36cb76710146e533b3834a2b62125c74be99ee64a463f9a3023f1e8c37d0bb"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/diagram.json": {
+      "bytes": 5460,
+      "sha256": "c635b44f26b8fe829de3c3ed155e16d7b64f7381b84656bb1105f0b3091d4467"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/libraries.txt": {
+      "bytes": 164,
+      "sha256": "808a2afe3f38d81b6e5f269756fee17176edaaf1118abc189b3db2207b7606e5"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/Link to simulation": {
+      "bytes": 47,
+      "sha256": "90e59fc496b7c315ac1b650525e31f040b2f2c603ad87972d083570ef8bd4c53"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/photo.png": {
+      "bytes": 127841,
+      "sha256": "9b9f2c8ccd2142bf6911bccc5bd570a3023cf192e345d93560bf3384cad8a947"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/README.md": {
+      "bytes": 2533,
+      "sha256": "64dc6db3d1b816c8d6b99b076a1588bcb04cb6c75d70ddd3459c0335b4d5dce3"
+    },
+    "pre-gen2.1/shared/simulation/wokwi/sketch.ino": {
+      "bytes": 11818,
+      "sha256": "a6595ca969adf6db464ca39757e31b297328c3dd8762bf688f99f5b0b56385b7"
+    },
+    "pre-gen2.1/shared/web-dashboard/README.md": {
+      "bytes": 3358,
+      "sha256": "d6e95b17fa9f1f15d2cb22f2f48c8b97fcd8020ddb3368f5f2ec6fa0a0727425"
+    },
+    "pre-gen2.1/shared/web-dashboard/requirements.txt": {
+      "bytes": 61,
+      "sha256": "2c020710cc34639c899da777338bc4af02a61c3dcd55d9abb7bfc2e391c210a7"
+    },
+    "pre-gen2.1/shared/web-dashboard/static/script.js": {
+      "bytes": 14129,
+      "sha256": "16db65402d33b5cc155da726367613e2b0d4df06657886678f4ec09ddbec4556"
+    },
+    "pre-gen2.1/shared/web-dashboard/static/style.css": {
+      "bytes": 7505,
+      "sha256": "d5e80920f02b166fcbb754bf82a7f0ca415b5f2f8e84c8e607bf66b31ae43865"
+    },
+    "pre-gen2.1/shared/web-dashboard/templates/3d_viewer.html": {
+      "bytes": 8462,
+      "sha256": "e70e6791833442d2f1a88cac68ef553d0965573cdeb4a7099a1cf9bfc15e569b"
+    },
+    "pre-gen2.1/shared/web-dashboard/templates/index.html": {
+      "bytes": 7626,
+      "sha256": "744e6abebd35a39fe46e0348061d8751602622e71956532d4a82d6f69170b4d2"
+    },
+    "pre-gen2.1/shared/web-dashboard/web_app.py": {
+      "bytes": 9074,
+      "sha256": "e843f2844ecaeeb0442b9a8e61998f96686012c16c674a4d3a99d3e0f2b81b57"
+    },
+    "pre-recheck-2026-10-15/docs/1_APP_USAGE_MANUAL.md": {
+      "bytes": 9022,
+      "sha256": "944e4470950f9775f25f27b26482a67449a2651db2b678e0bc7bf27f0023339a"
+    },
+    "pre-recheck-2026-10-15/docs/API_DOCUMENTATION.md": {
+      "bytes": 2417,
+      "sha256": "a6fbbcd71dc3f443650fe8b4ecee52166ff77f610c13d837bda327659440c8e5"
+    },
+    "pre-recheck-2026-10-15/docs/versions/VERSIONS.md": {
+      "bytes": 3076,
+      "sha256": "948c2aca7361c56f6b929b379d682f19864ad2f7b959eea87d6d10f4181114b2"
+    },
+    "pre-recheck-2026-10-15/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp": {
+      "bytes": 9435,
+      "sha256": "86c54e07f7019030f553434e0b5946399cb8f186ec2c53dfb4b642768a4e9d7d"
+    },
+    "pre-recheck-2026-10-15/platformio.ini": {
+      "bytes": 2397,
+      "sha256": "e468f7969629870d2f229790eddf100faa8a96969a261a6366ce64626bd8b580"
+    },
+    "pre-recheck-2026-10-15/README.md": {
+      "bytes": 25460,
+      "sha256": "3602211b2906b843dac4ddfc734d6f6f655365669b81104387e1dd623deff90f"
+    },
+    "pre-recheck-2026-10-15/shared/web-dashboard/README.md": {
+      "bytes": 3410,
+      "sha256": "e3d71b3e140d2322dc5d95fda95a0ca3d0c6e7b40f740e365932163275fd72e4"
+    }
+  }
+}

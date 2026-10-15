@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake SURGE 3D Viewer</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; color: #eee; font-family: sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        #status { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="status">Connecting to 3D Stream...</div>
+    <div id="canvas-container"></div>
+    
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        const container = document.getElementById('canvas-container');
+        const statusEl = document.getElementById('status');
+        
+        // Setup Scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x222222);
+        
+        // Setup Camera
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
+        camera.position.set(0, 1.5, 2);
+        
+        // Setup Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+        
+        // Setup Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 0, 0);
+        
+        // Add Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Soft white light
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(5, 10, 5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        
+        // Add Ground Plane (Checkerboard like PyBullet)
+        const gridHelper = new THREE.GridHelper(200, 400, 0x888888, 0x444444);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+        
+        // Setup Paths
+        const targetMaterial = new THREE.LineBasicMaterial({ color: 0x0088ff, linewidth: 2, depthTest: false });
+        const targetLine = new THREE.Line(new THREE.BufferGeometry(), targetMaterial);
+        targetLine.renderOrder = 1;
+        targetLine.frustumCulled = false;
+        scene.add(targetLine);
+        
+        const actualMaterial = new THREE.LineBasicMaterial({ color: 0xff3333, linewidth: 2, depthTest: false });
+        const actualLine = new THREE.Line(new THREE.BufferGeometry(), actualMaterial);
+        actualLine.renderOrder = 2;
+        actualLine.frustumCulled = false;
+        scene.add(actualLine);
+
+        function updatePath(lineObj, pathData) {
+            if (!pathData || pathData.length < 2) {
+                lineObj.geometry.setFromPoints([]);
+                return;
+            }
+            const points = [];
+            for(let i=0; i<pathData.length; i++) {
+                points.push(new THREE.Vector3(pathData[i][0], 0.01, -pathData[i][1]));
+            }
+            lineObj.geometry.setFromPoints(points);
+        }
+        
+        // Snake Segments Array
+        const segments = [];
+        let previousHeadPos = new THREE.Vector3(0, 0, 0);
+        let firstFrame = true;
+
+        // Helper to create a snake segment mesh
+        function createSegmentMesh(isHead) {
+            // URDF size roughly 40x40x80 mm
+            const geometry = new THREE.BoxGeometry(0.04, 0.04, 0.08);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: isHead ? 0xff0000 : 0x00aaff,
+                specular: 0x222222,
+                shininess: 30
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            return mesh;
+        }
+
+        async function poll3DStatus() {
+            try {
+                const res = await fetch('/api/3d_status');
+                const data = await res.json();
+                
+                if (data.segments && data.segments.length > 0) {
+                    statusEl.textContent = "Live 3D Stream (PyBullet)";
+                    statusEl.style.color = "#00ff00";
+                    
+                    // Create meshes if they don't exist
+                    while (segments.length < data.segments.length) {
+                        const isHead = segments.length === 0;
+                        const mesh = createSegmentMesh(isHead);
+                        scene.add(mesh);
+                        segments.push(mesh);
+                    }
+                    
+                    // Update positions and rotations
+                    for (let i = 0; i < data.segments.length; i++) {
+                        const sData = data.segments[i];
+                        // PyBullet coordinates: Z is up. Three.js: Y is up.
+                        // Wait, let's map: PyBullet (X, Y, Z) -> Three.js (X, Z, -Y) 
+                        // Actually, Threejs camera setup makes Y up.
+                        // Let's just directly map it and see, or we can just apply a quaternion rotation to the whole scene to flip Z to Y.
+                        
+                        segments[i].position.set(sData.pos[0], sData.pos[2], -sData.pos[1]);
+                        
+                        // Quaternions need to be mapped similarly if axes are swapped.
+                        // PyBullet: qx, qy, qz, qw
+                        // Three.js: x, y, z, w
+                        // If we map positions as x=x, y=z, z=-y, we must map quat as well.
+                        segments[i].quaternion.set(sData.quat[0], sData.quat[2], -sData.quat[1], sData.quat[3]);
+                    }
+                    
+                    // Optional: Make camera follow the head
+                    if (segments.length > 0) {
+                        const headPos = segments[0].position;
+                        
+                        if (!firstFrame) {
+                            const delta = new THREE.Vector3().subVectors(headPos, previousHeadPos);
+                            camera.position.add(delta);
+                        } else {
+                            firstFrame = false;
+                        }
+                        
+                        controls.target.copy(headPos);
+                        previousHeadPos.copy(headPos);
+                        
+                        // Make grid strictly follow the snake, snapping to 0.5m grid lines
+                        gridHelper.position.x = Math.round(headPos.x / 0.5) * 0.5;
+                        gridHelper.position.z = Math.round(headPos.z / 0.5) * 0.5;
+                    }
+                    
+                    // Update paths
+                    updatePath(targetLine, data.target_path);
+                    updatePath(actualLine, data.actual_path);
+                } else {
+                    statusEl.textContent = "Waiting for Simulation...";
+                    statusEl.style.color = "#ffaa00";
+                    
+                    // Hide meshes
+                    segments.forEach(m => m.visible = false);
+                }
+            } catch (e) {
+                statusEl.textContent = "Stream Disconnected";
+                statusEl.style.color = "#ff0000";
+            }
+        }
+        
+        // Start polling
+        setInterval(poll3DStatus, 50); // 20 FPS
+        
+        // Render Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            segments.forEach(m => m.visible = true);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

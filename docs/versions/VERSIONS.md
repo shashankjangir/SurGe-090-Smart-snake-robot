@@ -47,10 +47,9 @@ The tag `archive/pre-gen2.1-integration-2026-10-15` records project HEAD
 `f64e79b`. Original tracked files replaced or missing locally are recovered under
 `removed/pre-gen2.1/`. Gen 1 is checked against `gen1-git-baseline.json`.
 
-The earlier complete incoming archive (recorded HEAD `b15efef`) and local bundles
-were absent on 16 October and are not part of this sync. See
-[archive availability](../../removed/INDEX.md). The integration map records the
-original source-to-destination mapping, not a guarantee that the original archive
-is present.
+The complete original source snapshot (recorded HEAD `b15efef`) and both Git
+bundles were restored on 16 October. All 66 source-snapshot files and 46 selected
+pre-integration files match their original SHA-256 manifests. See the
+[archive index](../../removed/INDEX.md) and [audit](../../removed/AUDIT.md).
 
 See [verification](VERIFICATION.md) and [whole-folder recheck](RECHECK.md).

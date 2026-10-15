@@ -32,3 +32,6 @@ removed/baselines/control-checkout-git/
 
 # Local full-resolution videos and other unselected media
 /gen2-st3215/media/local-only/
+
+# Separate environment for historical-source inspection
+/.venv-archive/

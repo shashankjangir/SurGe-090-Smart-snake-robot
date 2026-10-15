@@ -1,3 +1,8 @@
+> **Archive restored — 16 October 2026:** Both bundles are valid and the original
+> source snapshot is complete again (66/66 SHA-256 matches). The earlier missing
+> archive notes below describe the previous sync. See [archive audit](../../removed/AUDIT.md).
+> This update used targeted integrity checks, not a rerun of the full test suite.
+
 > **16 October update:** The results below record the 15 October recheck.
 > The original full local archive is now absent; its preservation check cannot
 > currently be repeated. See [archive availability](../../removed/INDEX.md).
