@@ -1,23 +1,19 @@
-# segment_v6 — SURGE-090 snake robot segment
+# Gen 2 segment v6
 
-This is the ST3215 segment, rebuilt from v4's structure after v5 regressed. It is
-a parametric CadQuery model rather than a SolidWorks part, so every dimension is
-traceable to a named constant and the file refuses to export if its own
-assumptions stop holding.
+This CadQuery model develops the ST3215 body segment from the earlier v4 and v5
+designs. The main changes concern ground contact, scale orientation and motor
+retention. Dimensions are defined as named parameters in `segment_v6.py`.
 
-```
-segment_v6.py      the model, with a self-check block that raises SystemExit
-probe_st3215.py    run this against ST3215.step BEFORE printing
-README.md          this file
-```
+`probe_st3215.py` compares motor assumptions with the reference STEP model;
+`verify_v6.py` contains the separate geometric checks. The notes below record
+the design reasoning and the physical measurements still needed before printing.
 
 ## Why v6 exists
 
-v4 and v5 are close relatives — v5 is essentially v4 with a wider yoke rectangle,
-and the two share a bounding box. v5's early sidewall bug is fixed and should not
-be re-reported. What neither of them fixes is a set of three defects that run
-through both, and that only showed up when the parts were measured rather than
-looked at.
+v5 widened the v4 yoke and corrected an early sidewall issue. Three other
+issues remained in both versions: the yoke plates contacted the ground ahead
+of the scales, the scale direction opposed the intended motion, and the motor
+pocket lacked positive retention.
 
 The critical one is ground contact. The bottom yoke plate sits at z = −3.45 while
 the belly scale tips sit at −3.00, so the plate hangs 0.45 mm **below** the
@@ -125,7 +121,7 @@ concentric Ø1.6 / Ø2.0 pair, which is the tap-drill and nominal pair for M2;
 M2.5 would be Ø2.05 / Ø2.5. This change also bought clearance: the Ø4.0
 countersink leaves 0.75 mm to the nearest keel where the Ø5.0 head left 0.25.
 
-One question is genuinely unresolved. The two case faces carry **different** hole
+One mounting detail remains unresolved. The two case faces carry **different** hole
 patterns — 24.45 mm pitch on one, 20.70 mm on the other — and the drawing labels
 neither. The default assumes 24.45, because both of its holes then land on the
 single 4.10 terrace, which is what a mounting interface looks like, whereas the
@@ -172,7 +168,7 @@ constraint on how the robot is driven, not a defect in the part.
 Eleven segments give ten joints: `10 × 58.0 = 580 mm` axis-to-axis, and 670 mm
 overall from the rear yoke at −15.0 to the head nose at 654.5. Note that
 `segment_v5.py` prints 638 mm for this, which is wrong; so was an earlier figure
-in the v6 planning notes. 580 and 670 are the numbers.
+in the v6 planning notes. The v6 chain dimensions are 580 mm axis-to-axis and 670 mm overall.
 
 ## Printing
 
@@ -206,16 +202,13 @@ what broke rather than writing a part that looks fine and is not.
 
 ## Verification status
 
-The dimensional model is independently verified: a separate checker reproduces
-the geometry as per-band footprint masks and brute-forces the joint sweep from
-−45° to +45° against both neighbours, plus wall thicknesses, bridging, ground
-contact, load paths and the chain arithmetic — 49 checks, all passing, with fault
-injection proving the collision detector, the relief sizing and the new
-retention check all actually fire when fed a defect. A parameter-drift guard
-diffs the 56 constants shared between model and checker so the checker cannot
-drift into validating a part that was never built.
+The existing design record reports 49 checks in the independent dimensional
+checker, covering sweep clearance, walls, ground contact, load paths and chain
+arithmetic. Its parameter comparison is intended to keep the checker aligned
+with the model. These are geometric checks, not a physical fit or traction test.
 
-What has **not** been exercised is CadQuery itself. The sandbox this was written
-in could not install it, so the model's API calls have never run. The dimensions
-are sound; the possibility of a CadQuery-level error on first execution is real.
-Run it and read the self-check output.
+That record did not establish a successful CadQuery execution and export.
+Before producing parts, run the model and inspect its self-check output, confirm
+the motor dimensions and idler behavior, and check a printed segment against the
+actual hardware. The working Gen 2 photos do not by themselves confirm every
+assumption in this particular CAD revision.

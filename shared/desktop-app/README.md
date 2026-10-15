@@ -1,24 +1,28 @@
-# Gen 2.1 Desktop and Headless App
+# Desktop control and headless simulation
 
-Gen 2.1 is working in project trials, confirmed on 16 October 2026. See the
-[Gen 2 prototype photos](../../gen2-st3215/media/README.md) and
-[version map](../../docs/versions/VERSIONS.md). Gen 3.0 is in development.
+This app provides a Tkinter interface to the Gen 2.1 controller, alongside a
+small command-line launcher for simulation and finite hardware runs. The GUI
+includes gait settings, path drawing and plots.
 
-The launcher `app.py` uses the shared Gen 2.1 package. `dashboard.py` retains the
-Tkinter path drawing, math-path generator, PyBullet controls and plotting interface.
-GUI dependencies load only when `--gui` is selected.
+From the repository root, after installing [shared requirements](../requirements.txt):
 
-From the repository root:
-
-```sh
-python shared/desktop-app/app.py --sim --duration 3
-python shared/desktop-app/app.py --gui
-python shared/desktop-app/app.py --hardware --port COM3 --duration 10
+```powershell
+.venv/Scripts/python.exe shared/desktop-app/app.py --sim --duration 3
+.venv/Scripts/python.exe shared/desktop-app/app.py --gui
 ```
 
-Default: a finite headless simulation. Hardware needs Gen 2.1 receiver firmware.
-GUI Connect and Start starts motion; STOP requests torque-off. Hardware port may
-be supplied with `--port` or SURGE_PORT. Drawn paths/reports are simulation-only;
-physical mode runs straight planar undulation. Web/gamepad provides manual steering.
+The default launcher runs a finite headless simulation. GUI dependencies are
+loaded only when `--gui` is selected.
 
-See [full guide](../../docs/1_APP_USAGE_MANUAL.md).
+For hardware, use the Gen 2.1 receiver and an explicit serial port:
+
+```powershell
+.venv/Scripts/python.exe shared/desktop-app/app.py --hardware --port COM3 --duration 10
+```
+
+In the GUI, Connect and Start begins motion and STOP requests torque-off.
+The port can also be supplied through `SURGE_PORT`.
+
+Drawn paths and trajectory reports are available in simulation. Physical mode
+runs planar undulation; use the web dashboard and gamepad for manual steering.
+See the [operating guide](../../docs/1_APP_USAGE_MANUAL.md) for setup details.

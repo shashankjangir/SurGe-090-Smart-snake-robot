@@ -1,12 +1,17 @@
-# docs/hardware — power & wiring design (Gen 2, ST3215)
+# Gen 2 power and wiring
 
-**Current design: split power bus v3** → [`power_split_bus_v3.md`](power_split_bus_v3.md) ·
-[`wiring_split_bus_v3.svg`](wiring_split_bus_v3.svg) · build guide [`../4_WIRING_DIAGRAM.md`](../4_WIRING_DIAGRAM.md) ·
-parts & budget [`Updated_Hardware_Inventory.md`](Updated_Hardware_Inventory.md).
+The current design is [split power bus v3](power_split_bus_v3.md): five fused
+pairs of servos, with a separate supply to the controller. The
+[wiring drawing](wiring_split_bus_v3.svg) and [build guide](../4_WIRING_DIAGRAM.md)
+show the connections. The [inventory](Updated_Hardware_Inventory.md) records the
+parts and budget at the date it was written.
 
-Older designs are kept here on purpose, so the reasoning behind each change stays visible.
+Power distribution changed as the servo hardware and body layout developed.
+The sequence below explains why we moved from a single supply chain to smaller
+fused groups. Voltage-drop and load figures in these notes are design estimates;
+actual behavior depends on wiring, connectors and operating conditions.
 
-## Design history — what we did before and what we do now
+## Design history
 
 | # | Date | Design | Files | Status | What changed / why we moved on |
 |:---:|---|---|---|---|---|

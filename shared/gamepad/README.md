@@ -1,12 +1,27 @@
-# Gen 2.1 gamepad
+# Gamepad control
 
-Gen 2.1 is working in project trials, confirmed on 16 October 2026. See the
-[Gen 2 prototype photos](../../gen2-st3215/media/README.md) and
-[version map](../../docs/versions/VERSIONS.md). Gen 3.0 is in development.
+The gamepad sends manual input to the running Gen 2.1 web dashboard. It works
+with either the simulation or the hardware engine selected there.
 
-Install `requirements.txt`, launch the web dashboard, connect its engine, then run
-`python shared/gamepad/controller_node.py` from the repository root.
-Two stick axes and four buttons are required. A starts, B stops, X reverses,
-Y changes amplitude. The left stick sets steering and motion scaling.
-Use `--url` to address a different dashboard host. No controller is opened on import.
-The application requests STOP on exit; runtime/receiver timeouts cover a lost stream.
+Connect the engine in the dashboard, then run from the repository root:
+
+```powershell
+.venv/Scripts/python.exe shared/gamepad/controller_node.py
+```
+
+Dependencies are included in [shared/requirements.txt](../requirements.txt).
+The controller needs at least two axes and four buttons.
+
+| Control | Action |
+|---|---|
+| Left stick | Steering and motion scaling |
+| A | Start |
+| B | Stop |
+| X | Reverse |
+| Y | Change amplitude preset |
+
+Button labels assume a conventional A/B/X/Y mapping. Use `--url` to connect to
+a dashboard on another host. The client requests STOP on exit; the runtime and
+receiver also have timeouts for interrupted control input.
+
+See the [dashboard guide](../web-dashboard/README.md) for the host setup.

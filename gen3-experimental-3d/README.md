@@ -1,33 +1,38 @@
-> **Project status — 16 October 2026:** Gen 3.0 is in active development. Gen 2.0 and Gen 2.1 are working in project trials.
+# Gen 3.0 — 3D motion experiments
 
-# Gen 3.0 — Experimental 3D motion
+This is our current development work. Gen 2.0 and Gen 2.1 provide a working
+planar robot; Gen 3 explores what changes when the chain alternates yaw and
+pitch joints.
 
-This is a separate experiment, not the planar Gen 2 build. It retains the
-alternating connector, plate-chain, electronics-holder and segment CAD candidates
-under `cad/`, together with the alternating yaw/pitch waveform.
+The mechanical work includes an alternating connector, plate-chain components,
+electronics holders and segment candidates in `cad/`. The motion script explores
+the corresponding alternating-joint waveform. Clearances, mounting signs and
+body support need to be considered together before applying it to an assembled chain.
 
-`test_3d_snake.py` defaults to a **dry run**:
+## Motion experiment
 
-```sh
+`test_3d_snake.py` prints a dry run by default:
+
+```powershell
 python gen3-experimental-3d/test_3d_snake.py
 ```
 
-The waveform has 900-count yaw / 700-count pitch amplitudes, 0.6 Hz temporal
-frequency, pi/2 segment phase, and alternating mounting signs. The transport
-clamps targets to ±70 degrees. These are experimental parameters, not verified
-clearances or demonstrated locomotion performance.
+The current waveform uses 900-count yaw and 700-count pitch amplitudes, a 0.6 Hz
+frequency and a pi/2 phase shift between segments. Mounting signs alternate;
+the transport clamps targets to approximately ±70 degrees. These are experiment
+settings, not a measured operating envelope.
 
-Physical execution requires `--hardware --port <port>` and an appropriately
-assembled alternating yaw/pitch chain. It uses the Gen 2.1 target transport,
-not the all-yaw controller or simulator. Check joint mapping and physical
-clearances before any trial; there is no matching validated 3D simulation yet.
-Alignment checks encoders; cleanup requests torque-off instead of commanding an
-unverified recentering movement. CAD files have been retained but not modified
-or geometrically verified during this integration.
+Hardware execution requires `--hardware --port <port>` and the correct joint
+mapping. The script uses the Gen 2.1 target transport, checks alignment through
+encoder feedback and requests torque-off when it exits.
 
-## Current reference build
+## What remains open
 
-The working Gen 2.0 / Gen 2.1 planar prototype is shown in the
-[Gen 2 gallery](../gen2-st3215/media/README.md), updated with cropped photos on
-16 October 2026. Those images document Gen 2; they do not depict a completed
-Gen 3.0 build. See the [project overview](../README.md) for the generation map.
+The CAD candidates and waveform are the starting point. The joint arrangement,
+physical clearances and resulting locomotion still need to be established as a
+complete Gen 3 build. The existing PyBullet model is planar and does not model
+this mechanism.
+
+The [Gen 2 photos](../gen2-st3215/media/README.md) show the current reference robot.
+The [project README](../README.md) explains the progression from the original
+Dynamixel prototype to this stage.

@@ -1,42 +1,38 @@
-# Gen 2.1 Web Dashboard
+# Web dashboard
 
-Gen 2.1 is working in project trials, confirmed on 16 October 2026. See the
-[Gen 2 prototype photos](../../gen2-st3215/media/README.md) and
-[version map](../../docs/versions/VERSIONS.md). Gen 3.0 is in development.
+The dashboard is the browser interface for Gen 2.1. It brings gait settings,
+manual control, servo feedback and simulation into one place. It uses the same
+controller package as the desktop app and gamepad.
 
-From the repository root:
+## Run
 
-```sh
-python -m pip install -r shared/web-dashboard/requirements.txt
-python shared/web-dashboard/web_app.py
+From the repository root, using the Python 3.11 environment:
+
+```powershell
+.venv/Scripts/python.exe -m pip install -r shared/requirements.txt
+.venv/Scripts/python.exe shared/web-dashboard/web_app.py
 ```
 
-Open http://127.0.0.1:5000. Select an engine, connect, then explicitly start motion.
-STOP requests torque-off on hardware. A selected hardware serial port or SURGE_PORT
-is required. Flash `receiver_gen2_1`; use `transmitter_gen2_1` for wireless.
+Open `http://127.0.0.1:5000`. Simulation is selected initially. Connect to the
+chosen engine, then start motion. In hardware mode, select the serial port for
+the Gen 2.1 receiver or its wireless transmitter. STOP requests torque-off.
 
-The worker starts in the command-line entry point; importing `create_app()` has no
-thread, serial or GUI side effects. Embedded users must call `runtime.start_worker()`
-and `runtime.close()`. App routes and the worker serialize access to the interface.
+For a dashboard on the local network, launch with `--host 0.0.0.0`. The app has
+no authentication, so use it on a trusted network.
 
-| Endpoint | Purpose |
-|---|---|
-| GET `/`, `/3d` | Dashboard and Three.js viewer |
-| POST `/api/connect` | Connect or disconnect; body engine, port, headless |
-| POST `/api/start`, `/api/stop` | Explicit motion start and torque-off |
-| POST `/api/params` | Validated gait/friction/force/speed settings |
-| POST `/api/set_path` | Simulation path only |
-| POST `/api/controller` | Gamepad input |
-| GET `/api/status` | State, motor validity, sensor values and age |
-| GET `/api/3d_status` | Simplified simulated segment transforms |
-| GET `/api/report` | Mean distance to target polyline and display score |
-| GET `/api/system_stats` | Host CPU/RAM (temperature may be unavailable) |
+## What the views show
 
-Hardware pose/localization is not implemented. Actual physical trajectory and
-physical accuracy are not inferred from commanded joint positions. Sensor
-broadcasts are displayed separately; missing samples are not normal readings.
-Three.js/font CDN resources need network access in the browser.
+The main page combines gait controls, a planar view and feedback. The `/3d`
+page displays the simulated segment transforms. Path drawing and accuracy
+reports are simulation features; the robot does not yet supply the localization
+needed to use them on hardware.
 
-See [operating guide](../../docs/1_APP_USAGE_MANUAL.md) and
-[protocol](../../docs/API_DOCUMENTATION.md). Previous versions are preserved in
-[removed](../../removed/INDEX.md).
+Servo feedback and sensor-node readings are displayed separately, including
+missing samples. The 3D model is a visual approximation, and its browser
+resources currently depend on external CDNs.
+
+The [operating guide](../../docs/1_APP_USAGE_MANUAL.md) covers the controls.
+The [API reference](../../docs/API_DOCUMENTATION.md) documents commands and
+feedback. For development, `create_app()` creates the Flask app without starting
+hardware or a worker; an embedded caller starts `runtime.start_worker()` and
+closes it with `runtime.close()`.
