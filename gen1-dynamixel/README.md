@@ -1,340 +1,125 @@
-# SURGE-090 · Generation 1 (Dynamixel XL330)
+# Gen 1 — 10-motor Dynamixel design
 
-**SURGE Summer Research Programme · Indian Institute of Technology Delhi**
+Gen 1 is the original ten-joint snake robot design, built around a Raspberry Pi,
+ten Dynamixel XL330-M288-T actuators and a modular printed body. The software
+covers gait generation, motor feedback and current-based obstacle response.
 
-> ⚠️ **HISTORICAL — This generation's hardware is no longer held.**
-> The Dynamixel XL330 motors were unobtainable in India at the required quantity (10 units).
-> All Gen 1 hardware (U2D2, PHB, Pi 4, cables) has been returned. This directory is preserved
-> as a reference for the control architecture, which was ported to Gen 2.
->
-> **Active generation:** [`gen2-st3215/`](../gen2-st3215/) · **Current inventory:** [`Updated_Hardware_Inventory.md`](../Updated_Hardware_Inventory.md)
+The architecture covers the full ten-motor chain: joint mapping, travelling-wave
+gait, current feedback and an obstacle-response state machine. Actuator supply
+constraints later led to the ST3215 redesign in [Gen 2](../gen2-st3215/README.md).
 
----
+This folder keeps the original software, mechanical designs, reports and bench
+media. Gen 2.0 and Gen 2.1 are now working, and [Gen 3.0](../gen3-experimental-3d/README.md)
+is in development. The [main project page](../README.md) follows that progression.
 
-## Abstract
+## Mechanical and control design
 
-SURGE-090 is a ten-degree-of-freedom, bio-inspired snake robot designed for locomotion in unstructured and confined environments. The platform employs sinusoidal lateral undulation to propel itself forward and uses proprioceptive motor-current sensing as a tactile collision detector — eliminating the need for any external proximity or force sensors. The control architecture is implemented in Python running on a Raspberry Pi, communicating with ROBOTIS Dynamixel XL330 smart servo actuators over a TTL serial daisy chain.
+The intended mechanism alternated yaw and pitch joints. In the gait code, odd
+motor IDs receive the travelling sine wave, while even IDs hold the centre
+position. This is different from the all-yaw planar chain used in Gen 2.
 
-The project was developed as part of the **SURGE (Summer Undergraduate Research Grant for Excellence)** programme at **IIT Delhi**.
+The main program uses the Dynamixel SDK directly to read current and send goal
+positions. A current threshold triggers a timed response: reverse for 2.5 seconds,
+turn for 4 seconds, then resume forward undulation. The configured threshold is
+350 mA. This was an experimental control strategy; it does not establish reliable
+obstacle detection or which side of the body made contact.
 
+The mechanical work includes segment parts, an assembly, motor reference models
+and exported print files. Early segment printing and bench work informed the
+later redesign.
 
----
+## System architecture
 
-## Table of Contents
+The original connection was:
 
-1. [Features](#features)
-2. [System Architecture](#system-architecture)
-3. [Repository Structure](#repository-structure)
-4. [Hardware Requirements](#hardware-requirements)
-5. [Software Setup](#software-setup)
-6. [Running the Robot](#running-the-robot)
-7. [Module Reference](#module-reference)
-8. [CAD Files](#cad-files)
-9. [Documentation](#documentation)
-10. [Team](#team)
+```text
+PC / Raspberry Pi → USB → U2D2 + power hub → XL330 IDs 1–10
+```
 
----
+The design connects ten XL330 actuators through a U2D2 and power hub, with the
+Raspberry Pi running the controller. The [historical bill of materials](docs/reports/hardware_bom.md)
+records procurement and equipment history; the
+[current hardware inventory](../docs/hardware/Updated_Hardware_Inventory.md)
+covers the later project.
 
-## Features
-
-| Feature | Description |
+| Setting in the original software | Value |
 |---|---|
-| **10-DOF Serpentine Gait** | Sinusoidal lateral undulation via a travelling sine wave propagated across all joints |
-| **Sensorless Obstacle Detection** | Motor current monitored at 50 Hz; stall current spike (> 350 mA) triggers evasion |
-| **Autonomous Evasion** | State machine: reverse (2.5 s) → side-aware turn (4 s) → resume forward |
-| **Side-Aware Turning** | Sign of the stalling motor's current determines which way the robot evades |
-| **Tethered & Untethered Modes** | Works via USB from a laptop or fully autonomous on on-board Raspberry Pi |
-| **3D-Printed Body** | All structural segments designed in SolidWorks; STEP and STL files provided |
+| Protocol | Dynamixel Protocol 2.0 |
+| Serial baud | 57,600 |
+| Motor count | 10, IDs 1–10 |
+| Default serial port | `COM3` on Windows, `/dev/ttyUSB0` on Linux |
+| Encoder centre | 2048 |
+| Gait | Odd IDs yaw; even IDs held at centre |
+| Loop delay | 20 ms after bus operations |
 
----
+The 20 ms delay is not a measured 50 Hz control rate: sequential reads and writes
+add their own time to each cycle.
 
-## System Architecture
+## Reading and running the software
 
-```
-┌────────────────────────────────────────────┐
-│              Raspberry Pi 5                │
-│                                            │
-│  main.py  ──── Control Loop @ 50 Hz        │
-│     │                                      │
-│     ├──► src/obstacle_avoidance.py         │
-│     │        Current-based state machine   │
-│     │        SLITHER → REV → TURN → ...    │
-│     │                                      │
-│     ├──► src/snake_locomotion.py           │
-│     │        Sinusoidal gait generator     │
-│     │        turn_direction from avoidance │
-│     │                                      │
-│     └──► Dynamixel SDK                     │
-│               write4ByteTxRx (positions)   │
-│               read2ByteTxRx  (current)     │
-└──────────────┬─────────────────────────────┘
-        │ USB  ←→  ROBOTIS U2D2
-        ┌──────┴──────┐
-        │  U2D2 + PHB  │  (power injection at 5V)
-        └──────┬───────┘
-        │ X3P TTL cables — daisy chain
-┌───────────▼──────────────────────────────┐
-│  Motor 1 → Motor 2 → … → Motor 10        │
-│       ROBOTIS Dynamixel XL330-M288-T      │
-└───────────────────────────────────────────┘
-```
-
-**Obstacle Evasion State Machine**
-
-```
-SLITHER ──(|I| > 350 mA)──► SLITHER_REV (2.5 s)
-                                │
-                        (timer expires)
-                                ▼
-                        SLITHER_TURN (4.0 s)
-                                │
-                        (timer expires)
-                                ▼
-                        SLITHER
-```
-
----
-
-## Repository Structure
-
-```
-gen1-dynamixel/
-├── main.py                          # Entry point — 50 Hz control loop
-├── requirements.txt                 # Python dependencies (dynamixel-sdk, pyserial)
-├── install_requirements.cmd         # Windows one-click installer
-│
-├── src/                             # Core robot software
-│   ├── __init__.py
-│   ├── robot_config.py              # All hardware constants & tuning parameters
-│   ├── utils.py                     # Shared utilities (current sign conversion)
-│   ├── snake_locomotion.py          # Sinusoidal gait engine
-│   ├── obstacle_avoidance.py        # Collision state machine
-│   ├── kinematics.py                # Bellows-model joint angle calculator
-│   ├── servo_driver.py              # HAL — mock + Dynamixel SDK interface
-│   └── torque_controller.py         # PD torque controller with compliance
-│
-├── tests/                           # Hardware validation scripts
-│   ├── test_dynamixel_ping.py       # Ping all motors; report missing IDs
-│   └── test_motor_feedback.py       # Live position / velocity / current readout
-│
-├── hardware/                        # Procurement & Motor selection
-│   ├── BOM.xlsx
-│   └── Dynamixel_Selection.md
-│
-├── docs/                            # All project documentation
-│   ├── reports/
-│   │   ├── hardware_bom.md          # Bill of Materials (budget: ₹1,00,000)
-│   │   ├── starter_kit_manual.md    # First-time single-motor setup guide
-│   │   └── README_v1.md             # Archived v1 README
-│   ├── datasheets/
-│   │   ├── XL,XC-330.pdf            # ROBOTIS XL330 / XC330 datasheet
-│   │   ├── DYNAMIXEL_XL330_1__52682.png
-│   │   └── Raspberry-Pi-5-Pinout-.jpg
-│   ├── presentations/
-│   │   └── Smart_Snake_Robot_SURGE090_Progress_Review - Repaired.pptx
-│   ├── Component_flow.png           # System component flow diagram
-│   ├── SSH_LOGIN_INSTRUCTIONS.md
-│   ├── wiring_diagram.md
-│   ├── raspberry_pi_setup_guide.md
-│   └── parts_and_safety.md
-│
-├── cad/                             # SolidWorks / STEP / STL design files
-│   ├── segments/
-│   │   ├── segment1.SLDPRT / .step / _v1.stl
-│   │   ├── segment1_alt.SLDPRT
-│   │   └── segment2.SLDPRT / .step / _v1.stl
-│   ├── assembly/
-│   │   └── assembly.SLDASM
-│   └── motor-ref/
-│       ├── XL,XC-330.stp           # Dynamixel motor reference model
-│       └── XL,XC-330.SLDASM
-│
-└── media/                           # Hardware photos, CAD renders & demo videos
-    ├── hardware/                    # Motor & electronics product photos
-    ├── cad/                         # CAD render screenshots
-    └── testing/                     # Hardware test photos & demo video
-```
-
----
-
-## Hardware Requirements (Historical)
-
-> ⚠️ **None of this hardware is still held.** All items were returned after the project pivoted to Gen 2 (ST3215). This table is preserved as a historical record. See [`docs/reports/hardware_bom.md`](docs/reports/hardware_bom.md) for the full carry-forward analysis.
-
-| Component | Qty Planned | Obtained | Status | Notes |
-|---|:---:|:---:|---|---|
-| Dynamixel XL330-M288-T | 10 + 2 spares | **2** | Returned | Core joints; 0.52 Nm @ 5V |
-| ROBOTIS U2D2 (USB-TTL) | 1 | 1 | Returned | Serial bridge to motors |
-| U2D2 Power Hub Board (PHB) | 1 | 1 | Returned | 5V power injection into bus |
-| Raspberry Pi 4 (4 GB) | 1 | 1 | Returned | On-board compute |
-| Mean Well LRS-100-5 SMPS | 1 | 1 | **Carried to Gen 2** | Now base station / bench supply |
-| Dynamixel X3P Cables (×10) | 1 pack | 1 | Returned | Daisy-chain data + power |
-
-**Actual spend:** ~₹22,400 of ₹1,00,000 budget. Remaining ~₹77,600 was applied to Gen 2 procurement.
-
-> Full specifications: [`docs/reports/hardware_bom.md`](docs/reports/hardware_bom.md)
-
----
-
-## Software Setup
-
-### Prerequisites
-
-- Python 3.8+
-- ROBOTIS U2D2 connected via USB
-
-### 1. Install Dependencies
-
-**Windows (one-click):**
-```cmd
-install_requirements.cmd
-```
-
-**Any platform:**
-```bash
-pip install -r requirements.txt
-```
-
-> Dependencies: `dynamixel-sdk >= 4.0.5`, `pyserial >= 3.5`
-
-### 2. Set COM Port
-
-Open [`main.py`](main.py) and confirm the serial port for your system:
-
-```python
-# Windows
-DEVICENAME = 'COM3'
-
-# Linux / Raspberry Pi
-DEVICENAME = '/dev/ttyUSB0'
-```
-
-Find the correct port in **Device Manager** (Windows) or `ls /dev/ttyUSB*` (Linux).
-
-### 3. Assign Motor IDs
-
-All motors ship with ID `1`. Assign unique IDs 1–10 one motor at a time:
-
-1. Plug in **one motor** to the U2D2 PHB.
-2. Open **Dynamixel Wizard 2.0** → Scan → change ID (1 through 10).
-3. Unplug; repeat for next motor.
-
-> Only after all 10 motors have unique IDs should you daisy-chain them together.
-
-### 4. SSH to Raspberry Pi (if running untethered)
+Use a separate Python environment for the original stack. Python 3.11 is a
+suitable choice for the source syntax. From this folder:
 
 ```powershell
-ssh smartsnake@snakerobo.local
+python -m pip install -r requirements.txt
 ```
 
-Full guide: [`docs/SSH_LOGIN_INSTRUCTIONS.md`](docs/SSH_LOGIN_INSTRUCTIONS.md)
+The requirements are `dynamixel-sdk` and `pyserial`. Before connecting hardware,
+set `DEVICENAME` in the script being used and set `Config.NUM_JOINTS` to the
+actual chain. The scripts have fixed port defaults; they do not discover the
+port automatically or use the Gen 2 `SURGE_PORT` setting.
 
----
+The files under `tests/` are live hardware tools:
 
-## Running the Robot
-
-### Verify All Motors
-
-```bash
+```powershell
 python tests/test_dynamixel_ping.py
-```
-
-Reports each motor ID found on the bus and explicitly lists any that are missing.
-
-### Calibrate Obstacle Threshold
-
-```bash
 python tests/test_motor_feedback.py
 ```
 
-Streams live Position / Velocity / Current (mA). Gently resist the horn to see the current spike that triggers obstacle detection.
+The first checks IDs on the bus. The second reads one selected motor's feedback.
+Run them from this folder so their `src` imports resolve correctly.
 
-### Start the Snake
+`python main.py` enables torque and starts the gait immediately. It has no
+separate RUN command or mock-mode switch. Ctrl+C reaches the loop's cleanup,
+which requests torque-off and closes the port. Configure the actual hardware
+and confirm clearance before using this historical program.
 
-```bash
-python main.py
-```
+## Code map
 
-The snake initialises all motors, then begins the sinusoidal slither gait. Press **Ctrl + C** to halt — all motor torques are disabled cleanly in the `finally` block.
-
----
-
-## Module Reference
-
-| Module | Class | Description |
-|---|---|---|
-| [`src/robot_config.py`](src/robot_config.py) | `Config`, `DynamixelAddr` | All hardware constants, tuning parameters, control table addresses |
-| [`src/utils.py`](src/utils.py) | — | `to_signed_current()` — XL330 two's complement current conversion |
-| [`src/snake_locomotion.py`](src/snake_locomotion.py) | `SnakeKinematics` | Sinusoidal gait: computes goal encoder positions for all joints |
-| [`src/obstacle_avoidance.py`](src/obstacle_avoidance.py) | `ObstacleAvoidance` | Current-based state machine; side-aware evasion turn direction |
-| [`src/kinematics.py`](src/kinematics.py) | `Kinematics` | Bellows-model curvature wave → joint angles (radians) |
-| [`src/servo_driver.py`](src/servo_driver.py) | `ServoDriver` | Hardware abstraction layer; mock simulation backend |
-| [`src/torque_controller.py`](src/torque_controller.py) | `TorqueController` | PD torque controller with shape & radius modification modules |
-
-### Gait Parameters (`src/robot_config.py`)
-
-| Parameter | Value | Description |
-|---|---|---|
-| `NUM_JOINTS` | 10 | Number of motors in daisy chain |
-| `ENCODER_CENTER` | 2048 | Neutral position (0° for XL330, range 0–4095) |
-| `OBSTACLE_CURRENT_THRESHOLD_MA` | 350 mA | Stall detection threshold |
-| `EVASION_REVERSE_DURATION_S` | 2.5 s | Time to reverse before turning |
-| `EVASION_TURN_DURATION_S` | 4.0 s | Time in turning gait before resuming |
-| `MAX_TORQUE_NM` | 0.52 Nm | XL330 stall torque (per ROBOTIS datasheet @ 5V) |
-
----
-
-## CAD Files
-
-Designed in **SolidWorks**; exported to STEP and STL for cross-platform use.
-
-| File | Location | Description |
-|---|---|---|
-| `segment1.SLDPRT / .step / _v1.stl` | `cad/segments/` | Primary body segment |
-| `segment1_alt.SLDPRT` | `cad/segments/` | Alternate body segment variant |
-| `segment2.SLDPRT / .step / _v1.stl` | `cad/segments/` | Secondary body segment |
-| `assembly.SLDASM` | `cad/assembly/` | Full 10-motor robot assembly |
-| `XL,XC-330.stp` | `cad/motor-ref/` | Dynamixel motor reference model |
-
-> Print settings: PLA or PETG recommended; 20% infill; 0.2 mm layer height.
-
----
-
-## Documentation
-
-| Document | Path | Description |
-|---|---|---|
-| Hardware BOM | [`docs/reports/hardware_bom.md`](docs/reports/hardware_bom.md) | Full parts list with pricing |
-| Starter Kit Manual | [`docs/reports/starter_kit_manual.md`](docs/reports/starter_kit_manual.md) | Single-motor first-time setup |
-| Wiring Diagram | [`docs/wiring_diagram.md`](docs/wiring_diagram.md) | Power + data flow (Mermaid + text) |
-| Raspberry Pi Setup | [`docs/raspberry_pi_setup_guide.md`](docs/raspberry_pi_setup_guide.md) | OS configuration guide |
-| SSH Login | [`docs/SSH_LOGIN_INSTRUCTIONS.md`](docs/SSH_LOGIN_INSTRUCTIONS.md) | Connecting to the Pi from Windows |
-| Parts & Safety | [`docs/parts_and_safety.md`](docs/parts_and_safety.md) | Handling & safety guidelines |
-| Progress Presentation | [`docs/presentations/`](docs/presentations/) | SURGE review slides |
-| Datasheets | [`docs/datasheets/`](docs/datasheets/) | XL330 datasheet, Pi pinout |
-
----
-
-## Team
-
-**SURGE-090 — Smart Snake Robot**  
-Indian Institute of Technology Delhi — Summer 2026
-
-| Member | Role |
+| File | Role |
 |---|---|
-| Shashank Jangir | Project Lead / Software |
-| Bhavesh | Hardware & Mechanical |
-| Mahima | Electronics & Wiring |
+| [main.py](main.py) | SDK communication and the position-control loop |
+| [robot_config.py](src/robot_config.py) | Motor count, protocol, addresses and tuning values |
+| [snake_locomotion.py](src/snake_locomotion.py) | Yaw travelling wave and pitch hold |
+| [obstacle_avoidance.py](src/obstacle_avoidance.py) | Timed reverse/turn state machine |
+| [utils.py](src/utils.py) | Signed current conversion |
+| [servo_driver.py](src/servo_driver.py) | Mock driver for separate controller experiments |
+| [kinematics.py](src/kinematics.py), [torque_controller.py](src/torque_controller.py) | Bellows-model and torque-control experiments, not the `main.py` run path |
 
----
+## Limits of the original controller
 
-## Acknowledgements
+A failed current read is replaced with zero in `main.py`, so missing feedback
+can mask a stall. Initialization reports motor errors but does not require every
+motor to respond before entering the gait loop. Torque enabling also happens
+before the loop's cleanup block.
 
-This project was carried out under the **SURGE (Summer Undergraduate Research Grant for Excellence)** programme at **IIT Delhi**. We thank our project supervisor and the Department of Mechanical Engineering for their guidance and laboratory resources.
+The turning rule uses current sign, which indicates torque direction rather
+than obstacle location. The avoidance state machine does not continuously
+re-evaluate collisions during its timed manoeuvre. These limitations matter if
+the old setup is restored; the code is kept as the original implementation.
 
----
+## Design records and media
 
-## License
+- [Body segments](cad/segments/) and [assembly](cad/assembly/)
+- [Motor selection](hardware/Dynamixel_Selection.md) and [starter-kit notes](docs/reports/starter_kit_manual.md)
+- [Wiring](docs/wiring_diagram.md) and [Raspberry Pi setup](docs/raspberry_pi_setup_guide.md)
+- [Bench photos and video](media/testing/)
+- [Progress review v2](docs/presentations/Smart_Snake_Robot_SURGE090_Progress_Review_v2.pptx)
+- [Original project write-up](docs/reports/README_v1.md)
 
-© 2026 SURGE-090 Team, IIT Delhi. All rights reserved.  
-This repository is shared for academic and research purposes only.
+The original write-up and reports retain the plans and wording from that stage.
+This overview describes the full ten-joint architecture; the original records
+retain the details of procurement and testing.
+
+Shashank Jangir · Bhavesh Bansiwal · Mahima Chotiya
+SURGE-090, IIT Delhi · Supervisor: Prof. Amartansh Dubey

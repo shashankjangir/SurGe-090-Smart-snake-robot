@@ -660,6 +660,10 @@
     "pre-recheck-2026-10-15/shared/web-dashboard/README.md": {
       "bytes": 3410,
       "sha256": "e3d71b3e140d2322dc5d95fda95a0ca3d0c6e7b40f740e365932163275fd72e4"
+    },
+    "pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md": {
+      "bytes": 14183,
+      "sha256": "ec75da0f9a777f8f500a60e5ac6bb10d4fe1f6d62f97617b9ef58a99e865d240"
     }
   }
 }

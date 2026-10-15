@@ -6,12 +6,15 @@ Recorded 2026-10-15 during Gen 2.1 repository integration.
 
 | Version | Name | Location | Mechanical arrangement | Control stack |
 |---|---|---|---|---|
-| **Gen 1** | Dynamixel prototype | `gen1-dynamixel/` | Alternating yaw/pitch XL330 design (2 motors obtained of 10 planned) | Raspberry Pi + `dynamixel-sdk` |
+| **Gen 1** | Dynamixel prototype | `gen1-dynamixel/` | Ten-joint alternating yaw/pitch XL330 design | Raspberry Pi + `dynamixel-sdk` |
 | **Gen 2.0** | Planar ST3215 design | `gen2-st3215/` (bench stack, `robot_esp32_v2`, CAD v6, power bus v3) | Planar all-yaw ST3215 × 10 | Onboard CPG on ESP32 + base ESP-NOW |
 | **Gen 2.1** | Integrated control software | `shared/surge_control/`, `shared/web-dashboard/`, `shared/gamepad/`, `gen2-st3215/firmware/*_gen2_1/` | **Same planar Gen 2 mechanics** | Host-side gait + dashboard; receiver text protocol `HELLO` / `RUN` / `STOP` / `P,id:pos:speed` |
 | **Gen 3.0** | Experimental 3D motion | `gen3-experimental-3d/` | Alternating pitch/yaw connectors and plate-chain CAD — **not** the planar Gen 2 build | Experimental scripts only; do not flash Gen 2.1 planar tools against Gen 3 hardware without reviewing joint mapping |
 
-Gen 1 is frozen: do not rewrite its code, CAD, or docs for later generations.
+Gen 1 code, CAD and original reports remain historical. Its overview was refreshed
+on 16 October 2026; the original README is preserved under
+`removed/pre-gen1-docs-2026-10-16/`. The preservation check uses that copy for the
+README and the original paths for all other baseline files.
 
 ## Component revisions (tracked alongside project versions)
 

@@ -182,11 +182,14 @@ class ApiTests(unittest.TestCase):
 
 
 class PreservationTests(unittest.TestCase):
-    def test_gen1_unchanged(self):
+    def test_gen1_originals_preserved(self):
         baseline = json.loads((ROOT / "docs/versions/gen1-git-baseline.json").read_text())
         for rel, expected in baseline.items():
+            # Gen 1 overview was refreshed; its original remains in the archive.
+            source = ("removed/pre-gen1-docs-2026-10-16/" + rel
+                      if rel == "gen1-dynamixel/README.md" else rel)
             actual = subprocess.check_output(
-                ["git", "hash-object", "--path=" + rel, "--", rel], cwd=ROOT, text=True).strip()
+                ["git", "hash-object", "--path=" + rel, "--", source], cwd=ROOT, text=True).strip()
             self.assertEqual(actual, expected, rel)
 
     def test_source_snapshot_complete(self):

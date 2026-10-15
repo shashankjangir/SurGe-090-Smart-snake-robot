@@ -21,3 +21,10 @@ and the [version guide](../docs/versions/VERSIONS.md). Historical paths and name
 are retained for traceability. No archived source file was discarded during this audit.
 
 [Restore guide](README.md) · [Requirements](REQUIREMENTS.md) · [Audit](AUDIT.md)
+
+## Gen 1 documentation refresh
+
+`pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md` preserves the exact original
+overview before its editorial update. Gen 1 source, CAD, reports and media were
+not changed. The original Gen 1 hash manifests remain historical; use this
+archived path for their README entry.

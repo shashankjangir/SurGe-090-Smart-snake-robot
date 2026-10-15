@@ -35,9 +35,9 @@ The first design used Dynamixel XL330-M288-T actuators, a U2D2 interface and a
 Raspberry Pi running Python. We developed the gait and bus-control code around
 that hardware and began printing and checking the body segments.
 
-Only two of the ten planned motors were obtained. That gave us a small bench
-setup for testing, but component availability prevented us from completing the
-intended chain. The original code, CAD, reports and presentation material remain
+The original architecture was designed for ten motors with alternating yaw and
+pitch joints. Component availability later drove the change to ST3215 servos.
+The original code, CAD, reports and presentation material remain
 in [gen1-dynamixel](gen1-dynamixel/README.md).
 
 Simulation helped keep the control work moving while the hardware was limited.

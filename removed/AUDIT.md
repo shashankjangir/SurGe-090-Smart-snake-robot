@@ -8,7 +8,7 @@
   The separate tracked-only baseline covers 347 files. Gen 1 was not edited.
 - Additional preserved motor-reference CAD: **40 files**, each byte-identical
   to its original content at project commit `f64e79b`.
-- [Archive inventory](archive-inventory.json): **165 files**, with sizes and
+- [Archive inventory](archive-inventory.json): **166 files**, with sizes and
   SHA-256 digests; covers snapshots and top-level baseline files. The generated
   inventory and archive guidance are excluded from their own content record.
 - Largest individual file: project Git bundle, **44.89 MiB**. The control bundle
@@ -22,3 +22,9 @@
 Only targeted archive checks were run. No full test suite, dependency installation,
 firmware build, firmware upload or physical robot operation was performed.
 The earlier missing-archive reports describe the state before this restoration.
+
+## Gen 1 overview update
+
+The original Gen 1 README is now preserved under `pre-gen1-docs-2026-10-16/`.
+The active overview has been rewritten; all other original Gen 1 files remain
+in place. The inventory includes this additional preserved file.
