@@ -25,8 +25,7 @@ It is still in development, with Gen 2 as our working reference.
 [Gen 2 hardware and control](gen2-st3215/README.md) ·
 [Gen 3 development](gen3-experimental-3d/README.md)
 
-*Updated 16 October 2026. The gallery includes the latest cropped photos;
-videos have not been added yet.*
+
 
 ## How we got here
 
