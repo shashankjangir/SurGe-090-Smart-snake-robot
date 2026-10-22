@@ -1,3 +1,4 @@
+#include "../common/serial_line.h"
 /*
  * Base-station ESP32: ESP-NOW RX -> USB serial for Raspberry Pi 5.
  * Mean Well 5 V powers the Pi, not this radio (USB 5 V from the Pi is enough).
@@ -9,6 +10,8 @@
 #include <WiFi.h>
 #include <esp_now.h>
 #include "surge_protocol.h"
+
+static QueueHandle_t telemetryQueue;
 
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -32,12 +35,13 @@ void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
   if (len == (int)sizeof(RobotTelemetry)) {
     RobotTelemetry t;
     memcpy(&t, data, sizeof(t));
-    printTelemetry(t);
+    if (telemetryQueue) xQueueSend(telemetryQueue, &t, 0);
   }
 }
 
 void setup() {
   Serial.begin(115200);
+  telemetryQueue = xQueueCreate(8, sizeof(RobotTelemetry));
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   Serial.printf("SURGE-090 base ESP32  MAC %s\n", WiFi.macAddress().c_str());
@@ -55,15 +59,17 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {
-    String s = Serial.readStringUntil('\n');
+  RobotTelemetry tel;
+  if (telemetryQueue && xQueueReceive(telemetryQueue, &tel, 0) == pdTRUE) printTelemetry(tel);
+  String s;
+  if (readCommand(Serial, s)) {
     s.trim();
     s.toUpperCase();
     RobotCommand cmd;
     if (s == "STOP") cmd.run = 0;
     else if (s == "RUN") cmd.run = 1;
     else return;
-    esp_now_send(kBroadcastMac, (uint8_t *)&cmd, sizeof(cmd));
-    Serial.printf("Sent %s\n", s.c_str());
+    esp_err_t result = esp_now_send(kBroadcastMac, (uint8_t *)&cmd, sizeof(cmd));
+    Serial.printf("%s %s\n", result == ESP_OK ? "Queued" : "Failed", s.c_str());
   }
 }

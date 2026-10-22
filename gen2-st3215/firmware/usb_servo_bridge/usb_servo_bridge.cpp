@@ -19,10 +19,10 @@ void setup() {
 }
 
 void loop() {
-  while (Serial.available()) {
+  for (unsigned n = 0; n < 128 && Serial.available(); ++n) {
     Serial1.write(Serial.read());
   }
-  while (Serial1.available()) {
+  for (unsigned n = 0; n < 128 && Serial1.available(); ++n) {
     Serial.write(Serial1.read());
   }
 }

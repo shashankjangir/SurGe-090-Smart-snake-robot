@@ -38,6 +38,9 @@ class ST3215Interface:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             line = self.serial_port.readline().decode("ascii", errors="replace").strip()
+            if line.startswith("ERR,"):
+                self.armed = False
+                raise RuntimeError(f"Receiver fault: {line}")
             if line == "STOP,WATCHDOG":
                 self.armed = False
                 if prefix != "OK,STOP":

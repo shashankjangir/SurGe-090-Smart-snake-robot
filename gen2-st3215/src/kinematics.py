@@ -39,6 +39,10 @@ class Kinematics:
         previous_targets: list,
         dt: float,
     ) -> list:
+        if len(current_targets) != len(previous_targets):
+            raise ValueError("Target lengths must match")
+        if not math.isfinite(dt):
+            raise ValueError("dt must be finite")
         if dt <= 0:
             return [0.0] * len(current_targets)
         return [(curr - prev) / dt for curr, prev in zip(current_targets, previous_targets)]

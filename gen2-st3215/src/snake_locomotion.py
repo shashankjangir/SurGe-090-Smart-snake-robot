@@ -29,6 +29,10 @@ class SnakeKinematics:
         mode: str = "SLITHER",
         turn_direction: int = 1,
     ) -> dict:
+        if mode not in ("SLITHER", "SLITHER_REV", "SLITHER_TURN"):
+            raise ValueError("Unknown gait mode")
+        if not all(math.isfinite(v) for v in (current_time, self.amplitude, self.frequency, self.phase_shift, self.turn_offset)):
+            raise ValueError("Gait parameters must be finite")
         wave_dir = 1
         bend = 0
 
@@ -46,5 +50,5 @@ class SnakeKinematics:
                 pos = int(self.center_pos + self.amplitude * math.sin(wave_phase) + bend)
             else:
                 pos = self.center_pos
-            positions[i] = max(Config.ENCODER_MIN, min(Config.ENCODER_MAX, pos))
+            positions[i] = max(Config.JOINT_MIN, min(Config.JOINT_MAX, pos))
         return positions

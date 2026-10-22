@@ -35,3 +35,8 @@ removed/baselines/control-checkout-git/
 
 # Separate environment for historical-source inspection
 /.venv-archive/
+
+# Backups and presentation build artifacts
+previous backups/
+**/.build-v3/
+node_modules/

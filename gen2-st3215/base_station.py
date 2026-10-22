@@ -6,18 +6,14 @@ over USB serial (115200). Camera CSI stays on this Pi; it is not on the robot.
 """
 
 import argparse
-import sys
 import time
 
 from src.robot_config import Config
 
-try:
-    import serial
-except ImportError:
-    sys.exit("pip install pyserial")
 
 
 def main() -> None:
+    import serial
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", default="/dev/ttyUSB0", help="ESP32 #2 USB CDC")
     parser.add_argument("--baud", type=int, default=Config.USB_TELEMETRY_BAUD)
@@ -25,9 +21,9 @@ def main() -> None:
 
     print(f"Base station listening on {args.port} @ {args.baud}")
     print("Flash firmware/base_esp32 on the USB ESP32. Ctrl+C to quit.")
-    ser = serial.Serial(args.port, args.baud, timeout=1)
-    time.sleep(0.3)
+    ser = serial.Serial(args.port, args.baud, timeout=1, write_timeout=.2)
     try:
+        time.sleep(0.3)
         while True:
             line = ser.readline().decode("utf-8", errors="replace").strip()
             if line:

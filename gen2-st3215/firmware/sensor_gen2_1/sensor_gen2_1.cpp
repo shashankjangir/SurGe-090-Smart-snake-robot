@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <math.h>
 #include <WebServer.h>
 #include <esp_now.h>
 #include <Wire.h>
@@ -29,7 +30,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Adafruit_BMP280 bmp;
 Adafruit_MPU6050 mpu;
-bool bmpReady = false, mpuReady = false;
+bool bmpReady = false, mpuReady = false, displayReady = false;
 
 // --- GLOBAL VARIABLES ---
 float bmpTemp = 25.0, bmpPressure = 0.0, bmpAltitude = 0.0;
@@ -117,18 +118,18 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
       fetch('/data')
         .then(response => response.json())
         .then(data => {
-          document.getElementById('dist').innerText = data.dist.toFixed(1);
-          document.getElementById('tiltX').innerText = data.tiltX.toFixed(2);
-          document.getElementById('tiltY').innerText = data.tiltY.toFixed(2);
-          document.getElementById('tiltZ').innerText = data.tiltZ.toFixed(2);
+          document.getElementById('dist').innerText = (data.dist == null ? "--" : data.dist.toFixed(1));
+          document.getElementById('tiltX').innerText = (data.tiltX == null ? "--" : data.tiltX.toFixed(2));
+          document.getElementById('tiltY').innerText = (data.tiltY == null ? "--" : data.tiltY.toFixed(2));
+          document.getElementById('tiltZ').innerText = (data.tiltZ == null ? "--" : data.tiltZ.toFixed(2));
 
-          document.getElementById('gyroX').innerText = data.gyroX.toFixed(1);
-          document.getElementById('gyroY').innerText = data.gyroY.toFixed(1);
-          document.getElementById('gyroZ').innerText = data.gyroZ.toFixed(1);
+          document.getElementById('gyroX').innerText = (data.gyroX == null ? "--" : data.gyroX.toFixed(1));
+          document.getElementById('gyroY').innerText = (data.gyroY == null ? "--" : data.gyroY.toFixed(1));
+          document.getElementById('gyroZ').innerText = (data.gyroZ == null ? "--" : data.gyroZ.toFixed(1));
 
-          document.getElementById('bmpT').innerText = data.bmpT.toFixed(2);
-          document.getElementById('bmpP').innerText = data.bmpP.toFixed(1);
-          document.getElementById('bmpA').innerText = data.bmpA.toFixed(1);
+          document.getElementById('bmpT').innerText = (data.bmpT == null ? "--" : data.bmpT.toFixed(2));
+          document.getElementById('bmpP').innerText = (data.bmpP == null ? "--" : data.bmpP.toFixed(1));
+          document.getElementById('bmpA').innerText = (data.bmpA == null ? "--" : data.bmpA.toFixed(1));
         }).catch(err => {});
     }, 100);
   </script>
@@ -138,19 +139,21 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 
 void handleRoot() { server.send(200, "text/html", INDEX_HTML); }
 
+static String jsonNumber(float value, bool valid) {
+  return valid && isfinite(value) ? String(value, 3) : String("null");
+}
+
 void handleData() {
-  String json = "{";
-  json += "\"dist\":" + String(currentDistance, 1) + ",";
-  json += "\"tiltX\":" + String(accelX) + ",";
-  json += "\"tiltY\":" + String(accelY) + ",";
-  json += "\"tiltZ\":" + String(accelZ) + ",";
-  json += "\"gyroX\":" + String(gyroX) + ",";
-  json += "\"gyroY\":" + String(gyroY) + ",";
-  json += "\"gyroZ\":" + String(gyroZ) + ",";
-  json += "\"bmpT\":" + String(bmpTemp) + ",";
-  json += "\"bmpP\":" + String(bmpPressure) + ",";
-  json += "\"bmpA\":" + String(bmpAltitude);
-  json += "}";
+  String json = "{\"dist\":" + jsonNumber(currentDistance, currentDistance > 0);
+  json += ",\"tiltX\":" + jsonNumber(accelX, mpuReady);
+  json += ",\"tiltY\":" + jsonNumber(accelY, mpuReady);
+  json += ",\"tiltZ\":" + jsonNumber(accelZ, mpuReady);
+  json += ",\"gyroX\":" + jsonNumber(gyroX, mpuReady);
+  json += ",\"gyroY\":" + jsonNumber(gyroY, mpuReady);
+  json += ",\"gyroZ\":" + jsonNumber(gyroZ, mpuReady);
+  json += ",\"bmpT\":" + jsonNumber(bmpTemp, bmpReady);
+  json += ",\"bmpP\":" + jsonNumber(bmpPressure, bmpReady);
+  json += ",\"bmpA\":" + jsonNumber(bmpAltitude, bmpReady) + "}";
   server.send(200, "application/json", json);
 }
 
@@ -165,49 +168,27 @@ void setup() {
   Wire.setClock(100000); // Standard Mode (Fixes freezing on MPU6050 clones)
 
   // Initialize OLED
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+  displayReady = display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  if (!displayReady) {
     Serial.println(F("SSD1306 allocation failed"));
   }
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("Scanning I2C Bus...");
-
-  int foundCount = 0;
-  int yPos = 10;
-  for (byte address = 1; address < 127; address++) {
+  if (displayReady) {
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println("Scanning I2C Bus...");
+  }
+  for (byte address = 1; address < 127; ++address) {
     Wire.beginTransmission(address);
-    if (Wire.endTransmission() == 0) {
-      display.setCursor(0, yPos);
-      display.print("Found: 0x");
-      display.println(address, HEX);
-      yPos += 10;
-      foundCount++;
-    }
+    if (Wire.endTransmission() == 0) Serial.printf("I2C: 0x%02X\n", address);
   }
-  if (foundCount == 0) {
-    display.setCursor(0, yPos);
-    display.println("No I2C devices found!");
-  }
-  display.display();
-  delay(5000); // Hold the scan results on screen for 5 seconds
-
-  display.clearDisplay();
-  display.setCursor(0, 10);
-  display.println("Booting Sentry Node...");
-  display.display();
+  if (displayReady) display.display();
 
   // Initialize BMP280
   bmpReady = bmp.begin(0x76) || bmp.begin(0x77);
   if (bmpReady) {
     bmp.setSampling(Adafruit_BMP280::MODE_NORMAL, Adafruit_BMP280::SAMPLING_X2, Adafruit_BMP280::SAMPLING_X16, Adafruit_BMP280::FILTER_X16, Adafruit_BMP280::STANDBY_MS_63);
-  } else {
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("BMP280 I2C FAILED!");
-    display.display();
-    delay(2000);
   }
 
   // Initialize MPU6050 (Try both common addresses)
@@ -216,18 +197,11 @@ void setup() {
     mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
     mpu.setGyroRange(MPU6050_RANGE_500_DEG);
     mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  } else {
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("MPU6050 I2C FAILED!");
-    display.println("Check SDA/SCL wires");
-    display.display();
-    delay(3000);
   }
 
   // Setup WiFi AP + Station (Allows both SoftAP Web UI and ESP-NOW)
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(ssid, password);
+  WiFi.softAP(ssid, password, 1);
 
   // Setup ESP-NOW Broadcasting
   if (esp_now_init() == ESP_OK) {
@@ -249,7 +223,7 @@ void loop() {
   // --- MAX SPEED LOOP (100ms) ---
   if (currentMillis - lastFastRead >= 100) {
     // 1. Compensated Ultrasonic Read
-    currentDistance = getAccurateDistance(bmpTemp);
+    currentDistance = getAccurateDistance(bmpReady && isfinite(bmpTemp) ? bmpTemp : 25);
 
     // 2. Accelerometer Read (MPU6050)
     sensors_event_t a, g, temp_mpu;
@@ -280,6 +254,7 @@ void loop() {
     esp_now_send(broadcastAddress, (uint8_t *)payload, strlen(payload));
 
     // 5. Update OLED (Max Data Design)
+    if (displayReady) {
     display.clearDisplay();
     display.setTextSize(1);
 
@@ -315,6 +290,7 @@ void loop() {
 
     display.display();
 
+    }
     lastFastRead = currentMillis;
   }
 }

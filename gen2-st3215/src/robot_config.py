@@ -57,6 +57,8 @@ class Config:
     ENCODER_MIN = 0
     ENCODER_MAX = 4095
     ENCODER_CENTER = 2048  # 12-bit magnetic encoder, same span as XL330
+    JOINT_MIN = 1252  # assembled planar chain: +/-70 degrees
+    JOINT_MAX = 2844
 
     # ---------------------------
     # Servo bus (Waveshare driver ESP32 UART1)

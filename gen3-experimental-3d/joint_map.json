@@ -1,0 +1,88 @@
+{
+  "calibrated": false,
+  "speed": 200,
+  "tracking_error": 25,
+  "tracking_timeout": 0.5,
+  "joints": [
+    {
+      "id": 1,
+      "axis": "yaw",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 2,
+      "axis": "pitch",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 3,
+      "axis": "yaw",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 4,
+      "axis": "pitch",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 5,
+      "axis": "yaw",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 6,
+      "axis": "pitch",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 7,
+      "axis": "yaw",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 8,
+      "axis": "pitch",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 9,
+      "axis": "yaw",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    },
+    {
+      "id": 10,
+      "axis": "pitch",
+      "sign": 1,
+      "zero": 2048,
+      "min": 1934,
+      "max": 2162
+    }
+  ]
+}

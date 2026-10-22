@@ -1,83 +1,67 @@
-import time
+"""Gen 2.1 terminal. Each movement lasts two seconds, then releases torque."""
 import argparse
+import sys
+import time
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.st3215_interface import ST3215Interface
 
+
+def move(iface, targets, duration=2):
+    try:
+        iface.start()
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            iface.write_positions(targets)
+            iface.read_telemetry()
+            time.sleep(.05)
+    finally:
+        iface.stop()
+
+
 def main():
-    parser = argparse.ArgumentParser(description="ST3215 Servo Live Terminal Tester")
-    parser.add_argument('--port', type=str, default='COM3', help='COM port of the ESP32 (e.g. COM3)')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port")
     args = parser.parse_args()
-
-    print(f"Connecting to ESP32 on {args.port}...")
     iface = ST3215Interface(num_motors=2, port=args.port)
-    success, msg = iface.connect()
-    
-    if not success:
-        print(f"Error: {msg}")
-        print("Please check your COM port and ensure no other program (like Arduino IDE) is using it.")
-        return
-
-    print("Connected successfully!")
-    print("\n--- ST3215 Live Terminal ---")
-    print("Commands:")
-    print("  p <id> <position>   -> Move servo <id> to <position> (0-4095, center is 2047)")
-    print("  c                   -> Center both servos (ID 1 & 2 to 2047)")
-    print("  t                   -> Read telemetry (Load, Speed, Position)")
-    print("  q                   -> Quit")
-    print("----------------------------")
-
+    ok, message = iface.connect()
+    if not ok:
+        raise RuntimeError(message)
+    print("p <id> <1252..2844> | c: center | t: feedback | i <new-id>: ONE servo only | q: quit")
     try:
         while True:
-            cmd = input("\nEnter command: ").strip().lower()
-            
-            if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
-                print("Exiting...")
+            parts = input("> ").lower().split()
+            if not parts:
+                continue
+            if parts[0] in ("q", "quit", "exit"):
                 break
-                
-            elif cmd == 'c':
-                print("Centering servos 1 and 2...")
-                iface.write_positions({1: 2047, 2: 2047})
-                
-            elif cmd == 't':
-                print("Fetching telemetry...")
-                data = iface.read_telemetry()
-                for dxl_id in [1, 2]:
-                    if dxl_id in data:
-                        motor = data[dxl_id]
-                        print(f"  ID {dxl_id} -> Pos: {motor['position']}, Speed: {motor['velocity']}, Load: {motor['load']}")
-            
-            elif cmd.startswith('i '):
-                parts = cmd.split()
-                try:
-                    new_id = int(parts[1])
-                    iface.serial_port.write(f"I,{new_id}\n".encode('utf-8'))
-                    print(f"Sent command to change servo ID to {new_id}. Check the OLED screen!")
-                except:
-                    print("Invalid format. Use: i <new_id>")
-                        
-            elif cmd.startswith('p '):
-                parts = cmd.split()
-                if len(parts) == 3:
-                    try:
-                        motor_id = int(parts[1])
-                        pos = int(parts[2])
-                        if 0 <= pos <= 4095:
-                            iface.write_positions({motor_id: pos})
-                            print(f"Command sent to ID {motor_id}: Position {pos}")
-                        else:
-                            print("Position must be between 0 and 4095.")
-                    except ValueError:
-                        print("Invalid numbers provided.")
+            try:
+                if parts == ["c"]:
+                    move(iface, {1: 2048, 2: 2048})
+                elif parts == ["t"]:
+                    print(iface.read_telemetry())
+                elif len(parts) == 3 and parts[0] == "p":
+                    sid, position = map(int, parts[1:])
+                    if not 1 <= sid <= 2 or not 1252 <= position <= 2844:
+                        raise ValueError("ID must be 1..2; position 1252..2844")
+                    move(iface, {sid: position})
+                elif len(parts) == 2 and parts[0] == "i":
+                    sid = int(parts[1])
+                    if not 1 <= sid <= 253:
+                        raise ValueError("ID must be 1..253")
+                    iface.stop()
+                    iface._send(f"I,{sid}")
+                    if iface._wait("ID_SET_OK", 1) is None:
+                        raise RuntimeError("ID assignment not confirmed")
                 else:
-                    print("Usage: p <id> <position> (e.g. p 1 2047)")
-                    
-            else:
-                print("Unknown command.")
-                
-    except KeyboardInterrupt:
-        print("\nInterrupted by user.")
+                    raise ValueError("Unknown command or wrong argument count")
+            except ValueError as exc:
+                print(exc)
+    except (KeyboardInterrupt, EOFError):
+        pass
     finally:
         iface.disconnect()
-        print("Disconnected.")
+
 
 if __name__ == "__main__":
     main()

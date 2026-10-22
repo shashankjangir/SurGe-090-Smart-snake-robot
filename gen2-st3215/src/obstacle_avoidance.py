@@ -1,4 +1,5 @@
 from .robot_config import Config
+import math
 
 
 class ObstacleAvoidance:
@@ -26,6 +27,10 @@ class ObstacleAvoidance:
         self.turn_direction = 1
 
     def process_state(self, current_time: float, motor_currents: dict) -> str:
+        if not math.isfinite(current_time) or not motor_currents or not all(
+            value is not None and math.isfinite(value) for value in motor_currents.values()
+        ):
+            raise ValueError("Valid time and current feedback are required")
         if self.state in ("SLITHER_REV", "SLITHER_TURN"):
             if current_time >= self.state_end_time:
                 if self.state == "SLITHER_REV":

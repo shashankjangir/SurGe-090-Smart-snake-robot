@@ -1,3 +1,4 @@
+#include "../common/serial_line.h"
 #include <WiFi.h>
 #include <esp_now.h>
 #include <esp_wifi.h>
@@ -43,14 +44,14 @@ void setup() {
     Serial.read();
 }
 void loop() {
-  if (Serial.available()) {
-    String req = Serial.readStringUntil('\n');
+  String req;
+  if (readCommand(Serial, req)) {
     req.trim();
     if (req.length() > 0) {
       static bool ledState = false;
       ledState = !ledState;
       digitalWrite(2, ledState ? HIGH : LOW);
-      esp_now_send(receiverAddress, (uint8_t *)req.c_str(), req.length());
+      if (esp_now_send(receiverAddress, (uint8_t *)req.c_str(), req.length()) != ESP_OK) Serial.println("ERR,RADIO");
     }
   }
   RadioReply message;

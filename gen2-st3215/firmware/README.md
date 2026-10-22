@@ -19,8 +19,11 @@ the host computes targets and an ESP32 receiver applies them to the servo bus.
 | `spin_all` | Broadcast sweep for initial bench work |
 | `robot_esp32` | Earlier onboard firmware, retained for reference |
 
-The older receiver/transmitter sketches remain in the folder as earlier work.
-The current host apps use the `*_gen2_1` targets.
+The older receiver/transmitter sketch names now include the maintained Gen 2.1
+implementations and have their own build environments. The old receiver also
+requires `RUN` before position commands; unarmed targets cannot move motors.
+`robot_esp32` retains its original waveform, but now boots stopped. `spin_all`
+also boots stopped; send `g` to start and `s` to stop, including during centering.
 
 ## Build
 
@@ -96,9 +99,24 @@ Serial commands (115200, end with Enter):
 | `PING` | List servo IDs that answer, with voltage/temperature (only from STOP) |
 
 The telemetry and command structs are unchanged, so `base_esp32` works with
-either robot firmware. `robot_esp32_v2/surge_protocol.h` matches
-`base_esp32/surge_protocol.h` (and `robot_esp32/surge_protocol.h`). Each sketch keeps
-its own copy — if you change the protocol, change all three together.
+either robot firmware. `common/surge_protocol.h` is the single definition;
+the original per-sketch header paths forward to it. Compile-time size checks
+protect the 59-byte telemetry and one-byte command layout.
+
+Startup advances in the normal loop, keeping STOP and protection checks live.
+Missing feedback from any servo for 750 ms stops v2, including during startup.
+Radio callbacks queue commands instead of accessing the servo bus. A pending
+STOP takes priority over RUN. Serial commands are bounded and dispatched only
+after a newline; partial or oversized lines cannot become partial commands.
+
+The Gen 2.1 receiver validates an entire position frame before applying it,
+rejects duplicate IDs, and stops on malformed targets or servo errors. The
+host transport now reports `ERR,...` frames instead of silently discarding them.
+ID assignment checks the resulting ID and EEPROM lock before reporting success.
+
+The platform is pinned to `espressif32@6.10.0` for reproducible Arduino builds.
+Hardware pin assignments, gait constants, trim, and protection thresholds remain
+in their existing sketches. No firmware is uploaded by the offline tests.
 
 ---
 

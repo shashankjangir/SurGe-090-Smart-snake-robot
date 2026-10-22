@@ -1,3 +1,4 @@
+#include "../common/serial_line.h"
 /*
  * Gen 2.1 planar receiver — text protocol matched to shared/surge_control/hardware.py
  *
@@ -71,6 +72,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 #define SCREEN_HEIGHT 32
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+bool displayReady = false;
 
 #define LED_PIN 23
 #define LED_COUNT 2
@@ -110,6 +112,7 @@ void updateDisplay(ConnectionState newState, bool forceRedraw = false) {
       !forceRedraw)
     return;
   currentState = newState;
+  if (!displayReady) return;
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
@@ -176,7 +179,7 @@ void setup() {
   st.IOTimeOut = 5;
   enterStop();
   Wire.begin(21, 22);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  displayReady = display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 
   strip.begin();
   strip.show();
@@ -193,7 +196,7 @@ void setup() {
 
   int respondedCount = 0;
   for (int i = 1; i <= NUM_MOTORS; i++) {
-    if (st.FeedBack(i) != -1) {
+    if (st.FeedBack(i) != -1 && st.Error == 0) {
       respondedCount++;
     }
   }
@@ -242,55 +245,69 @@ void processCommand(String req) {
     if (!armed) {
       return;
     }
-    String data = req.substring(2);
-    int startIdx = 0;
-    bool accepted = false;
-    while (startIdx < data.length()) {
-      int commaIdx = data.indexOf(',', startIdx);
-      if (commaIdx == -1)
-        commaIdx = data.length();
-      String pair = data.substring(startIdx, commaIdx);
+    int ids[NUM_MOTORS], positions[NUM_MOTORS], speeds[NUM_MOTORS];
+    unsigned count = 0;
+    int startIdx = 2;
+    // Validate the whole frame before moving any joint.
+    while (startIdx < (int)req.length()) {
+      int end = req.indexOf(',', startIdx);
+      if (end < 0) end = req.length();
+      String pair = req.substring(startIdx, end);
       int id = 0, pos = 0, speed = SPEED_DEFAULT, consumed = 0;
       int fields = sscanf(pair.c_str(), "%d:%d:%d%n", &id, &pos, &speed, &consumed);
       if (fields != 3 || consumed != (int)pair.length()) {
         consumed = 0;
         fields = sscanf(pair.c_str(), "%d:%d%n", &id, &pos, &consumed);
         speed = SPEED_DEFAULT;
-        if (fields != 2 || consumed != (int)pair.length()) { reply("ERR,TARGET"); enterStop(); return; }
+        if (fields != 2 || consumed != (int)pair.length()) { enterStop(); reply("ERR,TARGET"); return; }
       }
-      if (id < 1 || id > NUM_MOTORS || speed < 1 || speed > 3400) { reply("ERR,TARGET"); enterStop(); return; }
-      pos = constrain(pos, POS_MIN, POS_MAX);
-      if (st.WritePosEx(id, pos, speed, 50) > 0) {
-        if (!torqueOn[id - 1]) {
-          if (st.EnableTorque(id, 1) <= 0) { reply("ERR,SERVO"); enterStop(); return; }
-          torqueOn[id - 1] = true;
-        }
-        accepted = true;
-      } else { reply("ERR,SERVO"); enterStop(); return; }
-      startIdx = commaIdx + 1;
+      if (count == NUM_MOTORS || id < 1 || id > NUM_MOTORS || speed < 1 || speed > 3400) {
+        enterStop(); reply("ERR,TARGET"); return;
+      }
+      for (unsigned j = 0; j < count; ++j) {
+        if (ids[j] == id) { enterStop(); reply("ERR,TARGET"); return; }
+      }
+      ids[count] = id;
+      positions[count] = constrain(pos, POS_MIN, POS_MAX);
+      speeds[count++] = speed;
+      startIdx = end + 1;
     }
-    if (accepted) lastTargetTime = millis();
+    if (!count || req.endsWith(",")) { enterStop(); reply("ERR,TARGET"); return; }
+    for (unsigned j = 0; j < count; ++j) {
+      int id = ids[j];
+      if (st.WritePosEx(id, positions[j], speeds[j], 50) <= 0 || st.Error != 0 ||
+          (!torqueOn[id - 1] && (st.EnableTorque(id, 1) <= 0 || st.Error != 0))) {
+        enterStop(); reply("ERR,SERVO"); return;
+      }
+      torqueOn[id - 1] = true;
+    }
+    lastTargetTime = millis();
   } else if (req.startsWith("I,")) {
-    int newId = req.substring(2).toInt();
-    if (armed || newId < 1 || newId > 253) { reply("ERR,ID"); return; }
+    int newId = 0, consumed = 0;
+    int fields = sscanf(req.c_str(), "I,%d%n", &newId, &consumed);
+    if (armed || fields != 1 || consumed != (int)req.length() || newId < 1 || newId > 253) { reply("ERR,ID"); return; }
+    torqueAll(false);
     st.unLockEprom(254);
     st.writeByte(254, 5, newId);
     st.LockEprom(254);
+    if (st.Ping(newId) != newId || st.Error != 0 || st.readByte(newId, 55) != 1 || st.Error != 0) { reply("ERR,ID"); return; }
+    if (displayReady) {
     display.clearDisplay();
     display.setCursor(0, 0);
     display.println("SUCCESS!");
     display.println("Servo ID is now: " + String(newId));
     display.display();
+    }
     holdMessageUntil = millis() + 3000;
     currentState = STATE_INIT;
-    Serial.println("ID_SET_OK");
+    reply("ID_SET_OK");
   } else if (req == "T") {
     String response = "T,";
     int currentMaxLoad = -1;
     int respondedCount = 0;
 
     for (int i = 1; i <= NUM_MOTORS; i++) {
-      if (st.FeedBack(i) != -1) {
+      if (st.FeedBack(i) != -1 && st.Error == 0) {
         respondedCount++;
         int pos = st.ReadPos(-1);
         int vel = st.ReadSpeed(-1);
@@ -326,15 +343,15 @@ void processCommand(String req) {
 void loop() {
   unsigned long now = millis();
 
-  if (Serial.available()) {
-    String req = Serial.readStringUntil('\n');
+  String req;
+  if (readCommand(Serial, req)) {
     lastUsbTime = now;
     processCommand(req);
   }
   bool stopNow;
   portENTER_CRITICAL(&stopMux); stopNow = stopRequested; stopRequested = false; portEXIT_CRITICAL(&stopMux);
   if (stopNow) {
-    xQueueReset(commandQueue);
+    if (commandQueue) xQueueReset(commandQueue);
     processCommand("STOP");
   } else {
     RadioCommand cmd;

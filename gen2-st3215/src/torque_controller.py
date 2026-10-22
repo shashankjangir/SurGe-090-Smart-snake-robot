@@ -1,4 +1,5 @@
 from .robot_config import Config
+import math
 
 
 class TorqueController:
@@ -8,6 +9,12 @@ class TorqueController:
         self.config = Config
 
     def compute_torques(self, current_states, target_angles, target_velocities):
+        if any(len(values) != self.config.NUM_JOINTS for values in (current_states, target_angles, target_velocities)):
+            raise ValueError("One state, target angle and velocity per joint is required")
+        values = [*target_angles, *target_velocities,
+                  *(v for s in current_states for v in (s.position, s.velocity, s.load))]
+        if not all(math.isfinite(v) for v in values):
+            raise ValueError("Controller inputs must be finite")
         output_torques = []
         for i in range(self.config.NUM_JOINTS):
             state = current_states[i]

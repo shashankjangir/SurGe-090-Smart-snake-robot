@@ -59,8 +59,9 @@ motion. It does not include the onboard Gen 2.0 battery/temperature cutoffs or
 current-based evasion sequence.
 
 The versioned bench tools are `tools/align_gen2_1.py`, `tools/sine_gen2_1.py` and
-`tools/spiral_gen2_1.py`. The older terminal tester is retained for reference but
-has not been updated for the Gen 2.1 start handshake.
+`tools/spiral_gen2_1.py`. The terminal tester now uses the Gen 2.1 handshake,
+arms each requested move for two seconds, then releases torque:
+`python tools/test_st3215_terminal.py --port COM3`.
 
 ### Gen 2.0 bench and onboard control
 
@@ -75,6 +76,17 @@ python main.py
 This requires `usb_servo_bridge` firmware. For a run without hardware, set
 `SURGE_MOCK=1`. IDs must be unique before the servos are connected as a chain;
 `tools/assign_id.py` operates with one servo connected at a time.
+
+The bench loop also accepts `--port`, `--mock`, and `--duration` (seconds;
+zero means until Ctrl+C). For an offline smoke test, run
+`python main.py --mock --duration 1`. Missing current feedback stops the loop.
+Targets are limited to 1252..2844 ticks (approximately ±70°), and startup
+requires measured joint positions inside those limits. Cleanup attempts
+torque-off on every joint even if another joint fails to acknowledge.
+
+The `set_torque_mode()` and `write_target_torques()` experiment APIs remain
+available in mock mode. Real ST3215 hardware rejects them explicitly because
+this controller implements position control, not torque control.
 
 For onboard control, use `robot_esp32_v2` on the robot and `base_esp32` on the
 base station. `base_station.py` reads the base station's serial telemetry.
@@ -100,3 +112,9 @@ sensor node supplies readings, but does not by itself close that control loop.
 
 Earlier porting notes remain in [PORTING_STATUS.md](PORTING_STATUS.md); current
 entry points are listed in the [version map](../docs/versions/VERSIONS.md).
+
+## Checking changes
+
+Run `python -m unittest discover -s gen2-st3215/tests -v` from the repository
+root. [Test instructions](tests/README.md) also cover the native firmware
+checks and the ESP32 builds. CAD is outside this software cleanup.

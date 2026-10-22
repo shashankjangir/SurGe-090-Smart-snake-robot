@@ -1,3 +1,4 @@
+#include "../common/serial_line.h"
 /*
  * SURGE-090 robot firmware — gait + ST3215 bus + MPU6050 + ESP-NOW.
  *
@@ -105,7 +106,11 @@ static const uint8_t BROADCAST_ID = 0xFE;
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 // ---------------------------------------------------------------- state
-enum Mode : uint8_t { MODE_IDLE, MODE_CENTER, MODE_GAIT };
+enum Mode : uint8_t { MODE_IDLE, MODE_STARTING, MODE_CENTER, MODE_GAIT };
+static Mode g_after_start = MODE_IDLE;
+static unsigned g_start_group = 0;
+static uint32_t g_start_step = 0;
+static uint32_t g_last_feedback[NUM_JOINTS] = {};
 static Mode g_mode = MODE_IDLE;
 static uint8_t g_state = STATE_STOP;   // telemetry state (SurgeState)
 static int8_t g_turn = 1;
@@ -116,7 +121,13 @@ static int g_stall_count[NUM_JOINTS] = {0};
 static uint32_t g_low_batt_since = 0;
 
 // command handed over from the ESP-NOW callback (radio task) to loop()
-static volatile int8_t g_pending_run = -1;   // -1 none, 0 stop, 1 run
+static volatile int8_t g_pending_run = -1;
+static portMUX_TYPE commandMux = portMUX_INITIALIZER_UNLOCKED;
+static void queueRun(bool run) {
+  portENTER_CRITICAL(&commandMux);
+  if (!run || g_pending_run != 0) g_pending_run = run ? 1 : 0;
+  portEXIT_CRITICAL(&commandMux);
+}
 
 // ================================================================ bus layer
 static uint8_t scsChecksum(const uint8_t *body, int n) {
@@ -158,25 +169,18 @@ static bool busReadStatus(uint8_t id, uint8_t *params, int want, uint32_t timeou
   uint8_t buf[80];
   int n = 0;
   uint32_t start = millis();
-  bool echo_checked = false;
   while (millis() - start < timeout_ms) {
     while (Serial1.available() && n < (int)sizeof(buf)) buf[n++] = (uint8_t)Serial1.read();
-
-    int from = 0;
-    if (!echo_checked && g_last_tx_len > 0 && n >= g_last_tx_len) {
-      echo_checked = true;
-      if (memcmp(buf, g_last_tx, g_last_tx_len) == 0) from = g_last_tx_len;
-    }
-    for (int i = from; i + 5 < n; i++) {
-      if (buf[i] != 0xFF || buf[i + 1] != 0xFF || buf[i + 2] == 0xFF) continue;
-      uint8_t sid = buf[i + 2];
-      uint8_t len = buf[i + 3];
-      int end = i + 3 + len;  // index of checksum
-      if (end >= n) break;    // not complete yet
-      if (sid != id) continue;
+    for (int i = 0; i + 5 < n; i++) {
+      if (buf[i] != 0xFF || buf[i + 1] != 0xFF) continue;
+      const int len = buf[i + 3], end = i + 3 + len;
+      if (len < 2 || end >= n) continue;
       if (scsChecksum(&buf[i + 2], len + 1) != buf[end]) continue;
-      int plen = len - 2;     // minus error byte and checksum
-      if (plen < want) continue;
+      if (end - i + 1 == g_last_tx_len && memcmp(buf + i, g_last_tx, g_last_tx_len) == 0) {
+        i = end;
+        continue;
+      }
+      if (buf[i + 2] != id || buf[i + 4] != 0 || len - 2 != want) continue;
       if (params && want > 0) memcpy(params, &buf[i + 5], want);
       return true;
     }
@@ -185,15 +189,15 @@ static bool busReadStatus(uint8_t id, uint8_t *params, int want, uint32_t timeou
   return false;
 }
 
-static void writeBytes(uint8_t id, uint8_t addr, const uint8_t *data, int n) {
+static bool writeBytes(uint8_t id, uint8_t addr, const uint8_t *data, int n) {
   uint8_t p[16];
   p[0] = addr;
   memcpy(&p[1], data, n);
   busInstruction(id, INST_WRITE, p, n + 1);
-  if (id != BROADCAST_ID) busReadStatus(id, nullptr, 0, READ_TIMEOUT_MS);
+  return id == BROADCAST_ID || busReadStatus(id, nullptr, 0, READ_TIMEOUT_MS);
 }
 
-static void writeByte(uint8_t id, uint8_t addr, uint8_t v) { writeBytes(id, addr, &v, 1); }
+static bool writeByte(uint8_t id, uint8_t addr, uint8_t v) { return writeBytes(id, addr, &v, 1); }
 
 static void writeWord(uint8_t id, uint8_t addr, uint16_t v) {
   uint8_t d[2] = {(uint8_t)(v & 0xFF), (uint8_t)(v >> 8)};
@@ -271,44 +275,51 @@ static void enterIdle(const char *why) {
   torqueAll(false);
   g_mode = MODE_IDLE;
   g_state = STATE_STOP;
+  g_low_batt_since = 0;
   Serial.printf("[STOP] %s — torque off\n", why);
 }
 
-// Load safe settings, then switch torque on one power group (2 servos) at a
-// time while they walk slowly to `pose`. Keeps inrush per 3 A PTC low.
-static void softTorqueOn(const uint16_t *pose) {
+// Startup advances from loop(), so STOP and protection remain live between groups.
+static void beginStart(Mode destination) {
+  uint16_t pose[NUM_JOINTS];
+  straightPose(pose);
   writeByte(BROADCAST_ID, REG_ACC, SOFT_ACC);
   writeWord(BROADCAST_ID, REG_TORQUE_LIMIT, TORQUE_LIMIT);
   syncWriteGoals(pose, SOFT_SPEED);
-  for (int g = 0; g < NUM_JOINTS / 2; g++) {
-    writeByte((uint8_t)(2 * g + 1), REG_TORQUE, 1);
-    writeByte((uint8_t)(2 * g + 2), REG_TORQUE, 1);
-    delay(GROUP_DELAY_MS);
-  }
-  delay(1500);  // let every joint arrive at the pose
-}
-
-static void enterCenter() {
-  uint16_t pose[NUM_JOINTS];
-  straightPose(pose);
-  Serial.println("[CENTER] holding straight — soft start");
-  softTorqueOn(pose);
-  g_mode = MODE_CENTER;
+  g_after_start = destination;
+  g_mode = MODE_STARTING;
   g_state = STATE_STOP;
+  g_start_group = 0;
+  g_start_step = millis();
+  g_low_batt_since = 0;
+  for (int i = 0; i < NUM_JOINTS; ++i) g_last_feedback[i] = g_start_step;
 }
 
-static void enterGait() {
-  uint16_t pose[NUM_JOINTS];
-  gaitPose(0.0f, 0.0f, STATE_SLITHER, 1, pose);  // amplitude 0 = straight
-  Serial.println("[RUN] soft start — keep clear");
-  softTorqueOn(pose);
-  writeByte(BROADCAST_ID, REG_ACC, GAIT_ACC);
-  memset(g_stall_count, 0, sizeof(g_stall_count));
-  g_gait_t0 = millis();
-  g_state = STATE_SLITHER;
-  g_mode = MODE_GAIT;
-  Serial.println("[RUN] slithering");
+static void advanceStart(uint32_t now) {
+  if (g_mode != MODE_STARTING) return;
+  if (g_start_group < NUM_JOINTS / 2) {
+    if (g_start_group && now - g_start_step < GROUP_DELAY_MS) return;
+    int id = 2 * g_start_group + 1;
+    if (!writeByte(id, REG_TORQUE, 1) || !writeByte(id + 1, REG_TORQUE, 1)) {
+      enterIdle("startup torque not acknowledged");
+      return;
+    }
+    ++g_start_group;
+    g_start_step = millis();
+    return;
+  }
+  if (now - g_start_step < GROUP_DELAY_MS + 1500) return;
+  g_mode = g_after_start;
+  if (g_mode == MODE_GAIT) {
+    writeByte(BROADCAST_ID, REG_ACC, GAIT_ACC);
+    memset(g_stall_count, 0, sizeof(g_stall_count));
+    g_gait_t0 = millis();
+    g_state = STATE_SLITHER;
+  }
 }
+
+static void enterCenter() { beginStart(MODE_CENTER); }
+static void enterGait() { beginStart(MODE_GAIT); }
 
 static void pingAll() {
   Serial.println("ID  answer  volt  temp");
@@ -367,7 +378,7 @@ void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
   if (len == (int)sizeof(RobotCommand)) {
     RobotCommand cmd;
     memcpy(&cmd, data, sizeof(cmd));
-    g_pending_run = cmd.run ? 1 : 0;  // applied in loop(), never here
+    if (cmd.run <= 1) queueRun(cmd.run);
   }
 }
 
@@ -388,24 +399,26 @@ static void setupEspNow() {
 
 // ================================================================ commands
 static void handleSerial() {
-  if (!Serial.available()) return;
-  String s = Serial.readStringUntil('\n');
+  String s;
+  if (!readCommand(Serial, s)) return;
   s.trim();
   s.toUpperCase();
-  if (s == "RUN") g_pending_run = 1;
-  else if (s == "STOP") g_pending_run = 0;
+  if (s == "RUN") queueRun(true);
+  else if (s == "STOP") queueRun(false);
   else if (s == "CENTER") { if (g_mode == MODE_IDLE) enterCenter(); else Serial.println("STOP first"); }
   else if (s == "PING") { if (g_mode == MODE_IDLE) pingAll(); else Serial.println("STOP first"); }
   else if (s.length()) Serial.println("Commands: RUN  STOP  CENTER  PING");
 }
 
 static void applyPending() {
+  portENTER_CRITICAL(&commandMux);
   int8_t p = g_pending_run;
-  if (p < 0) return;
   g_pending_run = -1;
+  portEXIT_CRITICAL(&commandMux);
+  if (p < 0) return;
   if (p == 0) {
     if (g_mode != MODE_IDLE) enterIdle("command");
-  } else if (g_mode != MODE_GAIT) {
+  } else if (g_mode == MODE_IDLE || g_mode == MODE_CENTER) {
     enterGait();
   }
 }
@@ -428,7 +441,8 @@ void setup() {
 }
 
 void loop() {
-  const uint32_t now = millis();
+  const uint32_t loop_start = millis();
+  uint32_t now = loop_start;
   static uint32_t last_tel = 0;
 
   handleSerial();
@@ -443,6 +457,7 @@ void loop() {
     uint8_t b[BLOCK_LEN];
     if (!readBlock(id, REG_PRESENT_POS, BLOCK_LEN, b)) continue;
     answered++;
+    g_last_feedback[id - 1] = millis();
     pos[id - 1] = (uint16_t)(b[OFF_POS] | (b[OFF_POS + 1] << 8));
     cur[id - 1] = (int16_t)(signMag((uint16_t)(b[OFF_CUR] | (b[OFF_CUR + 1] << 8))) * CURRENT_LSB_MA);
     uint8_t v = b[OFF_VOLT];
@@ -450,7 +465,16 @@ void loop() {
     if (b[OFF_TEMP] > tmax) tmax = b[OFF_TEMP];
   }
 
+  now = millis();
   // ---- protection (active whenever torque is on)
+  if (g_mode != MODE_IDLE) {
+    for (int i = 0; i < NUM_JOINTS; ++i) {
+      if (now - g_last_feedback[i] > 750) {
+        enterIdle("servo feedback lost");
+        break;
+      }
+    }
+  }
   if (g_mode != MODE_IDLE) {
     if (answered > 0 && vmin < LOW_BATT_DECIV) {
       if (g_low_batt_since == 0) g_low_batt_since = now;
@@ -460,6 +484,9 @@ void loop() {
     }
     if (g_mode != MODE_IDLE && tmax >= MAX_TEMP_C) enterIdle("servo over 70 C — let it cool");
   }
+
+  advanceStart(millis());
+  now = millis();
 
   // ---- gait
   if (g_mode == MODE_GAIT) {
@@ -517,6 +544,6 @@ void loop() {
                   vmin / 10.0f, (unsigned)tmax, total);
   }
 
-  const uint32_t elapsed = millis() - now;
+  const uint32_t elapsed = millis() - loop_start;
   if (elapsed < LOOP_DT_MS) delay(LOOP_DT_MS - elapsed);
 }

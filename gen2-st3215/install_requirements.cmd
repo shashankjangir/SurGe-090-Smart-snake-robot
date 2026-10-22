@@ -1,7 +1,4 @@
 @echo off
-echo Installing SURGE-SNAKE Python dependencies...
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-echo.
-echo Installation complete!
-pause
+python -m pip install -r "%~dp0requirements.txt"
+if errorlevel 1 exit /b 1
+echo Installation complete.

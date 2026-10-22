@@ -1,12 +1,13 @@
 """Shared conversions for Waveshare ST3215 (Feetech SMS/STS) registers."""
 
 from .robot_config import Config
+import math
 
 
 def to_signed_magnitude(raw: int) -> int:
     """
     Decode a 16-bit Feetech field where bit 15 is direction and bits 0–14
-    are magnitude (present current, present load, present speed).
+    are magnitude (present current and present speed).
     """
     raw &= 0xFFFF
     magnitude = raw & 0x7FFF
@@ -24,9 +25,11 @@ def to_signed_current(raw: int) -> int:
 
 
 def encoder_to_radians(ticks: int, center: int = Config.ENCODER_CENTER) -> float:
-    return (ticks - center) * (2.0 * 3.141592653589793 / 4096.0)
+    return (ticks - center) * math.tau / 4096
 
 
 def radians_to_encoder(angle_rad: float, center: int = Config.ENCODER_CENTER) -> int:
-    ticks = int(round(center + angle_rad * 4096.0 / (2.0 * 3.141592653589793)))
+    if not math.isfinite(angle_rad):
+        raise ValueError("Angle must be finite")
+    ticks = round(center + angle_rad * 4096 / math.tau)
     return max(Config.ENCODER_MIN, min(Config.ENCODER_MAX, ticks))

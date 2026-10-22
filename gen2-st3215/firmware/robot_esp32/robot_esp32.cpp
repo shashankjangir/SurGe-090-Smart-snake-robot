@@ -1,3 +1,4 @@
+#include "../common/serial_line.h"
 /*
  * Onboard gait + ST3215 bus + MPU6050 + ESP-NOW.
  * Board: Waveshare Servo Driver with ESP32
@@ -25,8 +26,8 @@ static const uint8_t IMU_ADDR = 0x68;
 
 static const int NUM_JOINTS = SURGE_NUM_JOINTS;
 static const int ENC_CENTER = 2048;
-static const int ENC_MIN = 0;
-static const int ENC_MAX = 4095;
+static const int ENC_MIN = 1252;
+static const int ENC_MAX = 2844;
 static const int AMPLITUDE = 400;
 static const float FREQUENCY = 3.0f;
 static const float PHASE_SHIFT = 1.2f;
@@ -51,8 +52,16 @@ static const uint8_t BROADCAST_ID = 0xFE;
 
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-static volatile bool g_run = true;
-static uint8_t g_state = STATE_SLITHER;
+static bool g_run = false;
+static volatile int8_t pendingRun = -1;
+static portMUX_TYPE commandMux = portMUX_INITIALIZER_UNLOCKED;
+static void queueRun(uint8_t run) {
+  if (run > 1) return;
+  portENTER_CRITICAL(&commandMux);
+  if (!run || pendingRun != 0) pendingRun = run;
+  portEXIT_CRITICAL(&commandMux);
+}
+static uint8_t g_state = STATE_STOP;
 static int8_t g_turn = 1;
 static uint32_t g_state_end_ms = 0;
 static bool g_imu_ok = false;
@@ -81,13 +90,13 @@ static bool scsReadStatus(uint8_t id, uint8_t *params, int maxParams, int *outLe
       uint8_t sid = buf[i + 2];
       uint8_t len = buf[i + 3];
       int end = i + 4 + len - 1;
-      if (end >= n) break;
+      if (len < 2 || end >= n) continue;
       if (sid != id) continue;
       uint8_t cs = buf[end];
       if (scsChecksum(&buf[i + 2], len + 1) != cs) continue;
+      if (buf[i + 4] != 0) continue;
       int plen = len - 2;
-      if (plen < 0) plen = 0;
-      if (plen > maxParams) plen = maxParams;
+      if (plen > maxParams) continue;
       if (params && plen > 0) memcpy(params, &buf[i + 5], plen);
       if (outLen) *outLen = plen;
       return true;
@@ -97,14 +106,14 @@ static bool scsReadStatus(uint8_t id, uint8_t *params, int maxParams, int *outLe
   return false;
 }
 
-static void scsWriteByte(uint8_t id, uint8_t addr, uint8_t value) {
+static bool scsWriteByte(uint8_t id, uint8_t addr, uint8_t value) {
   uint8_t body[] = {id, 0x04, INST_WRITE, addr, value};
   uint8_t pkt[] = {0xFF, 0xFF, body[0], body[1], body[2], body[3], body[4], scsChecksum(body, 5)};
   while (Serial1.available()) Serial1.read();
   scsWriteRaw(pkt, sizeof(pkt));
   uint8_t dummy[4];
   int dummyLen = 0;
-  scsReadStatus(id, dummy, 4, &dummyLen, 8);
+  return scsReadStatus(id, dummy, 4, &dummyLen, 8) && dummyLen == 0;
 }
 
 static bool scsRead(uint8_t id, uint8_t addr, uint8_t length, uint8_t *out) {
@@ -154,11 +163,27 @@ static void syncWritePositions(const uint16_t *pos) {
   scsWriteRaw(pkt, bodyN + 3);
 }
 
-static void enableTorque(bool on) {
-  for (uint8_t id = 1; id <= NUM_JOINTS; id++) {
-    scsWriteByte(id, REG_ACC, 50);
-    scsWriteByte(id, REG_TORQUE, on ? 1 : 0);
+static bool enableTorque(bool on) {
+  if (on) {
+    uint16_t positions[NUM_JOINTS];
+    for (uint8_t id = 1; id <= NUM_JOINTS; ++id) {
+      uint8_t data[2];
+      if (!scsRead(id, REG_PRESENT_POS, 2, data)) return false;
+      positions[id - 1] = data[0] | (data[1] << 8);
+      if (positions[id - 1] < ENC_MIN || positions[id - 1] > ENC_MAX) return false;
+    }
+    syncWritePositions(positions);
   }
+  bool ok = true;
+  for (uint8_t id = 1; id <= NUM_JOINTS; ++id) {
+    if (on && !scsWriteByte(id, REG_ACC, 50)) { ok = false; break; }
+    if (!scsWriteByte(id, REG_TORQUE, on ? 1 : 0)) {
+      ok = false;
+      if (on) break;
+    }
+  }
+  if (on && !ok) enableTorque(false);
+  return ok;
 }
 
 static void gaitPositions(float t, uint8_t mode, int8_t turn, uint16_t *out) {
@@ -190,21 +215,16 @@ static void imuRead(int16_t acc_mg[3], int16_t gyro_dps_x10[3]) {
   Wire.write(0x3B);
   if (Wire.endTransmission(false) != 0) return;
   if (Wire.requestFrom((int)IMU_ADDR, 14) < 14) return;
-  int16_t ax = (Wire.read() << 8) | Wire.read();
-  int16_t ay = (Wire.read() << 8) | Wire.read();
-  int16_t az = (Wire.read() << 8) | Wire.read();
-  Wire.read();
-  Wire.read();  // temp
-  int16_t gx = (Wire.read() << 8) | Wire.read();
-  int16_t gy = (Wire.read() << 8) | Wire.read();
-  int16_t gz = (Wire.read() << 8) | Wire.read();
-  // MPU6050 default ±2 g, 16384 LSB/g; gyro ±250 dps, 131 LSB/dps
-  acc_mg[0] = (int16_t)((int32_t)ax * 1000 / 16384);
-  acc_mg[1] = (int16_t)((int32_t)ay * 1000 / 16384);
-  acc_mg[2] = (int16_t)((int32_t)az * 1000 / 16384);
-  gyro_dps_x10[0] = (int16_t)((int32_t)gx * 10 / 131);
-  gyro_dps_x10[1] = (int16_t)((int32_t)gy * 10 / 131);
-  gyro_dps_x10[2] = (int16_t)((int32_t)gz * 10 / 131);
+  int16_t values[7];
+  for (int i = 0; i < 7; ++i) {
+    uint8_t high = Wire.read();
+    uint8_t low = Wire.read();
+    values[i] = (int16_t)((high << 8) | low);
+  }
+  for (int i = 0; i < 3; ++i) {
+    acc_mg[i] = (int16_t)((int32_t)values[i] * 1000 / 16384);
+    gyro_dps_x10[i] = (int16_t)((int32_t)values[i + 4] * 10 / 131);
+  }
 }
 
 static void applyCommand(const RobotCommand *cmd) {
@@ -213,8 +233,9 @@ static void applyCommand(const RobotCommand *cmd) {
     g_state = STATE_STOP;
     enableTorque(false);
   } else if (g_state == STATE_STOP) {
-    g_state = STATE_SLITHER;
-    enableTorque(true);
+    g_run = enableTorque(true);
+    g_state = g_run ? STATE_SLITHER : STATE_STOP;
+    if (!g_run) Serial.println("STOP: startup feedback or torque acknowledgment failed");
   }
 }
 
@@ -228,7 +249,7 @@ void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
   if (len == (int)sizeof(RobotCommand)) {
     RobotCommand cmd;
     memcpy(&cmd, data, sizeof(cmd));
-    applyCommand(&cmd);
+    queueRun(cmd.run);
   }
 }
 
@@ -251,6 +272,7 @@ static void setupEspNow() {
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(10);
   Serial1.begin(1000000, SERIAL_8N1, S_RXD, S_TXD);
   delay(400);
 
@@ -261,8 +283,8 @@ void setup() {
 
   setupEspNow();
   Serial.printf("STA MAC %s\n", WiFi.macAddress().c_str());
-  enableTorque(true);
-  Serial.println("Type RUN or STOP. Gait started.");
+  enableTorque(false);
+  Serial.println("Torque off. Type RUN or STOP.");
 }
 
 void loop() {
@@ -270,18 +292,27 @@ void loop() {
   uint32_t now = millis();
   float t = (now - t0) / 1000.0f;
 
-  if (Serial.available()) {
-    String s = Serial.readStringUntil('\n');
+  String s;
+  if (readCommand(Serial, s)) {
     s.trim();
     s.toUpperCase();
     RobotCommand cmd;
     if (s == "STOP") {
       cmd.run = 0;
-      applyCommand(&cmd);
+      queueRun(cmd.run);
     } else if (s == "RUN") {
       cmd.run = 1;
-      applyCommand(&cmd);
+      queueRun(cmd.run);
     }
+  }
+
+  portENTER_CRITICAL(&commandMux);
+  int8_t command = pendingRun;
+  pendingRun = -1;
+  portEXIT_CRITICAL(&commandMux);
+  if (command >= 0) {
+    RobotCommand cmd = {(uint8_t)command};
+    applyCommand(&cmd);
   }
 
   int16_t currents[NUM_JOINTS];
@@ -291,6 +322,7 @@ void loop() {
   memset(positions, 0, sizeof(positions));
 
   if (g_run && g_state != STATE_STOP) {
+    bool feedbackOk = true;
     for (uint8_t id = 1; id <= NUM_JOINTS; id++) {
       uint8_t cbuf[2] = {0, 0};
       uint8_t pbuf[2] = {0, 0};
@@ -298,7 +330,7 @@ void loop() {
       if (scsRead(id, REG_PRESENT_CUR, 2, cbuf)) {
         uint16_t raw = (uint16_t)cbuf[0] | ((uint16_t)cbuf[1] << 8);
         currents[id - 1] = (int16_t)(feetechSignedMag(raw) * CURRENT_LSB_MA);
-      }
+      } else feedbackOk = false;
       if (scsRead(id, REG_PRESENT_POS, 2, pbuf)) {
         positions[id - 1] = (uint16_t)pbuf[0] | ((uint16_t)pbuf[1] << 8);
       }
@@ -307,8 +339,15 @@ void loop() {
       }
     }
 
+    if (!feedbackOk) {
+      RobotCommand stop = {0};
+      applyCommand(&stop);
+      Serial.println("STOP: current feedback lost");
+      return;
+    }
+
     if (g_state == STATE_REV || g_state == STATE_TURN) {
-      if ((int32_t)now >= (int32_t)g_state_end_ms) {
+      if ((int32_t)(now - g_state_end_ms) >= 0) {
         if (g_state == STATE_REV) {
           g_state = STATE_TURN;
           g_state_end_ms = now + (uint32_t)(TURN_S * 1000);

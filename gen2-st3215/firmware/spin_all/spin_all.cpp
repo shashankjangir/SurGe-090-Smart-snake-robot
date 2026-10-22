@@ -38,6 +38,7 @@ static const uint16_t UPDATE_HZ      = 20;
 
 static bool     running = false;
 static uint32_t t0      = 0;
+static bool centering = false;
 
 static uint8_t checksum(const uint8_t *body, int n) {
   uint16_t s = 0;
@@ -88,8 +89,7 @@ static void startSweep() {
   writeByte(BROADCAST_ID, REG_TORQUE_ENABLE, 1);
 
   Serial.println("Torque ON — every horn is rotating to centre. Keep clear.");
-  delay(2000);
-
+  centering = true;
   t0 = millis();
   running = true;
   Serial.println("Sweeping. 's' to stop.");
@@ -109,7 +109,7 @@ void setup() {
   Serial.println();
   Serial.println("spin_all — broadcast sweep, no servo IDs required");
   Serial.println("s = stop, g = go");
-  startSweep();
+  stopSweep();
 }
 
 void loop() {
@@ -120,6 +120,11 @@ void loop() {
   }
   if (!running) return;
 
+  if (centering) {
+    if (millis() - t0 < 2000) return;
+    centering = false;
+    t0 = millis();
+  }
   const uint32_t dt    = millis() - t0;
   const float    ramp  = dt < RAMP_MS ? (float)dt / (float)RAMP_MS : 1.0f;
   const float    phase = 2.0f * PI * (float)(dt % PERIOD_MS) / (float)PERIOD_MS;
