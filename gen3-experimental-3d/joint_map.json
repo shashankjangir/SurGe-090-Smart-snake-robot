@@ -8,7 +8,7 @@
       "id": 1,
       "axis": "yaw",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2008,
       "min": 1934,
       "max": 2162
     },
@@ -16,7 +16,7 @@
       "id": 2,
       "axis": "pitch",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2137,
       "min": 1934,
       "max": 2162
     },
@@ -24,7 +24,7 @@
       "id": 3,
       "axis": "yaw",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2127,
       "min": 1934,
       "max": 2162
     },
@@ -32,7 +32,7 @@
       "id": 4,
       "axis": "pitch",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2069,
       "min": 1934,
       "max": 2162
     },
@@ -40,7 +40,7 @@
       "id": 5,
       "axis": "yaw",
       "sign": 1,
-      "zero": 2048,
+      "zero": 1964,
       "min": 1934,
       "max": 2162
     },
@@ -48,7 +48,7 @@
       "id": 6,
       "axis": "pitch",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2027,
       "min": 1934,
       "max": 2162
     },
@@ -56,7 +56,7 @@
       "id": 7,
       "axis": "yaw",
       "sign": 1,
-      "zero": 2048,
+      "zero": 1967,
       "min": 1934,
       "max": 2162
     },
@@ -64,7 +64,7 @@
       "id": 8,
       "axis": "pitch",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2062,
       "min": 1934,
       "max": 2162
     },
@@ -72,7 +72,7 @@
       "id": 9,
       "axis": "yaw",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2091,
       "min": 1934,
       "max": 2162
     },
@@ -80,7 +80,7 @@
       "id": 10,
       "axis": "pitch",
       "sign": 1,
-      "zero": 2048,
+      "zero": 2027,
       "min": 1934,
       "max": 2162
     }

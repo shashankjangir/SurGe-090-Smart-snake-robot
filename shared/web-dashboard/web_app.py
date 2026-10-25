@@ -5,14 +5,72 @@ import math
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_from_directory
 from surge_control.runtime import ControlRuntime
+from surge_control.gen3 import Gen3Control, runner
 
 
 def create_app(runtime=None):
     app = Flask(__name__, root_path=str(Path(__file__).resolve().parent))
     control = runtime or ControlRuntime()
     app.config["CONTROL"] = control
+    gen3 = Gen3Control(control.lock)
+    app.config['GEN3'] = gen3
+
+    @app.before_request
+    def connection_owner():
+        if request.method == 'POST':
+            if request.path.startswith('/api/gen3/'):
+                if request.headers.get('Origin') and request.headers['Origin'] != request.host_url.rstrip('/'):
+                    return jsonify(error='Use the dashboard from the same origin'), 403
+            elif request.path in ('/api/connect', '/api/start', '/api/controller'):
+                with control.lock:
+                    if gen3.state['busy']:
+                        return jsonify(error='Stop the Gen 3 job first'), 409
+
+    @app.get('/gen3')
+    def gen3_page():
+        return render_template('gen3.html')
+
+    @app.get('/api/gen3/status')
+    def gen3_status():
+        return jsonify(gen3.snapshot())
+
+    @app.get('/api/gen3/ports')
+    def gen3_ports():
+        from serial.tools.list_ports import comports
+        return jsonify(ports=[dict(device=p.device, description=p.description) for p in comports()])
+
+    @app.get('/api/gen3/map')
+    def gen3_map():
+        with control.lock:
+            return jsonify(runner.load_map(gen3.map_path))
+
+    @app.post('/api/gen3/map')
+    def gen3_save_map():
+        with control.lock:
+            gen3.save_map(request.get_json())
+        return jsonify(success=True)
+
+    @app.post('/api/gen3/start')
+    def gen3_start():
+        with control.lock:
+            if control.state['is_running']:
+                raise RuntimeError('Disconnect the planar controller before starting a Gen 3 job')
+            gen3.start(request.get_json())
+        return jsonify(success=True), 202
+
+    @app.post('/api/gen3/stop')
+    def gen3_stop():
+        with control.lock:
+            gen3.stop()
+        return jsonify(success=True)
+
+    @app.get('/api/gen3/log/<name>')
+    def gen3_log(name):
+        if not name.startswith('web-') or not name.endswith(('.csv', '.json')):
+            raise ValueError('Select a Gen 3 web log')
+        return send_from_directory(gen3.map_path.parent / 'runs', name, as_attachment=True)
 
     @app.errorhandler(ValueError)
     def bad_request(exc):
@@ -33,6 +91,8 @@ def create_app(runtime=None):
     @app.post("/api/connect")
     def connect():
         with control.lock:
+            if gen3.state['busy']:
+                raise RuntimeError('Stop the Gen 3 job first')
             if control.state["is_running"]:
                 control.disconnect()
                 return jsonify(success=True, status="Disconnected")
@@ -43,6 +103,8 @@ def create_app(runtime=None):
     @app.post("/api/start")
     def start():
         with control.lock:
+            if gen3.state['busy']:
+                raise RuntimeError('Stop the Gen 3 job first')
             control.start()
         return jsonify(success=True)
 
@@ -67,6 +129,8 @@ def create_app(runtime=None):
     @app.post("/api/controller")
     def controller():
         with control.lock:
+            if gen3.state['busy']:
+                raise RuntimeError('Stop the Gen 3 job first')
             control.controller(request.get_json() or {})
         return jsonify(success=True)
 
@@ -123,7 +187,9 @@ if __name__ == "__main__":
     runtime = app.config["CONTROL"]
     runtime.start_worker()
     atexit.register(runtime.close)
+    atexit.register(app.config['GEN3'].close)
     try:
         app.run(host=args.host, port=args.port, debug=False, threaded=True)
     finally:
+        app.config['GEN3'].close()
         runtime.close()

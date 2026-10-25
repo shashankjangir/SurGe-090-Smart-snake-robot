@@ -53,7 +53,7 @@ def record(writer, stage, elapsed, target, state, dt):
 
 
 def run_motion(iface, config, target_at, duration, writer, *, jog_id=None,
-               jog_ticks=0, clock=time.monotonic, sleep=time.sleep):
+               jog_ticks=0, clock=time.monotonic, sleep=time.sleep, stop_event=None):
     """The caller owns disconnect, including failure before RUN acknowledgement."""
     if jog_id is None:
         bounds = {j['id']: (j['min'], j['max']) for j in config['joints']}
@@ -70,6 +70,8 @@ def run_motion(iface, config, target_at, duration, writer, *, jog_id=None,
         neutral = current.copy()
     else:
         neutral = {j['id']: j['zero'] for j in config['joints']}
+    if stop_event is not None and stop_event.is_set():
+        raise InterruptedError('Stop requested')
     iface.start()
     iface.write_positions({sid: round(v) for sid, v in current.items()}, speed=config['speed'])
     last = clock()
@@ -82,6 +84,8 @@ def run_motion(iface, config, target_at, duration, writer, *, jog_id=None,
     finished = None
     while True:
         sleep(max(0, next_tick - clock()))
+        if stop_event is not None and stop_event.is_set():
+            raise InterruptedError('Stop requested')
         now = clock()
         dt = now - last
         if dt > MAX_GAP:
