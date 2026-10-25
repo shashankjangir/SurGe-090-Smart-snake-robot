@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SURGE · Gen 3 commissioning</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/gen3.css">
+  <script src="/static/gen3.js" defer></script>
+</head>
+<body class="gen3">
+  <header class="bench-header"><a href="/">SURGE 090 · Planar dashboard</a><strong>Gen 3 commissioning</strong><button id="stop" class="stop">Stop / torque off</button></header>
+  <main>
+    <h1>Commission the chain.</h1>
+    <p class="intro">Read positions, identify each joint, then run a measured yaw/pitch wave. Ten joints, one physical head-to-tail map.</p>
+    <p class="notice">Support all links before motion. Stop releases torque and pitch links can fall. Keep power disconnection accessible. Battery and temperature protection are not provided by this controller.</p>
+    <div class="status-line"><strong id="status" role="status" aria-live="polite">Loading…</strong><span id="stage"></span><a id="log" hidden>Download CSV</a></div>
+    <p id="error" role="alert" hidden></p>
+
+    <section aria-labelledby="read-heading">
+      <h2 id="read-heading">Connection &amp; feedback</h2>
+      <div class="controls">
+        <label>Transmitter port<select id="port"><option value="">Select a serial port</option></select></label>
+        <button id="refresh">Refresh ports</button><button id="read" class="job">Read all · torque off</button>
+      </div>
+      <p>Reads are snapshots, not continuous monitoring. Missing feedback stays missing. Close CLI tools and serial monitors before connecting.</p>
+      <div class="table-scroll"><table><caption>Latest job feedback · no measured values are shown for previews</caption><thead><tr><th>ID</th><th>Feedback</th><th>Position</th><th>Target</th><th>Velocity raw</th><th>Load raw</th></tr></thead><tbody id="telemetry"></tbody></table></div>
+    </section>
+
+    <section aria-labelledby="jog-heading">
+      <h2 id="jog-heading">Identify one joint</h2>
+      <p>Only the selected ID receives torque. The jog returns to its measured start; it does not use the straight-pose zero. Provide clearance in both directions.</p>
+      <form id="jog-form" class="controls">
+        <label>Motor ID<input id="motor" type="number" min="1" max="10" step="1" value="1" required></label>
+        <label>Signed encoder ticks<input id="ticks" type="number" min="-57" max="57" step="1" value="20" required></label>
+        <label>Duration (seconds)<input id="jog-duration" type="number" min="2" max="30" value="6" required></label>
+        <button class="job" type="submit">Jog selected joint</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="map-heading">
+      <h2 id="map-heading">Calibration in physical order</h2>
+      <p id="calibration-state"></p>
+      <p>Row order is head to tail; IDs need not be consecutive. Body frame: x toward head, z up, y left. Signs follow the right-hand rule. Observed screen directions alone do not establish signs without this frame.</p>
+      <form id="map-form">
+        <div class="table-scroll"><table><caption>Saved zeros are measurements; axes, signs and limits must still be checked on the assembled robot.</caption><thead><tr><th>Order</th><th>ID</th><th>Axis</th><th>Sign</th><th>Straight zero</th><th>Minimum</th><th>Maximum</th></tr></thead><tbody id="joint-map"></tbody></table></div>
+        <div class="controls">
+          <label>Speed (counts/s)<input id="speed" type="number" min="1" max="1500" required></label>
+          <label>Tracking error (counts)<input id="tracking-error" type="number" min="1" max="796" required></label>
+          <label>Error timeout (seconds)<input id="tracking-timeout" type="number" min="0.1" max="2" step="0.1" required></label>
+        </div>
+        <label class="check"><input id="calibrated" type="checkbox">I have measured and verified the order, axes, signs, zeros, limits and tracking settings for all ten joints.</label>
+        <p>Changing a field clears this confirmation. Each successful save keeps a backup of the previous map. Gaits require alternating axes and every zero strictly inside its measured limits.</p>
+        <button type="submit" id="save-map" class="job">Save calibration</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="gait-heading">
+      <h2 id="gait-heading">Finite motion trial</h2>
+      <p>Start with a preview, then small separate yaw/pitch trials. Simulation uses simple box links and assumed 2 Nm torque; it does not predict real lifting capacity or locomotion. Hardware first aligns to calibrated zeros, then returns and releases torque.</p>
+      <form id="gait-form">
+        <div class="controls">
+          <label>Execution<select id="execution"><option value="preview">Preview · no connection</option><option value="simulation">Gen 3 simulation · no hardware</option><option value="hardware">Hardware · measured map required</option></select></label>
+          <label>Yaw amplitude (°)<input id="yaw" type="number" min="0" max="90" step="0.5" value="1" required></label>
+          <label>Pitch amplitude (°)<input id="pitch" type="number" min="0" max="90" step="0.5" value="0" required></label>
+          <label>Yaw bias (°)<input id="bias" type="number" min="-90" max="90" step="0.5" value="0" required></label>
+          <label>Frequency (Hz)<input id="frequency" type="number" min="-0.6" max="0.6" step="0.01" value="0.1" required></label>
+          <label>Same-axis phase lag (°)<input id="lag" type="number" min="-360" max="360" value="90" required></label>
+          <label>Pitch phase offset (°)<input id="offset" type="number" min="-360" max="360" value="90" required></label>
+          <label>Duration (seconds)<input id="duration" type="number" min="4" max="300" value="10" required></label>
+        </div>
+        <button class="job" type="submit">Run finite trial</button>
+      </form>
+      <p>A trial finishes even if this tab is closed. Use Stop before leaving. Keep the server terminal open; closing it interrupts the controller and relies on the receiver watchdog.</p>
+    </section>
+  </main>
+</body>
+</html>

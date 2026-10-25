@@ -17,6 +17,12 @@ import test_3d_snake as runner
 from simulation import robot_xml
 
 
+def example_map():
+    return dict(calibrated=False, speed=200, tracking_error=25, tracking_timeout=.5,
+                joints=[dict(id=i, axis='yaw' if i % 2 else 'pitch', sign=1,
+                             zero=2048, min=1934, max=2162) for i in range(1, 11)])
+
+
 class Clock:
     def __init__(self): self.t = 0.
     def now(self): return self.t
@@ -47,7 +53,7 @@ class Fake:
 
 class GaitTests(unittest.TestCase):
     def setUp(self):
-        self.config = gait.load_map()
+        self.config = example_map()
         self.values = (math.radians(5), math.radians(5), 0, .1, math.pi/2, math.pi/2, 4, 2)
 
     def test_template_cannot_arm(self):
@@ -122,7 +128,11 @@ class GaitTests(unittest.TestCase):
 
 class RunnerTests(unittest.TestCase):
     def setUp(self):
-        self.config = gait.load_map()
+        self.config = example_map()
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.map_path = Path(self.directory.name) / 'map.json'
+        self.map_path.write_text(json.dumps(self.config))
         self.fake = Fake()
         self.clock = Clock()
         self.output = io.StringIO()
@@ -188,7 +198,7 @@ class RunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.object(runner, 'ST3215Interface') as factory:
             path = Path(directory) / 'run.csv'
             with patch('sys.stdout', new=io.StringIO()):
-                runner.main(['--log', str(path)])
+                runner.main(['--map', str(self.map_path), '--log', str(path)])
             factory.assert_not_called()
             with path.open() as stream:
                 rows = list(csv.DictReader(stream))
@@ -211,13 +221,13 @@ class RunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.object(runner, 'ST3215Interface') as factory:
             path = Path(directory)/'saved.csv'
             path.write_text('keep me')
-            with self.assertRaises(FileExistsError): runner.main(['--log', str(path)])
+            with self.assertRaises(FileExistsError): runner.main(['--map', str(self.map_path), '--log', str(path)])
             self.assertEqual(path.read_text(), 'keep me')
             factory.assert_not_called()
 
     def test_simulation_never_constructs_hardware(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(runner, 'ST3215Interface') as hardware, patch('simulation.SimulationInterface', return_value=self.fake), patch.object(runner, 'run_motion'), patch('sys.stdout', new=io.StringIO()):
-            runner.main(['--simulate', '--log', str(Path(directory)/'sim.csv')])
+            runner.main(['--simulate', '--map', str(self.map_path), '--log', str(Path(directory)/'sim.csv')])
             hardware.assert_not_called()
             self.assertTrue(self.fake.closed)
 
