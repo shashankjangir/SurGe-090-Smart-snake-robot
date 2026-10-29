@@ -25,15 +25,16 @@
 #include <esp_wifi.h>
 #include <math.h>
 
-struct RadioCommand { char text[250]; };
+struct RadioCommand { char text[250]; uint8_t sender[6]; };
 QueueHandle_t commandQueue;
 volatile bool stopRequested = false;
+uint8_t stopSender[6] = {}, replyAddress[6] = {255,255,255,255,255,255};
 portMUX_TYPE stopMux = portMUX_INITIALIZER_UNLOCKED;
 bool torqueOn[10] = {false};
 static void reply(const String &message) {
   Serial.println(message);
-  uint8_t bcast[] = {255,255,255,255,255,255};
-  esp_now_send(bcast, (const uint8_t *)message.c_str(), message.length());
+  if (esp_now_send(replyAddress, (const uint8_t *)message.c_str(), message.length()) != ESP_OK)
+    Serial.println("ERR,RADIO,REPLY_SEND");
 }
 
 enum ConnectionState {
@@ -59,12 +60,22 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   if (len <= 0 || len >= 250) return;
   RadioCommand cmd = {};
   memcpy(cmd.text, data, len);
+  #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
+  const uint8_t *mac = info->src_addr;
+  #endif
+  if (mac) memcpy(cmd.sender, mac, 6);
   // Sensor broadcasts and telemetry are not motor commands.
   if (strcmp(cmd.text, "STOP") == 0) {
-    portENTER_CRITICAL(&stopMux); stopRequested = true; portEXIT_CRITICAL(&stopMux);
+    portENTER_CRITICAL(&stopMux);
+    memcpy(stopSender, cmd.sender, 6); stopRequested = true;
+    portEXIT_CRITICAL(&stopMux);
   } else if (strcmp(cmd.text, "HELLO") == 0 || strcmp(cmd.text, "RUN") == 0 ||
-             strcmp(cmd.text, "T") == 0 || strncmp(cmd.text, "P,", 2) == 0 || strncmp(cmd.text, "I,", 2) == 0) {
-    if (commandQueue) xQueueSend(commandQueue, &cmd, 0);
+             strcmp(cmd.text, "T") == 0 || strcmp(cmd.text, "D") == 0 || strncmp(cmd.text, "P,", 2) == 0 || strncmp(cmd.text, "I,", 2) == 0) {
+    if (commandQueue && xQueueSend(commandQueue, &cmd, 0) != pdTRUE) {
+      portENTER_CRITICAL(&stopMux);
+      memcpy(stopSender, cmd.sender, 6); stopRequested = true;
+      portEXIT_CRITICAL(&stopMux);
+    }
   }
 }
 
@@ -93,16 +104,42 @@ SMS_STS st;
 #define S_RXD 18
 #define S_TXD 19
 
-static void torqueAll(bool on) {
-  for (int i = 1; i <= NUM_MOTORS; i++) {
-    st.EnableTorque(i, on ? 1 : 0);
-    torqueOn[i - 1] = on;
+static int writeTorqueVerified(int id, bool on) {
+  int result = st.EnableTorque(id, on ? 1 : 0);
+  // Missing write ACK is not proof of failure; require a matching fresh RAM read.
+  if (result <= 0 && st.Error == 0) {
+    int actual = st.readByte(id, SMS_STS_TORQUE_ENABLE);
+    if (actual == (on ? 1 : 0) && st.Error == 0) return 1;
   }
+  return result;
 }
 
-static void enterStop() {
+static bool torqueAll(bool on) {
+  bool confirmed = true;
+  for (int i = 1; i <= NUM_MOTORS; i++) {
+    if (writeTorqueVerified(i, on) > 0 && st.Error == 0) torqueOn[i - 1] = on;
+    else confirmed = false;
+  }
+  return confirmed;
+}
+
+static bool enterStop() {
   armed = false;
-  torqueAll(false);
+  return torqueAll(false);
+}
+
+static bool selectReplyPeer(const uint8_t *mac) {
+  const uint8_t empty[6] = {};
+  if (memcmp(mac, empty, 6) == 0) return true;
+  if (!esp_now_is_peer_exist(mac)) {
+    esp_now_peer_info_t peer = {};
+    memcpy(peer.peer_addr, mac, 6);
+    peer.channel = 1;
+    peer.ifidx = WIFI_IF_STA;
+    if (esp_now_add_peer(&peer) != ESP_OK) return false;
+  }
+  memcpy(replyAddress, mac, 6);
+  return true;
 }
 
 void updateDisplay(ConnectionState newState, bool forceRedraw = false) {
@@ -178,6 +215,7 @@ void setup() {
   st.pSerial = &Serial1;
   st.IOTimeOut = 5;
   enterStop();
+  if (!commandQueue) { Serial.println("ERR,RADIO,QUEUE"); return; }
   Wire.begin(21, 22);
   displayReady = display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 
@@ -186,13 +224,14 @@ void setup() {
   strip.setBrightness(50);
 
   WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);
 
   // Keep the established receiver MAC so transmitters do not need reflashing.
   uint8_t oldMac[] = {0x28, 0x05, 0xA5, 0x4E, 0x01, 0x38};
-  esp_wifi_set_mac(WIFI_IF_STA, oldMac);
+  if (esp_wifi_set_mac(WIFI_IF_STA, oldMac) != ESP_OK) { Serial.println("ERR,RADIO,MAC"); return; }
 
   WiFi.disconnect();
-  esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+  if (esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE) != ESP_OK) { Serial.println("ERR,RADIO,CHANNEL"); return; }
 
   int respondedCount = 0;
   for (int i = 1; i <= NUM_MOTORS; i++) {
@@ -213,8 +252,8 @@ void setup() {
     peer.channel = 1;
     peer.encrypt = false;
     peer.ifidx = WIFI_IF_STA;
-    esp_now_add_peer(&peer);
-  }
+    if (esp_now_add_peer(&peer) != ESP_OK) Serial.println("ERR,RADIO,PEER");
+  } else Serial.println("ERR,RADIO,INIT");
 }
 
 void processCommand(String req) {
@@ -236,8 +275,8 @@ void processCommand(String req) {
   }
 
   if (req == "STOP") {
-    enterStop();
-    reply("OK,STOP");
+    bool stopped = enterStop();
+    reply(stopped ? "OK,STOP" : "ERR,STOP,TORQUE_OFF_UNCONFIRMED");
     return;
   }
 
@@ -275,9 +314,25 @@ void processCommand(String req) {
     if (!count || req.endsWith(",")) { enterStop(); reply("ERR,TARGET"); return; }
     for (unsigned j = 0; j < count; ++j) {
       int id = ids[j];
-      if (st.WritePosEx(id, positions[j], speeds[j], 50) <= 0 || st.Error != 0 ||
-          (!torqueOn[id - 1] && (st.EnableTorque(id, 1) <= 0 || st.Error != 0))) {
-        enterStop(); reply("ERR,SERVO"); return;
+      const char *operation = "WRITE";
+      int result = st.WritePosEx(id, positions[j], speeds[j], 50);
+      if (result <= 0 && st.Error == 0) {
+        int actualPosition = st.readWord(id, SMS_STS_GOAL_POSITION_L);
+        if (actualPosition == positions[j] && st.Error == 0) {
+          int actualSpeed = st.readWord(id, SMS_STS_GOAL_SPEED_L);
+          if (actualSpeed == speeds[j] && st.Error == 0) result = 1;
+        }
+      }
+      if (result > 0 && st.Error == 0 && !torqueOn[id - 1]) {
+        operation = "TORQUE";
+        result = writeTorqueVerified(id, true);
+      }
+      if (result <= 0 || st.Error != 0) {
+        // Capture status before STOP issues further bus writes.
+        char message[96];
+        snprintf(message, sizeof(message), "ERR,SERVO,ID=%d,OP=%s,RESULT=%d,STATUS=%d",
+                 id, operation, result, st.Error);
+        enterStop(); reply(message); return;
       }
       torqueOn[id - 1] = true;
     }
@@ -301,6 +356,22 @@ void processCommand(String req) {
     holdMessageUntil = millis() + 3000;
     currentState = STATE_INIT;
     reply("ID_SET_OK");
+  } else if (req == "D") {
+    if (armed) { reply("ERR,DIAGNOSTIC,STOP_FIRST"); return; }
+    String response = "D,";
+    for (int i = 1; i <= NUM_MOTORS; ++i) {
+      int reg8 = st.readByte(i, 8);
+      if (st.Error != 0) reg8 = -1;
+      int torque = st.readByte(i, SMS_STS_TORQUE_ENABLE);
+      if (st.Error != 0) torque = -1;
+      int result = st.FeedBack(i);
+      int status = st.Error;
+      int voltage = result != -1 ? st.ReadVoltage(-1) : -1;
+      int temperature = result != -1 ? st.ReadTemper(-1) : -1;
+      response += String(i) + ":" + String(reg8) + ":" + String(torque) + ":" +
+                  String(voltage) + ":" + String(temperature) + ":" + String(status) + ",";
+    }
+    reply(response);
   } else if (req == "T") {
     String response = "T,";
     int currentMaxLoad = -1;
@@ -349,15 +420,20 @@ void loop() {
     processCommand(req);
   }
   bool stopNow;
-  portENTER_CRITICAL(&stopMux); stopNow = stopRequested; stopRequested = false; portEXIT_CRITICAL(&stopMux);
+  uint8_t sender[6];
+  portENTER_CRITICAL(&stopMux);
+  stopNow = stopRequested; stopRequested = false; memcpy(sender, stopSender, 6);
+  portEXIT_CRITICAL(&stopMux);
   if (stopNow) {
     if (commandQueue) xQueueReset(commandQueue);
+    selectReplyPeer(sender);
     processCommand("STOP");
   } else {
     RadioCommand cmd;
     if (commandQueue && xQueueReceive(commandQueue, &cmd, 0) == pdTRUE) {
       lastEspNowTime = millis();
-      processCommand(String(cmd.text));
+      if (selectReplyPeer(cmd.sender)) processCommand(String(cmd.text));
+      else { enterStop(); reply("ERR,RADIO,PEER"); }
     }
   }
   // Re-read time AFTER commands: using loop-entry time here underflows on RUN/P.

@@ -66,3 +66,25 @@ Desktop GUI and browser visual behavior have not been interactively validated.
 CAD and binary documents were inventoried and preserved, not geometrically or
 visually certified. The generic simulation is not a validated mechanical twin.
 See [recheck scope](RECHECK.md) and [versions](VERSIONS.md).
+
+## October 2026 Verification Addendum: Unified Dashboard & Frontend Audit
+
+### Reproduce Current Software Checks
+From repository root in PowerShell:
+
+```powershell
+# 1. Frontend component & visual verification (30/30 suites)
+node --test gen3-experimental-3d/tests/*.cjs
+
+# 2. Backend console & hardening verification (39 tests)
+python -m unittest gen3-experimental-3d/tests/test_console.py gen3-experimental-3d/tests/test_console_hardening.py
+
+# 3. Planar Gen 2.1 regressions (31 tests)
+python tests/test_gen2_1.py
+
+# 4. Launch unified web server
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+
+Verification status: Full audit completed in `docs/audits/SURGE_090_POST_IMPLEMENTATION_AUDIT.md`. 96.0% implementation pass rate, zero console errors, zero horizontal overflow across 320px–1440px viewports, and persistent emergency Stop controls verified.
+

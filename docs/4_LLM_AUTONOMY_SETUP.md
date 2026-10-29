@@ -62,3 +62,14 @@ The LLM will be instructed to only reply with a JSON command block. It evaluates
 ```
 
 Your `web_app.py` control loop will parse this JSON and instantly apply `turn_offset = 0.5` to the kinematics engine, forcing the snake to smoothly curve left!
+
+## October 2026 Controller Path Addendum
+
+The web controller referenced above is consolidated under:
+`gen3-experimental-3d/backend/web_dashboard/web_app.py`
+
+Run command:
+```powershell
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+

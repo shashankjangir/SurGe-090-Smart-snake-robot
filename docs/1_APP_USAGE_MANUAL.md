@@ -8,15 +8,17 @@ Run commands from the repository root with the Python environment containing
 `python shared/web-dashboard/web_app.py` binds to 127.0.0.1:5000.
 For a trusted local network use `--host 0.0.0.0`; authentication is not implemented.
 
-1. Select Simulation or Hardware. Hardware requires a port such as COM3 or /dev/ttyUSB0.
+1. Select Simulation or Hardware. Hardware port is chosen via `<select id="serial-port">` with scan button `🔄` (e.g. COM3 or /dev/ttyUSB0).
 2. Connect. Connections start stopped; hardware handshake requires `receiver_gen2_1`.
-3. Draw/generate a simulation path if wanted, then press Start motion.
-4. STOP disables hardware torque through the receiver; disconnect also sends STOP.
+3. Draw custom trajectory or select mathematical preset (Sine, Lemniscate ∞ parametric, Archimedean spiral, Circular orbit, Damped wave, or custom formula y=f(x)).
+4. Start motion via canvas footer button (`#btn-canvas-start`) or the bottom motion dock (`#btn-start`).
+5. STOP disables hardware torque through the receiver; disconnect also sends STOP. A physical E-stop remains mandatory.
+6. Tuning: Adjust simulation physics sliders and commit with "Apply Simulation Physics" (`#btn-apply-physics`) or reset with "Set to Default" (`#btn-reset-physics`).
 
 Hardware uses manual gait steering. Drawn paths and physical accuracy reports
 are unavailable because there is no measured world pose. The simulation path
 score is a display metric relative to 0.5 m deviation, not a research accuracy claim.
-Slow gait reduces commanded speed; it does not guarantee a current limit.
+Slow gait / Low Power Mode reduces commanded simulation speed to 10% and torque to ≤1.8 N·m (Updated 28 October 2026); it does not measure or guarantee motor current on physical hardware.
 
 ## Desktop and headless
 
@@ -60,3 +62,30 @@ Gen 2.0 `main.py` uses the 1 Mbps transparent bridge, not the Gen 2.1 text recei
 Gen 2.0 `robot_esp32_v2` generates its own onboard gait. Gen 3.0 is a separate
 experiment; its script defaults to printing targets without opening hardware.
 See [versions](versions/VERSIONS.md) and [firmware](../gen2-st3215/firmware/README.md).
+
+
+## Gen 3 operating guide
+
+Navigate to `http://127.0.0.1:5001/gen3` (or switch via the header generation switch pill).
+
+### Roles & Access
+- **Viewer Mode**: Default for all connections. Viewers see live telemetry, run history, and preset configurations. The emergency **STOP / Torque off** button is always accessible.
+- **Operator Mode**: Click the **[ 🔒 Password ]** pill in the top header. Enter an authorized operator name (`Shashank`, `Bhavesh`, `Mahima`) and shared password. The button expands with spring physics and auto-focuses. Upon submission, an active 3.0s lease is granted, renewed automatically every 1.0s.
+
+### Operational Tabs
+1. **Controls Tab (`[🎮 Controls]`)**:
+   - Form for Waveform Mode (Yaw-only, Pitch-only, Combined 3D).
+   - Sliders for Amplitude, Bias, Frequency, Direction, Lag, Offset, and Duration.
+   - Speed Demand Gauge (`font-variant-numeric: tabular-nums`) showing instantaneous velocity envelope.
+   - Live Tuning: Adjust parameters and click **Apply Live Tuning** to transition smoothly via monotonic phase integration.
+2. **Runs & Presets (`[📍 Runs & Presets]`)**:\
+   - Select from built-in presets (e.g. `Pitch wave 5°`, `Pitch wave 10°`) or save custom presets.
+   - Runs journal displays past runs with CSV/JSON log download links and manual annotation inputs (measured displacement in cm, surface type, qualitative notes).
+3. **Calibration & Diagnostics (`[⚡ Calibration & Diag]`)**:
+   - Query Disarmed `D` Diagnostics: reads model, raw voltage, and temperature without arming.
+   - Physical-order calibration map (ID 1 to ID 10) with optimistic concurrency SHA256 tokens.
+   - Single-joint jog maintenance with automatic neutral return.
+4. **Firmware Tab (`[🛠 Firmware]`)**:
+   - Allowlisted PlatformIO environment selector (`receiver_gen2_1`, `transmitter_gen2_1`).
+   - Build trigger with scrollable build terminal log.
+   - Triple-confirmed upload dialog (safe mock upload mode enabled by default).

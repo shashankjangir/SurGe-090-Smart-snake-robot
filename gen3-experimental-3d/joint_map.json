@@ -1,88 +1,88 @@
 {
-  "calibrated": false,
-  "speed": 200,
-  "tracking_error": 25,
-  "tracking_timeout": 0.5,
   "joints": [
     {
       "id": 1,
-      "axis": "yaw",
+      "axis": "pitch",
       "sign": 1,
-      "zero": 2008,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 2,
-      "axis": "pitch",
+      "axis": "yaw",
       "sign": 1,
-      "zero": 2137,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 3,
-      "axis": "yaw",
-      "sign": 1,
-      "zero": 2127,
-      "min": 1934,
-      "max": 2162
+      "axis": "pitch",
+      "sign": -1,
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 4,
-      "axis": "pitch",
+      "axis": "yaw",
       "sign": 1,
-      "zero": 2069,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 5,
-      "axis": "yaw",
-      "sign": 1,
-      "zero": 1964,
-      "min": 1934,
-      "max": 2162
+      "axis": "pitch",
+      "sign": -1,
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 6,
-      "axis": "pitch",
+      "axis": "yaw",
       "sign": 1,
-      "zero": 2027,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 7,
-      "axis": "yaw",
-      "sign": 1,
-      "zero": 1967,
-      "min": 1934,
-      "max": 2162
+      "axis": "pitch",
+      "sign": -1,
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 8,
-      "axis": "pitch",
+      "axis": "yaw",
       "sign": 1,
-      "zero": 2062,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 9,
-      "axis": "yaw",
-      "sign": 1,
-      "zero": 2091,
-      "min": 1934,
-      "max": 2162
+      "axis": "pitch",
+      "sign": -1,
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     },
     {
       "id": 10,
-      "axis": "pitch",
+      "axis": "yaw",
       "sign": 1,
-      "zero": 2027,
-      "min": 1934,
-      "max": 2162
+      "zero": 2048,
+      "min": 1252,
+      "max": 2844
     }
-  ]
+  ],
+  "speed": 1500,
+  "tracking_error": 100,
+  "tracking_timeout": 0.5,
+  "calibrated": true
 }

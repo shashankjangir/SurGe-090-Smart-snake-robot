@@ -1,0 +1,38 @@
+/**
+ * SurGe 090 Hero Snake Motion Styles
+ * Autonomous 11-Segment Serpentine Motion Canvas inside .hero-section
+ */
+
+.hero-snake-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+  display: block;
+}
+
+/* Ensure hero section stays as a strict bounding container */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ensure hero interactive elements and stickers remain above canvas */
+.hero-section .hero-content {
+  position: relative;
+  z-index: 5;
+}
+
+.hero-section .sticker {
+  z-index: 6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-snake-canvas {
+    opacity: 0.85;
+  }
+}

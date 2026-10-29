@@ -1,0 +1,44 @@
+/* Native semantics preserve form values, keyboard navigation and touch pickers. */
+.gen3 select {
+  min-height: 44px;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+}
+.gen3 select:hover:not(:disabled) { border-color: #1d4ed8; background-color: #eff6ff; }
+.gen3 select:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.gen3 select:disabled { cursor: not-allowed; background-color: #e2e8f0; color: #475569; opacity: 1; }
+.gen3 select[aria-busy="true"] { border-color: #2563eb; cursor: progress; }
+.gen3 select option { background: #fff; color: #0f172a; }
+.gen3 select option:disabled { color: #64748b; }
+
+/* Unsupported browsers keep a fully functional native popup. */
+@supports (appearance: base-select) {
+  .gen3 select, .gen3 select::picker(select) { appearance: base-select; }
+  .gen3 select { padding-right: 12px; gap: 12px; }
+  .gen3 select::picker-icon { color: #475569; transition: rotate 150ms ease-out; }
+  .gen3 select:open::picker-icon { rotate: 180deg; }
+  .gen3 select:open { border-color: #2563eb; background: #eff6ff; }
+  .gen3 select::picker(select) {
+    padding: 6px; margin-top: 8px;
+    border: 1px solid #cbd5e1; border-radius: 12px;
+    background: rgb(248 250 252 / 96%); backdrop-filter: blur(12px);
+    box-shadow: 0 12px 28px rgb(15 23 42 / 14%);
+    max-height: min(360px, 60vh); max-width: calc(100vw - 24px); overflow-y: auto;
+  }
+  .gen3 select option {
+    min-height: 44px; padding: 10px 12px; border-radius: 6px;
+    background: transparent; white-space: normal; overflow-wrap: anywhere;
+  }
+  .gen3 select option:hover:not(:disabled), .gen3 select option:focus { background: #dbeafe; }
+  .gen3 select option:checked { background: #e0eaff; color: #1e40af; font-weight: 600; }
+  .gen3 select option::checkmark { color: #1d4ed8; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gen3 select, .gen3 select::picker-icon { transition: none; }
+}

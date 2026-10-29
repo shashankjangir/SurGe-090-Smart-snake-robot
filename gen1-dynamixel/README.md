@@ -123,3 +123,8 @@ retain the details of procurement and testing.
 
 Shashank Jangir · Bhavesh Bansiwal · Mahima Chotiya
 SURGE-090, IIT Delhi · Supervisor: Prof. Amartansh Dubey
+
+## Historical Status & Project Continuation
+
+This folder preserves the historical Gen 1 Dynamixel research and CAD. Current active development is in Gen 3 (alternating ST3215 3D spatial motion) and Gen 2.1 (planar ST3215). See the root [README](../README.md), [Gen 3 Handoff](../docs/GEN3_HANDOFF.md), and [Unified Web Dashboard](../gen3-experimental-3d/backend/web_dashboard/README.md).
+

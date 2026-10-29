@@ -1,0 +1,317 @@
+/* Shader Lens Blur - WebGL SDF Lens Blur Background Effect
+ * Based on Codrops / Cult UI / 21st.dev ShaderLensBlur
+ */
+
+.shader-lens-blur-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.82;
+  transition: opacity 0.3s ease;
+}
+
+.shader-lens-blur-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+}
+
+/* Foreground elements sit crisply above shader canvas */
+.gen3 .hero-section .hero-ribbon-bg,
+.gen2 .hero-section .hero-ribbon-bg,
+.hero-section .hero-ribbon-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.gen3 .hero-section .distorted-glass-ribbon,
+.gen2 .hero-section .distorted-glass-ribbon,
+.hero-section .distorted-glass-ribbon {
+  z-index: 2;
+}
+
+.gen3 .hero-section .hero-content,
+.gen2 .hero-section .hero-content,
+.hero-section .hero-content {
+  position: relative;
+  z-index: 3;
+}
+
+.gen3 .hero-section .sticker,
+.gen2 .hero-section .sticker,
+.hero-section .sticker {
+  z-index: 4;
+}
+
+/* Fixed Action Dock: STOP/TORQUE + CUSTOM button in bottom right */
+.floating-action-dock,
+.floating-custom-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  user-select: none !important;
+}
+
+/* Shader Lens Blur Configuration Pill */
+.shader-blur-pill {
+  position: relative;
+  z-index: 10;
+}
+
+.shader-blur-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: var(--radius-pills, 1600px);
+  border: 1.5px solid var(--color-carbon, #000000);
+  background-color: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-carbon, #000000);
+  font-family: var(--font-aeonik-pro, 'Inter', sans-serif);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16), 2px 2px 0 var(--color-carbon, #000000);
+  transition: all 0.15s ease;
+}
+
+.shader-blur-toggle-btn:hover {
+  background-color: var(--color-sunburst, #ffd731);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 2px 3px 0 var(--color-carbon, #000000);
+}
+
+.shader-blur-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-brand-blue, #1d4ed8);
+  outline-offset: 2px;
+}
+
+.shader-blur-pill-icon {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+}
+
+/* Configuration Popover Card (anchors upwards from bottom) */
+.shader-blur-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-height: 84vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1.5px solid var(--color-carbon, #000000);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: shader-popover-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shader-blur-popover[hidden] {
+  display: none !important;
+}
+
+@keyframes shader-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shader-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-dark, #e5e5e5);
+  padding-bottom: 8px;
+}
+
+.shader-popover-title {
+  font-family: var(--font-aeonik-pro, 'Inter', sans-serif);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #111111;
+}
+
+.shader-popover-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+  border-radius: 4px;
+}
+
+.shader-popover-close:hover {
+  color: #000000;
+  background-color: #f0f0f0;
+}
+
+.shader-popover-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shader-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555555;
+}
+
+/* Shape Variation Selector Grid */
+.shader-variation-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.shader-variation-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  background-color: #fafafa;
+  font-size: 10px;
+  font-weight: 600;
+  color: #222222;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.shader-variation-btn:hover {
+  background-color: #efefef;
+  border-color: #000000;
+}
+
+.shader-variation-btn.active {
+  background-color: var(--color-sunburst, #ffd731);
+  border-color: #000000;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-weight: 800;
+}
+
+.shader-variation-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* Palette Presets */
+.shader-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.shader-palette-btn {
+  height: 24px;
+  border-radius: 6px;
+  border: 1.5px solid #cccccc;
+  cursor: pointer;
+  display: flex;
+  overflow: hidden;
+  padding: 0;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.shader-palette-btn:hover {
+  transform: scale(1.04);
+  border-color: #000000;
+}
+
+.shader-palette-btn.active {
+  border-color: #000000;
+  outline: 2px solid var(--color-sunburst, #ffd731);
+  outline-offset: 1px;
+}
+
+.shader-palette-stripe {
+  flex: 1;
+  height: 100%;
+}
+
+/* Controls & Sliders */
+.shader-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.shader-toggle-switch {
+  cursor: pointer;
+}
+
+.shader-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shader-slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: #666666;
+}
+
+.shader-range-input {
+  width: 100%;
+  accent-color: var(--color-sunburst, #ffd731);
+  cursor: pointer;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .shader-lens-blur-wrapper {
+    display: none !important;
+  }
+  .shader-blur-pill {
+    display: none !important;
+  }
+}

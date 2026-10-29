@@ -1,0 +1,72 @@
+/* Canvas Fractal Grid - Animated Snake Dot Grid Background
+ * Adapted from CanvasFractalGrid (React / Cult UI / 21st.dev) to Vanilla HTML5 Canvas.
+ */
+
+.canvas-fractal-grid-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#canvas-fractal-grid {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Ensure HTML base keeps Slush sky-wash tint while body lets the snake fractal grid show through */
+html {
+  background-color: var(--color-sky-wash, #dceeff);
+}
+
+body {
+  position: relative;
+  background-color: transparent !important;
+}
+
+/* Interactive dashboard containers, headers, and footer sit strictly above background */
+.marquee-banner,
+.app-container,
+.main-content,
+main,
+header,
+footer,
+.team-footer {
+  position: relative;
+  z-index: 2;
+}
+
+/* Buttons, controls, stickers, cards, and interactive elements are elevated above background */
+.btn,
+.nav-pill,
+.tab-btn,
+.generation-switch,
+.stat-pill,
+.morphing-button-wrapper,
+.halo-field,
+.card,
+.texture-card,
+.status-bar,
+.section-band {
+  position: relative;
+  z-index: 3;
+}
+
+/* Popovers and modals sit on top of everything */
+.shader-blur-popover,
+.modal-overlay,
+.dialog-content {
+  z-index: 100 !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .canvas-fractal-grid-bg {
+    opacity: 0.5;
+  }
+}

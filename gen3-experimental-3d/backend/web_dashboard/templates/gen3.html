@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SURGE 090 — Gen 3 Control Console</title>
+  <!-- Google Fonts: Antonio & Bowlby One for display, Inter for UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700;800&family=Bowlby+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/gen3.css">
+  <link rel="stylesheet" href="/static/generation-switch.css">
+  <link rel="stylesheet" href="/static/team-footer.css">
+  <link rel="stylesheet" href="/static/halo-select.css">
+  <link rel="stylesheet" href="/static/hover-background.css">
+  <link rel="stylesheet" href="/static/rolling-number.css">
+  <link rel="stylesheet" href="/static/distorted-glass.css">
+  <link rel="stylesheet" href="/static/morphing-button.css">
+  <link rel="stylesheet" href="/static/shader-lens-blur.css">
+  <link rel="stylesheet" href="/static/canvas-fractal-grid.css">
+  <link rel="stylesheet" href="/static/grid-beam.css">
+  <link rel="stylesheet" href="/static/pixel-snake-heading.css">
+  <link rel="stylesheet" href="/static/hero-snake-motion.css">
+  <link rel="stylesheet" href="/static/unified-cockpit.css">
+  <link rel="stylesheet" href="/static/motion-state.css">
+  <script src="/static/rolling-number.js" defer></script>
+  <script src="/static/morphing-button.js" defer></script>
+  <script src="/static/shader-lens-blur.js" defer></script>
+  <script src="/static/canvas-fractal-grid.js" defer></script>
+  <script src="/static/grid-beam.js" defer></script>
+  <script src="/static/pixel-snake-heading.js" defer></script>
+  <script src="/static/hero-snake-motion.js" defer></script>
+  <script src="/static/motion-state.js" defer></script>
+  <script src="/static/operator-session.js" defer></script>
+  <script src="/static/gen3.js" defer></script>
+  <script src="/static/gen3-sim.js" defer></script>
+  <script src="/static/gen3-search.js" defer></script>
+  <script src="/static/hover-background.js" defer></script>
+  <script src="/static/distorted-glass.js" defer></script>
+</head>
+<body class="gen3">
+  <!-- Canvas Fractal Grid - Animated Snake Dot Grid Background -->
+  <div id="canvas-fractal-grid-bg" class="canvas-fractal-grid-bg" aria-hidden="true">
+    <canvas id="canvas-fractal-grid"></canvas>
+  </div>
+
+  <!-- Full-bleed Marquee Scrolling Banner -->
+  <aside class="marquee-banner" aria-label="Announcement strip">
+    <div class="marquee-track">
+      <div class="marquee-content">
+        <span class="star">✦</span>
+        <span>SURGE-090 SMART SNAKE ROBOT</span>
+        <span class="star">✦</span>
+        <span class="accent-mint">GEN 3 EXPERIMENTAL 3D LOCOMOTION</span>
+        <span class="star">✦</span>
+        <span>10-SEGMENT SERPENOID KINEMATICS</span>
+        <span class="star">✦</span>
+        <span class="accent-lavender">PyBullet 3D SIM &amp; ST3215 BUS COMPATIBLE</span>
+        <span class="star">✦</span>
+        <span class="accent-ember">CONTINUOUS PHASE &amp; LIVE GAIT TUNING</span>
+        <span class="star">✦</span>
+        <span>±70° HARDWARE POSITION CLAMP</span>
+      </div>
+      <div class="marquee-content" aria-hidden="true">
+        <span class="star">✦</span>
+        <span>SURGE-090 SMART SNAKE ROBOT</span>
+        <span class="star">✦</span>
+        <span class="accent-mint">GEN 3 EXPERIMENTAL 3D LOCOMOTION</span>
+        <span class="star">✦</span>
+        <span>10-SEGMENT SERPENOID KINEMATICS</span>
+        <span class="star">✦</span>
+        <span class="accent-lavender">PyBullet 3D SIM &amp; ST3215 BUS COMPATIBLE</span>
+        <span class="star">✦</span>
+        <span class="accent-ember">CONTINUOUS PHASE &amp; LIVE GAIT TUNING</span>
+        <span class="star">✦</span>
+        <span>±70° HARDWARE POSITION CLAMP</span>
+      </div>
+    </div>
+    <button type="button" class="marquee-toggle-btn" id="marquee-toggle" aria-pressed="false" aria-label="Pause announcement ticker">
+      <span class="marquee-toggle-icon" aria-hidden="true">❚❚</span>
+      <span class="marquee-toggle-label">Pause</span>
+    </button>
+  </aside>
+
+  <div class="app-container">
+    <!-- Top Navigation Bar with Distorted Glass Morphism -->
+    <header class="top-nav distorted-glass-header">
+      <div class="nav-left">
+        <div class="logo-badge distorted-glass-logo" title="SurGe Snake Logo">S</div>
+        <div class="brand-text">
+          <span class="brand-title">SURGE 090</span>
+          <span class="brand-subtitle">Smart Snake System</span>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <div class="system-stats">
+          <div class="stat-pill pill-cpu" title="Host CPU utilization">
+            <span class="stat-label">CPU</span>
+            <span class="stat-value" id="sys-cpu">--%</span>
+          </div>
+          <div class="stat-pill pill-ram" title="Host RAM utilization">
+            <span class="stat-label">RAM</span>
+            <span class="stat-value" id="sys-ram">--%</span>
+          </div>
+          <div class="stat-pill pill-temp" title="System temperature">
+            <span class="stat-label">TEMP</span>
+            <span class="stat-value" id="sys-temp">N/A</span>
+          </div>
+        </div>
+
+        <div class="operator-controls" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span id="mode-badge" class="stat-pill" style="font-weight: 700; background: var(--color-soft-mist);">Viewer</span>
+          <span id="user-badge" class="stat-pill" style="display: none;">User: None</span>
+          <span id="active-operator-badge" class="stat-pill" style="display: none;">Active: None</span>
+          <span id="lease-badge" class="stat-pill" style="display: none;">Lease: inactive</span>
+          <form id="operator-login-form" class="operator-login-form" style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
+            <select id="login-name" class="input-sm operator-select" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--color-paper-light, #fff); border: 1.1px solid rgba(0,0,0,0.18);" aria-label="Operator name">
+              <option value="Shashank">Shashank</option>
+              <option value="Bhavesh">Bhavesh</option>
+              <option value="Mahima">Mahima</option>
+            </select>
+            <!-- Morphing Password Button Component -->
+            <div class="morphing-button-wrapper" id="morphing-password-wrapper">
+              <div class="morphing-button-container" id="morphing-password-container">
+                <div class="morphing-input-area">
+                  <input type="password" id="login-password" tabindex="-1" placeholder="Password" class="morphing-password-input" aria-label="Operator password" autocomplete="current-password">
+                  <button type="button" id="btn-toggle-password" class="morphing-eye-btn" aria-label="Show password" title="Show password" tabindex="-1">
+                    <svg class="eye-icon eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-icon eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </button>
+                </div>
+                <button id="btn-login" class="morphing-action-btn" type="button" aria-label="Operator password and login" aria-expanded="false">
+                  <span class="morphing-icon-slot" aria-hidden="true">
+                    <svg class="morphing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </span>
+                  <span class="morphing-label" id="morphing-btn-label">Password</span>
+                </button>
+              </div>
+            </div>
+          </form>
+          <button id="btn-logout" class="btn btn-secondary btn-sm" type="button" style="padding: 4px 10px; font-size: 12px; display: none;">Logout</button>
+          <span id="login-error" role="alert" style="font-size: 11px; color: #d32f2f; display: none;"></span>
+          <button id="stop" class="btn btn-danger btn-sm" type="button" style="font-weight: 800;" title="Immediate hardware torque release">STOP / TORQUE OFF</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Slush Hero Poster: Inflatable Blue Ribbon + Crushed Display Headline -->
+    <section class="hero-section">
+      <!-- Hero Snake Canvas: 11-Segment Autonomous Serpentine Locomotion -->
+      <canvas id="hero-snake-canvas" class="hero-snake-canvas" aria-hidden="true"></canvas>
+
+      <!-- Shader Lens Blur WebGL Canvas Background -->
+      <div class="shader-lens-blur-wrapper" aria-hidden="true">
+        <canvas class="shader-lens-blur-canvas" id="shader-lens-blur-canvas"></canvas>
+      </div>
+
+      <div class="distorted-glass-ribbon" aria-hidden="true"></div>
+      <div class="hero-ribbon-bg">
+        <img src="/static/images/inflatable_blue_ribbon.jpg" alt="3D Inflatable Electric Blue Snake Ribbon">
+      </div>
+
+      <!-- Scattered 2D Sticker Confetti -->
+      <div class="sticker sticker-ember sticker-pos-1" aria-hidden="true">🚀 11 LINKS / 10 JOINTS</div>
+      <div class="sticker sticker-sunburst sticker-pos-2" aria-hidden="true">⭐ 3D SERPENOID</div>
+      <div class="sticker sticker-mint sticker-pos-3" aria-hidden="true">✔ ±70° ANGLE LIMIT</div>
+      <div class="sticker sticker-violet sticker-pos-4" aria-hidden="true">⚡ ST3215 PROTOCOL</div>
+
+      <div class="hero-content">
+        <h1 class="display-headline distorted-glass-headline">SURGE 090</h1>
+
+        <div class="modular-control-wrapper">
+          <span class="modular-control-badge">Modular Snake Control</span>
+          <nav class="generation-switch generation-switch-hero" aria-label="Robot generation switcher">
+            <a href="/" class="gen-switch-link gen-2-1" aria-describedby="tooltip-gen21">
+              <span>Gen 2.1</span>
+              <div class="gen-info-card" id="tooltip-gen21" role="tooltip">
+                <div class="gen-card-header">
+                  <div class="gen-card-badge badge-mint">Planar Snake</div>
+                  <div class="gen-card-version">ACTIVE RECORD</div>
+                </div>
+                <div class="gen-card-title">SURGE 090 • Gen 2.1</div>
+                <div class="gen-card-desc">Planar serpenoid kinematics with horizontal lateral undulation in 2D space.</div>
+                <ul class="gen-card-specs">
+                  <li><span class="spec-icon">🦾</span><strong>10 Yaw Joints</strong> (11 rigid links)</li>
+                  <li><span class="spec-icon">📐</span><strong>±70° Joint Limits</strong> on horizontal plane</li>
+                  <li><span class="spec-icon">⚡</span><strong>ST3215 Protocol</strong> &amp; PyBullet 2D Sim</li>
+                  <li><span class="spec-icon">🎯</span><strong>Pure Pursuit</strong> trajectory tracking</li>
+                </ul>
+                <div class="gen-card-footer">
+                  <span class="footer-dot dot-active"></span>
+                  <span>Planar Baseline of Record</span>
+                </div>
+              </div>
+            </a>
+            <a href="/gen3" aria-current="page" class="gen-switch-link gen-3" aria-describedby="tooltip-gen3">
+              <span>Gen 3</span>
+              <div class="gen-info-card" id="tooltip-gen3" role="tooltip">
+                <div class="gen-card-header">
+                  <div class="gen-card-badge badge-cyan">3D Spatial Snake</div>
+                  <div class="gen-card-version">EXPERIMENTAL</div>
+                </div>
+                <div class="gen-card-title">SURGE 090 • Gen 3</div>
+                <div class="gen-card-desc">Non-planar 3D spatial locomotion with alternating pitch &amp; yaw articulation.</div>
+                <ul class="gen-card-specs">
+                  <li><span class="spec-icon">🦾</span><strong>Alternating 5 Pitch + 5 Yaw Joints</strong></li>
+                  <li><span class="spec-icon">🌐</span><strong>3D Gaits</strong>: Sidewinding, Rolling, Corkscrew</li>
+                  <li><span class="spec-icon">🔄</span><strong>Calibrated Sign Inversions</strong> (IDs 3,5,7,9 = -1)</li>
+                  <li><span class="spec-icon">🎮</span><strong>Spatial WebGL Visualizer</strong> &amp; Command Bar</li>
+                </ul>
+                <div class="gen-card-footer">
+                  <span class="footer-dot dot-cyan"></span>
+                  <span>Experimental 3D Locomotion</span>
+                </div>
+              </div>
+            </a>
+          </nav>
+        </div>
+        <div class="hero-actions">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; text-transform: uppercase;">
+            Serial port <select id="hero-port" style="min-width: 170px;"><option value="">Select serial port</option></select>
+          </label>
+          <button id="hero-btn-start" type="button" class="btn btn-primary">Start motion</button>
+          <button id="hero-btn-stop" type="button" class="btn btn-danger">STOP / torque off</button>
+          <div class="status-indicator" style="margin-top: 0;">
+            <span class="dot headlight-glass" id="status-dot"></span>
+            <span id="conn-status">Disconnected</span>
+          </div>
+          <div class="run-timers" aria-label="Run timing" style="margin-left: 8px;">
+            <svg class="run-clock" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="13" r="8"/><path d="M9 2h6M12 2v3M12 9v4l3 2"/></svg>
+            <div><span class="timer-label">Job elapsed</span><span id="run-elapsed" class="rolling-number" role="timer" aria-live="off">00:00</span></div>
+            <div><span class="timer-label">Motion plan</span><span id="run-duration" class="rolling-number">--:--</span></div>
+            <span id="run-timer-state" class="timer-label">Idle</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <div class="status-bar">
+        <div class="status-indicators">
+          <span class="status-indicator-dot" id="conn-dot"></span>
+          <strong id="status" role="status" aria-live="polite">Loading…</strong>
+          <span id="stage"></span>
+          <span id="feedback-age" class="text-muted">Feedback: not sampled</span>
+          <span id="exec-badge" class="badge badge-outline">Preview</span>
+        </div>
+        <div class="status-actions">
+          <a id="log" class="download-link" hidden>Download CSV</a>
+        </div>
+      </div>
+      <p id="error" role="alert" hidden></p>
+
+      <!-- Console Sections Tab Navigation (Placed just above search) -->
+      <nav class="nav-pills tab-nav" role="tablist" aria-label="Console Sections">
+        <button role="tab" tabindex="0" id="tab-simulation" class="nav-pill tab-btn active" aria-selected="true" aria-controls="panel-simulation">🌐 3D Simulation</button>
+        <button role="tab" tabindex="-1" id="tab-operate" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-operate">🎮 Controls</button>
+        <button role="tab" tabindex="-1" id="tab-runs" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-runs">📍 Runs &amp; Presets</button>
+        <button role="tab" tabindex="-1" id="tab-calibration" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-calibration">⚡ Calibration &amp; Diag</button>
+        <button role="tab" tabindex="-1" id="tab-firmware" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-firmware">🛠 Firmware</button>
+        <button type="button" id="tab-stop-btn" class="nav-pill tab-stop-action-btn" style="background-color: #dc2626; color: #ffffff; font-weight: 800; border: 1.5px solid #000000; box-shadow: 0 2px 6px rgba(220,38,38,0.35); padding: 6px 18px; border-radius: 9999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; text-transform: uppercase; margin-left: 4px;" title="Emergency STOP / Torque Off">
+          <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+          STOP / TORQUE
+        </button>
+      </nav>
+
+      <div class="console-search" role="search" aria-label="Search Gen 3 console">
+        <form id="console-search-form" class="halo-field frosted">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
+          <input id="console-search-input" type="search" aria-label="Search controls, presets and console help" aria-describedby="console-search-hint" aria-controls="console-search-results" autocomplete="off" maxlength="160" placeholder="Find a control, preset, or setting…">
+          <button id="console-search-clear" type="button" aria-label="Clear search" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+          <button type="submit" class="search-submit">Search</button>
+        </form>
+        <div class="search-meta">
+          <span id="console-search-hint">Search this console · results open controls without running them.</span>
+        </div>
+        <div id="console-search-results" class="search-results" hidden>
+          <p id="console-search-status" role="status" aria-live="polite"></p>
+          <ul id="console-search-list" aria-label="Search results"></ul>
+        </div>
+      </div>
+
+    <!-- PANEL 0: 3D SIMULATION -->
+    <div id="panel-simulation" class="tab-panel active" role="tabpanel" aria-labelledby="tab-simulation">
+      <div class="main-content" id="sim-hub">
+        <!-- Left Column: Connection Engine & 3D Spatial Gait Presets & Joint Architecture -->
+        <aside class="control-panel">
+          <section class="card">
+            <h2>PyBullet simulation</h2>
+            <p>Sign in as an operator to start a finite, headless PyBullet run. The viewport shows simulated link positions; the model uses placeholder dimensions and contact properties.</p>
+          </section>
+
+          <!-- 3D Spatial Gait Presets Card -->
+          <section class="card card-lavender">
+            <div class="card-header-row">
+              <h2>3D Spatial Gait</h2>
+              <span class="card-tag">Generator</span>
+            </div>
+            <div class="input-group">
+              <label for="sim-3d-preset">Preset Gait Pattern</label>
+              <select id="sim-3d-preset" style="width: 100%; border: 1px solid var(--color-carbon); border-radius: 6px; padding: 6px 10px; font-weight: 600; background: #ffffff;">
+                <option value="sidewinding">Sidewinding Gait (Lateral Shift)</option>
+                <option value="rolling">Helical Rolling Gait (Pipe / Obstacle Roll)</option>
+                <option value="lateral_undulation">Lateral Undulation (Planar Baseline)</option>
+                <option value="sinus_lifting">Sinus-Lifting Step (Ground Clearance)</option>
+                <option value="corkscrew">3D Corkscrew Wave (Spatial Helix)</option>
+                <option value="custom" selected>Custom Spatial Parameterization</option>
+              </select>
+            </div>
+            <div class="gait-preset-details" id="sim-preset-desc-box" style="background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 8px 10px; margin-top: 8px; font-size: 12px; line-height: 1.4;">
+              <div id="sim-preset-summary" style="font-weight: 700; color: #1e293b;">Yaw 30° · Pitch 25° · Offset 90° · Freq 0.50Hz</div>
+              <div id="sim-preset-description" style="color: #64748b; margin-top: 2px;">Orthogonal yaw and pitch waves with a 90° phase offset.</div>
+            </div>
+            <button type="button" id="btn-load-3d-preset" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Load Gait Preset</button>
+          </section>
+
+          <!-- Alternating Axis Joint Map Card -->
+          <div class="qr-card">
+            <div class="qr-panel" style="background: var(--color-mint-pop, #55db9c); display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <div class="qr-label-panel">
+              <div class="qr-badge-title">SPATIAL JOINT MAP</div>
+              <div class="qr-badge-desc">10 Servos · Odd: Pitch (1,3,5,7,9) · Even: Yaw (2,4,6,8,10) · Confirmed signs: Pitch 1 = +1; 3,5,7,9 = -1; All Yaw = +1</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center Column: Interactive 3D Spatial Simulation Viewport -->
+        <section class="canvas-container" id="sim-canvas-hub" aria-label="Simulation viewport">
+          <div class="canvas-toolbar">
+            <h2>PyBullet 3D Simulation</h2>
+            <div class="canvas-badges">
+              <span class="badge-pill" style="background-color: var(--color-mint-pop, #55db9c); color: #000000;">● 5 Pitch Joints</span>
+              <span class="badge-pill" style="background-color: var(--badge-target-bg, var(--color-electric-blue, #4da2ff)); color: var(--badge-target-text, #000000);">● 5 Yaw Joints</span>
+              <span class="badge-pill" style="background-color: var(--color-lavender, #e9ccff); color: #000000;">● 11 Links</span>
+              <span class="badge-pill" style="background-color: var(--color-sunburst, #ffd731); color: #000000;">● 3D Ground Plane</span>
+            </div>
+          </div>
+          <div class="canvas-wrapper sim-3d-canvas-wrapper" style="position: relative; background: radial-gradient(circle at 50% 30%, #1e293b, #0f172a); border-radius: 12px; overflow: hidden; border: 1px solid var(--color-carbon, #000000); box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
+            <canvas id="gen3SimCanvas" width="700" height="420" style="width: 100%; height: 420px; display: block; cursor: grab;"></canvas>
+            <!-- 3D HUD overlay -->
+            <div id="sim-3d-hud" style="position: absolute; top: 12px; left: 14px; pointer-events: none; display: flex; flex-direction: column; gap: 4px; font-family: monospace; font-size: 11px; color: #94a3b8; background: rgba(15,23,42,0.75); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">
+              <div>VIEW: <span id="hud-cam-view" style="color: #38bdf8; font-weight: 700;">Perspective Orbit</span></div>
+              <div>CAMERA: <span id="hud-cam-angles" style="color: #f1f5f9;">Yaw 45° | Pitch -25° | Zoom 1.0x</span></div>
+              <div>STATE: <span id="hud-sim-state" style="color: #55db9c; font-weight: 700;">Ready · Neutral (2048)</span></div>
+            </div>
+            <!-- Axis Legend -->
+            <div style="position: absolute; bottom: 12px; right: 14px; pointer-events: none; font-size: 10.5px; font-family: monospace; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="color: #f87171; font-weight: 700;">X: Fwd</span> · 
+              <span style="color: #4ade80; font-weight: 700;">Y: Lat (Yaw)</span> · 
+              <span style="color: #60a5fa; font-weight: 700;">Z: Vert (Pitch)</span>
+            </div>
+          </div>
+          <div class="canvas-controls-footer">
+            <p class="canvas-instructions">
+              💡 <strong>3D Controls:</strong> Left click & drag to orbit / rotate 3D view • Right click & drag to pan • Scroll to zoom in/out • Positions update from the active PyBullet simulation
+            </p>
+            <div class="canvas-actions-row">
+              <button type="button" id="btn-gen3-sim-start" class="btn btn-primary btn-sm" title="Start a finite PyBullet simulation">▶ Start simulation</button>
+              <button type="button" id="btn-gen3-sim-stop" class="btn btn-danger btn-sm" title="Stop this simulation">⏹ Stop simulation</button>
+              <button type="button" id="btn-gen3-sim-reset" class="btn btn-secondary btn-sm" title="Reset the camera view">↺ Reset view</button>
+            </div>
+            <span class="motion-permission-hint" style="font-size: 11px; color: var(--color-muted, #64748b); display: block;" hidden>Log in as Operator to start</span>
+          </div>
+        </section>
+
+        <!-- Right Column: Simulation gait settings & Contact Tuning -->
+        <aside class="control-panel">
+          <section class="card" id="sim-3d-physics-card">
+            <div class="card-header-row">
+              <h2>Simulation gait settings</h2>
+              <span class="card-tag">Tuning</span>
+            </div>
+            <p class="physics-help">Settings are used when starting a run. The model is illustrative and is not calibrated for predicting robot travel.</p>
+            
+            <div class="input-group">
+              <label for="sim-param-yaw-amp">Yaw Amplitude (deg): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
+              <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="70" step="1" value="30" aria-describedby="help-sim-yaw">
+              <span class="physics-help" id="help-sim-yaw">Horizontal bending angle on IDs 2, 4, 6, 8, 10. Clamped to ±70°.</span>
+            </div>
+
+            <div class="input-group">
+              <label for="sim-param-pitch-amp">Pitch Amplitude (deg): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
+              <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="70" step="1" value="25" aria-describedby="help-sim-pitch">
+              <span class="physics-help" id="help-sim-pitch">Vertical lifting angle on IDs 1, 3, 5, 7, 9. Clamped to ±70°.</span>
+            </div>
+
+            <div class="input-group">
+              <label for="sim-param-freq">Wave Frequency (Hz): <span id="val-sim-freq" style="font-family: monospace;">0.50</span> Hz</label>
+              <input type="range" id="sim-param-freq" class="sim-param" min="0.05" max="0.6" step="0.05" value="0.10" aria-describedby="help-sim-freq">
+              <span class="physics-help" id="help-sim-freq">Temporal frequency of traveling wave cycle.</span>
+            </div>
+
+            <div class="input-group">
+              <label for="sim-param-lag">Inter-segment Phase Lag (deg): <span id="val-sim-lag" style="font-family: monospace;">90</span>°</label>
+              <input type="range" id="sim-param-lag" class="sim-param" min="10" max="180" step="5" value="90" aria-describedby="help-sim-lag">
+              <span class="physics-help" id="help-sim-lag">Phase shift between successive joints of the same axis.</span>
+            </div>
+
+            <div class="input-group">
+              <label for="sim-param-offset">Pitch-to-Yaw Wave Offset (deg): <span id="val-sim-offset" style="font-family: monospace;">90</span>°</label>
+              <input type="range" id="sim-param-offset" class="sim-param" min="-180" max="180" step="5" value="90" aria-describedby="help-sim-offset">
+              <span class="physics-help" id="help-sim-offset">Phase difference between pitch and yaw waves (90° = sidewinding helix).</span>
+            </div>
+
+            <div class="input-group">
+              <label for="sim-param-bias">Yaw Steering Bias (deg): <span id="val-sim-bias" style="font-family: monospace;">0</span>°</label>
+              <input type="range" id="sim-param-bias" class="sim-param" min="-30" max="30" step="1" value="0" aria-describedby="help-sim-bias">
+              <span class="physics-help" id="help-sim-bias">Constant yaw angle offset for curved steering.</span>
+            </div>
+
+            <div class="sim-settings-actions">
+              <button type="button" id="btn-sim-apply-physics" class="btn btn-primary">Confirm settings</button>
+              <button type="button" id="btn-sim-reset-physics" class="btn btn-secondary">Set to Default</button>
+            </div>
+            <div id="sim-physics-applied-pill" style="display: none; font-size: 11.5px; font-weight: 700; color: var(--color-btn-start, #15803d); text-align: center; margin-top: 6px;">✓ Simulation gait settings Applied</div>
+          </section>
+        </aside>
+
+        <!-- 10-Joint Simulation Feedback Grid -->
+        <section class="telemetry-section" id="sim-telemetry-hub">
+          <div class="telemetry-section-header">
+            <div class="telemetry-title-block">
+              <h2>10-Joint Simulation Feedback</h2>
+              <span class="card-tag">PyBullet feedback</span>
+            </div>
+            <div class="canvas-badges">
+              <span class="badge-pill" style="background-color: var(--color-mint-pop, #55db9c); color: #000000;">Pitch Joints (1, 3, 5, 7, 9)</span>
+              <span class="badge-pill" style="background-color: var(--badge-target-bg, var(--color-electric-blue, #4da2ff)); color: var(--badge-target-text, #000000);">Yaw Joints (2, 4, 6, 8, 10)</span>
+              <span class="badge-pill" style="background-color: var(--color-lavender, #e9ccff); color: #000000;">Sign Mapped (+1 / -1)</span>
+            </div>
+          </div>
+          <div class="telemetry-grid" id="sim-telemetry-grid">
+            <!-- Dynamically populated by gen3-sim.js -->
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- PANEL 1: OPERATE -->
+    <div id="panel-operate" class="tab-panel" role="tabpanel" aria-labelledby="tab-operate">
+      <section class="card gait-tuning-card" aria-labelledby="live-heading">
+        <!-- Compact Header: Title + Mode Toggles unified on one horizontal line -->
+        <div class="gait-card-header">
+          <div class="gait-title-group">
+            <h2 id="live-heading" class="gait-heading">Live Gait Motion &amp; Tuning</h2>
+            <span class="gait-sub-badge">Continuous Phase Integration · Discontinuity-Free Live Tuning</span>
+          </div>
+          <div class="mode-toggles" role="group" aria-label="Gait Waveform Mode">
+            <button type="button" id="btn-mode-yaw" class="mode-btn">Yaw Only</button>
+            <button type="button" id="btn-mode-pitch" class="mode-btn">Pitch Only</button>
+            <button type="button" id="btn-mode-combined" class="mode-btn active">Combined 3D</button>
+          </div>
+        </div>
+
+        <form id="gait-form" class="gait-form">
+          <!-- Setup Toolbar: Execution Mode, Port, Preset in a tight horizontal strip -->
+          <div class="gait-toolbar">
+            <div class="control-group">
+              <label for="execution">Execution Mode</label>
+              <select id="execution">
+                <option value="preview">Preview · no connection</option>
+                <option value="simulation">Gen 3 simulation · PyBullet</option>
+                <option value="hardware">Hardware · measured map required</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="port">Transmitter Port</label>
+              <div class="input-with-button">
+                <select id="port"><option value="">Select serial port</option></select>
+                <button type="button" id="refresh-ports" class="btn-sm" title="Refresh ports">↻</button>
+              </div>
+            </div>
+            <div class="control-group">
+              <label for="operate-preset">Quick Preset</label>
+              <select id="operate-preset"><option value="">-- Load preset to draft --</option></select>
+            </div>
+          </div>
+
+          <!-- Parameter Deck: Exactly 10 parameters in an ultra-dense, organized 5x2 grid -->
+          <fieldset class="gait-fieldset">
+            <legend>Waveform Draft Parameters</legend>
+            <div class="gait-params-grid">
+              <div class="control-group" title="Horizontal amplitude">
+                <label for="yaw">Yaw Amp (°)</label>
+                <input id="yaw" type="number" min="0" max="90" step="0.5" value="5" required>
+              </div>
+              <div class="control-group" title="Vertical amplitude">
+                <label for="pitch">Pitch Amp (°)</label>
+                <input id="pitch" type="number" min="0" max="90" step="0.5" value="5" required>
+              </div>
+              <div class="control-group" title="Steering offset">
+                <label for="bias">Yaw Bias (°)</label>
+                <input id="bias" type="number" min="-90" max="90" step="0.5" value="0" required>
+              </div>
+              <div class="control-group" title="Wave speed">
+                <label for="frequency">Freq (Hz)</label>
+                <input id="frequency" type="number" min="0.01" max="0.6" step="0.01" value="0.1" required>
+              </div>
+              <div class="control-group" title="Wave propagation">
+                <label for="direction">Direction</label>
+                <select id="direction">
+                  <option value="1">Forward (+)</option>
+                  <option value="-1">Reverse (-)</option>
+                </select>
+              </div>
+              <div class="control-group" title="Wavelength spacing">
+                <label for="lag">Phase Lag (°)</label>
+                <input id="lag" type="number" min="-360" max="360" step="5" value="90" required>
+              </div>
+              <div class="control-group" title="Helix/ellipse phasing">
+                <label for="offset">Pitch Offset (°)</label>
+                <input id="offset" type="number" min="-360" max="360" step="5" value="90" required>
+              </div>
+              <div class="control-group" title="Per-run speed limit">
+                <div class="label-with-equiv">
+                  <label for="speed">Run Speed</label>
+                  <span id="speed-deg-equiv" class="unit-equiv">~8.8 °/s</span>
+                </div>
+                <input id="speed" type="number" min="1" max="1500" step="5" value="100" required>
+              </div>
+              <div class="control-group" title="Cosine envelope">
+                <label for="ramp">Ramp (s)</label>
+                <input id="ramp" type="number" min="1" max="30" step="0.5" value="2" required>
+              </div>
+              <div class="control-group" title="Fixed bounded run">
+                <label for="duration">Duration (s)</label>
+                <input id="duration" type="number" min="4" max="300" step="1" value="10" required>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Unified Dock Bar: Demand Calculation + Live Status + Action Buttons in 1 row -->
+          <div class="gait-dock-bar">
+            <!-- Demand Meter -->
+            <div class="dock-metric-pill">
+              <span class="dock-label">Demand:</span>
+              <span class="dock-val-wrap">
+                <span id="demand-value" class="texture-card-value rolling-number" aria-label="Peak speed demand">0.0</span>
+                <span class="texture-card-unit">counts/s</span>
+              </span>
+              <span id="demand-limit-badge" class="badge">OK</span>
+              <p id="demand-readout" class="demand-indicator text-muted">Within hardware speed envelope</p>
+            </div>
+
+            <!-- Applied / Pending Readout -->
+            <div class="dock-status-pill">
+              <p id="applied-readout" class="applied-indicator">Applied: <em>No active motion</em></p>
+              <p id="pending-readout" class="pending-indicator" hidden>Pending: <em>Transitioning…</em></p>
+            </div>
+
+            <!-- Execution Actions -->
+            <div class="dock-actions-group">
+              <button type="button" id="btn-apply" class="btn-accent btn-compact" disabled>Apply Live Tuning (0 changes)</button>
+              <button type="submit" id="btn-start" class="btn-primary job btn-compact">Start Finite Motion Trial</button>
+              <span class="motion-permission-hint" style="font-size: 11px; color: var(--color-muted, #64748b); display: block;" hidden>Log in as Operator to start</span>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- GridBeam metrics strip -->
+      <section class="grid-beam-container" aria-label="Robot bus metrics">
+        <div class="grid-beam-header-bar">
+          <div class="grid-beam-title-group">
+            <span class="grid-beam-title">
+              <svg class="grid-beam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 12h16M12 4v16"/></svg>
+              Bus Metrics &mdash; Not Available
+            </span>
+          </div>
+        </div>
+
+        <div class="grid-beam-dividers" aria-hidden="true">
+          <div class="grid-divider-h" style="top: 50%;"></div>
+          <div class="grid-divider-v" style="left: 33.333%;"></div>
+          <div class="grid-divider-v" style="left: 66.666%;"></div>
+        </div>
+        <canvas class="grid-beam-canvas"></canvas>
+
+        <div class="grid-beam-content">
+          <div class="grid-beam-metrics-grid">
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Bus Latency</span>
+              <span class="grid-beam-metric-value" id="grid-metric-latency">Unavailable</span>
+            </div>
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Telemetry Rate</span>
+              <span class="grid-beam-metric-value" id="grid-metric-rate">Unavailable</span>
+            </div>
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Tracking Sync</span>
+              <span class="grid-beam-metric-value" id="grid-metric-sync">Unavailable</span>
+            </div>
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Bus Voltage</span>
+              <span class="grid-beam-metric-value" id="grid-metric-voltage">Unavailable</span>
+            </div>
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Peak Temperature</span>
+              <span class="grid-beam-metric-value" id="grid-metric-temp">Unavailable</span>
+            </div>
+            <div class="grid-beam-metric-cell">
+              <span class="grid-beam-metric-label">Active Servos</span>
+              <span class="grid-beam-metric-value" id="grid-metric-servos">Unavailable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="telemetry-heading">
+        <h2 id="telemetry-heading">Measured Feedback &amp; Joint Tracking</h2>
+        <p class="notice">Raw load is not calibrated amperes or torque. Previews display commanded mathematical curves without measured feedback.</p>
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Measured joint feedback">
+          <table>
+            <caption>Physical order: ID 1 designates head, ID 10 designates driver end.</caption>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Axis</th>
+                <th>Status</th>
+                <th>Target</th>
+                <th>Measured Pos</th>
+                <th>Track Error</th>
+                <th>Velocity Raw</th>
+                <th>Load Raw</th>
+              </tr>
+            </thead>
+            <tbody id="telemetry-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- PANEL 2: RUNS & PRESETS -->
+    <div id="panel-runs" class="tab-panel" role="tabpanel" aria-labelledby="tab-runs">
+      <section class="card" aria-labelledby="presets-heading">
+        <h2 id="presets-heading">Gait Presets</h2>
+        <p>Presets populate the Operate draft parameters only; they never arm motors automatically.</p>
+        <div class="presets-container">
+          <div class="preset-picker">
+            <fieldset class="preset-options">
+              <legend>Choose a gait for your next draft</legend>
+              <div id="presets-list" class="presets-grid"></div>
+            </fieldset>
+            <div class="preset-footer">
+              <p id="preset-selection-status" role="status" aria-live="polite">Select a preset to compare its settings.</p>
+              <button id="load-selected-preset" type="button" class="btn-primary" disabled>Load selected preset</button>
+            </div>
+          </div>
+          <form id="save-preset-form" class="save-preset-card">
+            <h3>Save Current Draft as Preset</h3>
+            <label>Preset Name<input id="preset-name" type="text" placeholder="e.g. Low-slip carpet wave" required></label>
+            <label>Description<input id="preset-desc" type="text" placeholder="e.g. 5 deg pitch, 0.1 Hz, 4s ramp"></label>
+            <button type="submit" class="btn-sm">Save Preset</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="runs-heading">
+        <h2 id="runs-heading">Runs Journal &amp; Annotations</h2>
+        <p>Each run creates an immutable snapshot JSON and telemetry CSV. Annotate physical displacement and surface observations for locomotion analysis.</p>
+
+        <div class="texture-cards-grid" id="runs-summary-cards">
+          <div class="texture-card">
+            <div class="texture-card-header"><span class="texture-card-title">Total Trials</span></div>
+            <div class="texture-card-content">
+              <span id="runs-count-val" class="texture-card-value rolling-number" aria-label="Total trials">0</span>
+              <span class="texture-card-unit">completed</span>
+            </div>
+          </div>
+          <div class="texture-card">
+            <div class="texture-card-header"><span class="texture-card-title">Total Measured Travel</span></div>
+            <div class="texture-card-content">
+              <span id="runs-disp-val" class="texture-card-value rolling-number" aria-label="Total travel">0.0</span>
+              <span class="texture-card-unit">cm displacement</span>
+            </div>
+          </div>
+          <div class="texture-card">
+            <div class="texture-card-header"><span class="texture-card-title">Average Duration</span></div>
+            <div class="texture-card-content">
+              <span id="runs-dur-val" class="texture-card-value rolling-number" aria-label="Average duration">0.0</span>
+              <span class="texture-card-unit">s / run</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Runs and trials history">
+          <table>
+            <thead>
+              <tr>
+                <th>Run ID</th>
+                <th>Time</th>
+                <th>Mode</th>
+                <th>Exec</th>
+                <th>Duration</th>
+                <th>Speed</th>
+                <th>Downloads</th>
+                <th>Annotations</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="runs-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- PANEL 3: CALIBRATION & DIAGNOSTICS -->
+    <div id="panel-calibration" class="tab-panel" role="tabpanel" aria-labelledby="tab-calibration">
+      <section class="card" aria-labelledby="diag-quick-heading">
+        <h2 id="diag-quick-heading">Quick Diagnostic Actions</h2>
+        <div class="controls">
+          <button id="read-all" class="job">Read all · torque off snapshot</button>
+          <button id="align-all" class="job">Align all joints to 2048</button>
+          <button id="run-diagnostics" class="job">Query Disarmed D Diagnostics</button>
+        </div>
+        <p>Reads are instantaneous snapshots, not continuous streaming. Diagnostics query model reg 8, torque register, voltage, temperature, and status byte.</p>
+        <div id="diag-results" class="table-scroll" hidden>
+          <h3>Diagnostic Snapshot Results</h3>
+
+          <div class="texture-cards-grid" id="diag-summary-cards">
+            <div class="texture-card">
+              <div class="texture-card-header"><span class="texture-card-title">Min Voltage</span></div>
+              <div class="texture-card-content">
+                <span id="diag-voltage-val" class="texture-card-value rolling-number" aria-label="Min voltage">0.0</span>
+                <span class="texture-card-unit">V</span>
+              </div>
+            </div>
+            <div class="texture-card">
+              <div class="texture-card-header"><span class="texture-card-title">Peak Temperature</span></div>
+              <div class="texture-card-content">
+                <span id="diag-temp-val" class="texture-card-value rolling-number" aria-label="Peak temperature">0</span>
+                <span class="texture-card-unit">°C</span>
+              </div>
+            </div>
+            <div class="texture-card">
+              <div class="texture-card-header"><span class="texture-card-title">Responding Servos</span></div>
+              <div class="texture-card-content">
+                <span id="diag-active-val" class="texture-card-value rolling-number" aria-label="Responding servos">0</span>
+                <span class="texture-card-unit">/ 10 online</span>
+              </div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Model Reg 8</th><th>Torque Enable</th><th>Voltage Raw</th><th>Temperature Raw</th><th>Status Byte</th></tr>
+            </thead>
+            <tbody id="diag-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="cal-map-heading">
+        <h2 id="cal-map-heading">Joint Map Calibration (Physical Order)</h2>
+        <p id="calibration-state"></p>
+        <p class="concurrency-note">Optimistic concurrency active: revision token <code id="map-revision-token">—</code>. Concurrent saves from other tabs will be detected and rejected.</p>
+
+        <form id="map-form">
+          <div class="table-scroll" role="region" tabindex="0" aria-label="Joint calibration table">
+            <table>
+              <caption class="sr-only">Joint calibration map</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Order</th>
+                  <th scope="col">ID</th>
+                  <th scope="col">Axis</th>
+                  <th scope="col">Sign</th>
+                  <th scope="col">Straight Zero</th>
+                  <th scope="col">Minimum</th>
+                  <th scope="col">Maximum</th>
+                </tr>
+              </thead>
+              <tbody id="joint-map-body"></tbody>
+            </table>
+          </div>
+          <div class="controls-grid">
+            <div class="control-group">
+              <label for="cal-speed">Default Map Speed (counts/s)</label>
+              <input id="cal-speed" type="number" min="1" max="1500" required>
+            </div>
+            <div class="control-group">
+              <label for="tracking-error">Tracking Error Threshold (counts)</label>
+              <input id="tracking-error" type="number" min="1" max="796" required>
+            </div>
+            <div class="control-group">
+              <label for="tracking-timeout">Error Timeout (seconds)</label>
+              <input id="tracking-timeout" type="number" min="0.1" max="2" step="0.1" required>
+            </div>
+          </div>
+          <label class="check">
+            <input id="calibrated-checkbox" type="checkbox">
+            I have measured and physically verified the order, alternating axes, signs, zeros, limits, and tracking thresholds for all ten joints.
+          </label>
+          <p class="text-muted">Modifying any field clears this confirmation. Every save writes a timestamped backup in <code>runs/</code>.</p>
+          <button type="submit" id="btn-save-map" class="job">Save Calibration</button>
+        </form>
+      </section>
+
+      <section class="card maintenance-card" aria-labelledby="maint-heading">
+        <h2 id="maint-heading">Free-Shaft Centering Maintenance (Exclusive Action)</h2>
+        <p class="warning-callout"><strong>CAUTION:</strong> DO NOT EXECUTE ON ASSEMBLED LINKS. Linkage must be physically detached. Moves ONLY the single selected motor slowly to 2048 and verifies within 3 counts before releasing torque.</p>
+        <form id="center-form" class="controls">
+          <label>Motor ID<input id="center-id" type="number" min="1" max="10" step="1" value="1" required></label>
+          <label class="check">
+            <input id="confirm-free-shaft" type="checkbox" required>
+            I confirm linkage is disconnected and the output horn is mechanically free.
+          </label>
+          <button type="submit" class="job btn-warning">Center Single Free Shaft to 2048</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="jog-sec-heading">
+        <h2 id="jog-sec-heading">Identify Single Joint (Jog)</h2>
+        <p>Jog moves the selected motor relative to its measured start and returns. Clearance required in both directions.</p>
+        <form id="jog-form" class="controls">
+          <label>Motor ID<input id="jog-id" type="number" min="1" max="10" step="1" value="1" required></label>
+          <label>Signed Encoder Ticks (-57..57)<input id="jog-ticks" type="number" min="-57" max="57" step="1" value="20" required></label>
+          <label>Duration (s)<input id="jog-duration" type="number" min="2" max="30" value="6" required></label>
+          <button type="submit" class="job">Jog Selected Joint</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- PANEL 4: FIRMWARE -->
+    <div id="panel-firmware" class="tab-panel" role="tabpanel" aria-labelledby="tab-firmware">
+      <section class="card" aria-labelledby="fw-heading">
+        <h2 id="fw-heading">Firmware Management &amp; Build Verification</h2>
+        <p>Fixed allowlisted PlatformIO environments with structured arguments (shell disabled). Upload requires maintainer role, released serial port, and explicit physical board verification.</p>
+
+        <div class="controls-grid">
+          <div class="control-group">
+            <label for="fw-env">Target Environment</label>
+            <select id="fw-env">
+              <option value="receiver_gen2_1">receiver_gen2_1 (Robot Waveshare ESP32 Bus Driver)</option>
+              <option value="transmitter_gen2_1">transmitter_gen2_1 (PC USB Wireless Dongle)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="fw-port">Target Upload Port</label>
+            <select id="fw-port"><option value="">Select COM port</option></select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button id="btn-build-fw" class="job btn-secondary">Build Target with PlatformIO</button>
+        </div>
+
+        <div class="terminal-container">
+          <div class="terminal-header">PlatformIO Build / Upload Output</div>
+          <pre id="fw-log" class="terminal-body">Select an environment and click Build.</pre>
+        </div>
+
+        <div class="upload-safety-box"><p role="status">Browser upload is unavailable. No board will be flashed. Use the documented owner-operated upload procedure.</p>
+          <h3>Firmware Upload Safety Gates</h3>
+          <p class="warning-callout"><strong>IMPORTANT:</strong> COM6 may identify either board. Interrupting an upload can leave the microcontroller unbootable. Disconnect LiPo power and mechanically support robot.</p>
+          <div class="safety-checklist">
+            <label class="check"><input id="check-board" type="checkbox"> I have physically identified the plugged board and verified it matches the selected target.</label>
+            <label class="check"><input id="check-power" type="checkbox"> I have disconnected the external LiPo battery and supported the snake robot mechanically.</label>
+            <label class="check"><input id="check-risk" type="checkbox"> I acknowledge that flashing cannot be cancelled with motion Stop and requires manual re-verification.</label>
+          </div>
+          <button id="btn-upload-fw" class="btn-danger" disabled>Browser upload unavailable</button>
+        </div>
+      </section>
+    </div>
+  </main>
+    {% include 'team_footer.html' %}
+  <!-- Fixed quick actions -->
+  <aside class="floating-action-dock" id="floating-action-dock" aria-label="Quick Actions Dock">
+    <button type="button" class="floating-stop-btn" id="floating-stop-btn" title="Emergency STOP / Torque Off">
+      <svg class="floating-stop-icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+      <span>STOP / torque off</span><span id="floating-stop-state" aria-live="polite">Status unknown</span>
+    </button>
+  </aside>
+  </div>
+
+
+  </div>
+  <!-- Factor Update Confirmation Modal -->
+  <div id="factor-confirm-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="factor-confirm-title">
+    <div class="modal-content factor-confirm-dialog" style="max-width: 620px; width: 94%; max-height: 85vh; overflow-y: auto; background: var(--color-paper-white, #ffffff); border: 2px solid var(--color-carbon, #000000); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); padding: 24px;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 2px solid var(--color-carbon, #000); padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h2 id="factor-confirm-title" style="margin: 0; font-size: 20px; font-weight: 800; text-align: left; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">Confirm Factor Update</h2>
+          <div id="factor-confirm-operator" style="font-size: 12px; font-weight: 700; color: #059669; margin-top: 4px;">Operator: Authenticated · Verified Lease</div>
+        </div>
+        <button type="button" id="factor-confirm-close" aria-label="Close dialog" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; font-weight: 700; line-height: 1; padding: 0 4px;">&times;</button>
+      </div>
+
+      <div id="factor-confirm-body" style="font-size: 13px; line-height: 1.5; color: #1e293b;">
+        <p id="factor-confirm-intro" style="margin-bottom: 14px; font-weight: 600;">You are modifying the following parameter(s) as operator. Review the parameter differences and clear warnings below before confirming:</p>
+        
+        <div id="factor-confirm-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <!-- Dynamically populated with factor changes and clear warnings -->
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <button type="button" id="factor-confirm-cancel" class="btn btn-secondary" style="font-weight: 600; padding: 8px 18px;">Cancel</button>
+        <button type="button" id="factor-confirm-proceed" class="btn btn-primary" style="font-weight: 800; padding: 8px 22px; background: #000000; color: #ffffff;">Confirm &amp; Update</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
