@@ -1,0 +1,30 @@
+.gen3 .moving-background, .cockpit-tabs.moving-background { position: relative; isolation: isolate; }
+.gen3 .moving-background::before, .cockpit-tabs.moving-background::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: var(--highlight-width, 0px);
+  height: var(--highlight-height, 0px);
+  transform: translate(var(--highlight-x, 0px), var(--highlight-y, 0px));
+  border-radius: 8px;
+  background: #e0eaff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: transform 320ms cubic-bezier(.22, 1, .36, 1), width 320ms cubic-bezier(.22, 1, .36, 1), height 320ms cubic-bezier(.22, 1, .36, 1), opacity 120ms ease-out;
+}
+.gen3 .moving-background.has-highlight::before, .cockpit-tabs.moving-background.has-highlight::before { opacity: 1; }
+.cockpit-tabs.moving-background [role="tab"]:not([aria-selected="true"]):hover { background: transparent; }
+.gen3 .moving-background .tab-btn,
+.gen3 .moving-background .tab-btn:hover,
+.gen3 .moving-background .mode-btn:not(.active),
+.gen3 .moving-background .preset-card:not(:has(input:checked)),
+.gen3 #console-search-list.moving-background button:hover,
+.gen3 #console-search-list.moving-background button:focus-visible { background: transparent; }
+.gen3 .moving-background .tab-btn.active { border-bottom-color: var(--color-brand-blue); }
+@media (prefers-reduced-motion: reduce) {
+  .gen3 .moving-background::before, .cockpit-tabs.moving-background::before { transition: none; }
+}
+@media (forced-colors: active) {
+  .gen3 .moving-background::before, .cockpit-tabs.moving-background::before { display: none; }
+}

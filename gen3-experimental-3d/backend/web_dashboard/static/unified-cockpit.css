@@ -1,0 +1,124 @@
+/* Shared playful controls; robot actions and state remain generation-specific. */
+.generation-switch-hero .gen-name { display: none; }
+.generation-switch-hero { background: var(--color-sky-wash); }
+.generation-switch-hero a[aria-current="page"]::before { background: var(--color-mint-pop); }
+.card, .gen3 .card, .canvas-container {
+  border: 2px solid var(--color-carbon);
+  box-shadow: 3px 3px 0 var(--color-carbon);
+}
+.card-header-row { flex-wrap: wrap; gap: 8px; }
+.card-tag { border: 1px solid var(--color-carbon); border-radius: var(--radius-pills); }
+.telem-box { border-width: 2px; box-shadow: 2px 2px 0 var(--color-carbon); }
+body .btn-primary, body.gen3 .btn-primary {
+  background: #075eaa;
+  border-color: var(--color-carbon);
+  color: #fff;
+}
+body .btn-primary:hover:not(:disabled), body.gen3 .btn-primary:hover:not(:disabled) { background: #064b88; }
+body .btn-secondary, body.gen3 .btn-secondary {
+  background: var(--color-paper-white);
+  border-color: var(--color-carbon);
+  color: var(--color-carbon);
+}
+body .btn-secondary:hover:not(:disabled), body.gen3 .btn-secondary:hover:not(:disabled) { background: var(--color-soft-mist); }
+body .btn-danger, body.gen3 .btn-danger {
+  background: #b91c1c;
+  border-color: var(--color-carbon);
+  color: #fff;
+}
+body .btn-danger:hover:not(:disabled), body.gen3 .btn-danger:hover:not(:disabled) { background: #991b1b; }
+body button:focus-visible, body a:focus-visible, body input:focus-visible, body select:focus-visible {
+  outline: 3px solid var(--color-electric-blue);
+  outline-offset: 2px;
+}
+body .btn:not(:disabled):active, body.gen3 button:not(:disabled):active { transform: translateY(1px); }
+
+/* Unified task navigation bar */
+.cockpit-tabs, .gen3 .tab-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 16px 0;
+  background: var(--color-paper-white, #ffffff);
+  border: 1.5px solid var(--color-carbon, #000000);
+  border-radius: var(--radius-pills, 9999px);
+  box-shadow: 3px 3px 0 var(--color-carbon, #000000);
+}
+.cockpit-tabs.moving-background::before, .tab-nav.moving-background::before {
+  border-radius: var(--radius-pills, 9999px) !important;
+}
+.cockpit-tabs [role="tab"], .gen3 .tab-nav .tab-btn {
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pills);
+  padding: 8px 18px;
+  font-weight: 700;
+  transition: transform 160ms cubic-bezier(.22, 1, .36, 1), background-color 160ms ease;
+}
+.cockpit-tabs [role="tab"]:hover, .gen3 .tab-nav .tab-btn:hover { transform: translateY(-2px); }
+.cockpit-tabs [aria-selected="true"], .gen3 .tab-nav .tab-btn.active {
+  background: var(--color-sunburst);
+  color: var(--color-carbon);
+}
+.cockpit-tabs [role="tab"]:focus-visible, .gen3 .tab-nav .tab-btn:focus-visible,
+#btn-stop:focus-visible, #floating-stop-btn:focus-visible, .tab-stop-action-btn:focus-visible {
+  outline: 3px solid var(--color-electric-blue);
+  outline-offset: 3px;
+}
+.tab-stop-action-btn {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 1.5px solid var(--color-carbon, #000000) !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35) !important;
+  padding: 6px 18px !important;
+  border-radius: var(--radius-pills, 9999px) !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.tab-stop-action-btn:hover:not(:disabled) {
+  background-color: #b91c1c !important;
+  transform: translateY(-1px);
+}
+.tab-stop-action-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+#btn-stop, #floating-stop-btn {
+  width: 210px;
+  min-height: 48px;
+  border-radius: var(--radius-pills);
+  padding: 10px 18px;
+  background: #b91c1c !important;
+  color: #fff !important;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--color-carbon, #000000);
+  box-shadow: 0 3px 0 var(--color-carbon, #000000);
+  cursor: pointer;
+}
+#btn-stop::before { content: '\25A0 '; font-size: 18px; line-height: 1; }
+#floating-stop-btn svg { width: 18px; height: 18px; fill: currentColor; }
+#floating-stop-state { font-size: .72em; opacity: 0.85; }
+html { scroll-padding-bottom: 90px; }
+@media (max-width: 480px) {
+  .system-stats { flex-wrap: wrap; }
+  .nav-right, .operator-controls, .system-stats { min-width: 0; max-width: 100%; }
+  .telem-box .data-row { flex-wrap: wrap; gap: 4px; }
+  .telem-box .data-row span { min-width: 0; overflow-wrap: anywhere; }
+}
+#btn-stop:hover, #floating-stop-btn:hover { background: #991b1b !important; }
+@media (prefers-reduced-motion: reduce) {
+  .cockpit-tabs [role="tab"], .gen3 .tab-nav .tab-btn { transition: none; }
+  .cockpit-tabs [role="tab"]:hover, .gen3 .tab-nav .tab-btn:hover { transform: none; }
+  body .btn:not(:disabled):active, body.gen3 button:not(:disabled):active { transform: none; }
+}

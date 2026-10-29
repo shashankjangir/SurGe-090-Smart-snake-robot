@@ -1,0 +1,127 @@
+/* SURGE Gen 3 Rolling Number & Texture Card Component Styles */
+.rolling-number {
+  display: inline-flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  vertical-align: baseline;
+}
+
+.rolling-digit {
+  display: inline-block;
+  height: 1.15em;
+  line-height: 1.15em;
+  overflow: hidden;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.rolling-column {
+  display: flex;
+  flex-direction: column;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.rolling-column > span {
+  height: 1.15em;
+  line-height: 1.15em;
+  text-align: center;
+  display: block;
+}
+
+.rolling-char {
+  display: inline-block;
+  height: 1.15em;
+  line-height: 1.15em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rolling-column {
+    transition: none !important;
+  }
+}
+
+/* Texture Card Component */
+.texture-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.texture-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  overflow: hidden;
+}
+
+.texture-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 10% 10%, rgba(29, 78, 216, 0.04) 0%, transparent 60%);
+}
+
+.texture-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.texture-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.texture-card-content {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.texture-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.15;
+}
+
+.texture-card-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.demand-texture-card {
+  padding: 10px 14px;
+  margin-top: 6px;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+

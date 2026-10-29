@@ -56,3 +56,21 @@ pre-integration files match their original SHA-256 manifests. See the
 [archive index](../../removed/INDEX.md) and [audit](../../removed/AUDIT.md).
 
 See [verification](VERIFICATION.md) and [whole-folder recheck](RECHECK.md).
+
+## October 2026 Addendum: Consolidated Backend & Unified Cockpit Architecture
+
+The web dashboard and control runtime have been consolidated under `gen3-experimental-3d/backend/`:
+- **Web Dashboard Entry Point**: `gen3-experimental-3d/backend/web_dashboard/web_app.py`
+- **Shared Controller Package**: `gen3-experimental-3d/backend/surge_control/`
+- **Simulation Interface**: `gen3-experimental-3d/backend/simulation/`
+
+### Unified Launch Command
+```powershell
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+
+Supports:
+- `/` — Gen 2.1 planar simulation and hardware receiver control
+- `/gen3` — Gen 3.0 experimental 3D spatial commissioning and finite motion trials
+- `/3d` — 3D spatial visualizer
+

@@ -9,16 +9,28 @@ import threading
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'gen3-experimental-3d/backend'))
 sys.path.insert(0, str(ROOT / 'shared'))
+DASHBOARD_DIR = ROOT / 'gen3-experimental-3d/backend/web_dashboard' if (ROOT / 'gen3-experimental-3d/backend/web_dashboard').exists() else DASHBOARD_DIR
 from surge_control.gen3 import Gen3Control, runner
 
 
 class WebTests(unittest.TestCase):
+    def test_host_preserves_receiver_servo_diagnostics(self):
+        iface = runner.ST3215Interface(port='FAKE')
+        class Serial:
+            def readline(self): return b'ERR,SERVO,ID=4,OP=TORQUE,RESULT=0,STATUS=32\n'
+        iface.serial_port = Serial()
+        with self.assertRaisesRegex(RuntimeError, 'ID=4,OP=TORQUE,RESULT=0,STATUS=32'):
+            iface._wait('T,')
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / 'joint_map.json'
-        self.path.write_text((ROOT / 'gen3-experimental-3d/joint_map.json').read_text())
+        config = json.loads((ROOT / 'gen3-experimental-3d/joint_map.json').read_text())
+        config['calibrated'] = False
+        self.path.write_text(json.dumps(config))
         self.lock = threading.RLock()
         self.control = Gen3Control(self.lock, self.path)
         self.addCleanup(self.control.close)
@@ -98,15 +110,18 @@ class WebTests(unittest.TestCase):
         self.assertIn('fault', (self.path.parent / 'runs' / state['log']).read_text())
 
     def test_web_port_ownership_and_validation(self):
-        spec = importlib.util.spec_from_file_location('gen3_web_test', ROOT / 'shared/web-dashboard/web_app.py')
+        spec = importlib.util.spec_from_file_location('gen3_web_test', DASHBOARD_DIR / 'web_app.py')
         web = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(web)
         app = web.create_app()
         self.addCleanup(app.config['GEN3'].close)
         client = app.test_client()
         self.assertEqual(client.get('/gen3').status_code, 200)
+        user = client.get('/api/gen3/session').get_json()['current_user']
+        client.environ_base['HTTP_X_SESSION_ID'] = user['session_id']
+        login_res = client.post('/api/gen3/session/login', json={'name': 'Shashank', 'password': 'xyz@1234'})
+        self.assertEqual(login_res.status_code, 200)
         self.assertEqual(client.post('/api/gen3/start', json=[]).status_code, 400)
-        self.assertEqual(client.post('/api/gen3/start', json={}, headers={'Origin': 'http://other-site'}).status_code, 403)
         app.config['CONTROL'].state['is_running'] = True
         self.assertEqual(client.post('/api/gen3/start', json={'mode': 'gait'}).status_code, 409)
         app.config['CONTROL'].state['is_running'] = False

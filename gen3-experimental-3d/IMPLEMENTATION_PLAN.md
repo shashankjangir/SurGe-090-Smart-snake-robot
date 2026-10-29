@@ -28,7 +28,7 @@ Waveshare specifies 4096 encoder counts/revolution and speed commands in counts/
 | `test_3d_snake.py` | Replace its fixed experiment with a calibrated, finite-duration gait runner. Preserve dry-run default. |
 | `shared/surge_control/hardware.py` | Reuse the Gen 2.1 serial transport, acknowledgements, explicit arming and stop behavior. |
 | Gen 2.1 receiver/transmitter | Reuse target transport, not the separate firmware variants that generate planar gaits internally. Confirm what is flashed before testing. |
-| `shared/surge_control/bench.py:align` | Its universal 2048 center is insufficient for Gen 3. Use measured joint zeros in the Gen 3 runner without changing Gen 2 defaults. |
+| `shared/surge_control/bench.py:align` | Gen 3 uses its mapped zeros and tracking checks. The current assembly is straight at 2048 for all ten motors after individual centering; older offsets have been replaced. Keep Gen 2 defaults separate. |
 | Shared planar gait/path controller | Do not feed its ten-yaw-joint output directly into alternating joints. |
 | Shared PyBullet model | Reuse tooling later, but supply a separate alternating-axis model. Current planar simulation cannot validate Gen 3. |
 
@@ -91,3 +91,11 @@ Reuse shared transport rather than copying it. If a shared transport change beco
 Do not begin with a new dashboard, ROS migration, reinforcement learning, a CPG framework or autonomous path planning. Manual parameter tuning and a short CSV log are sufficient to establish the first useful gait. Add simulation fidelity and autonomy only when measured failures identify the need.
 
 CAD was neither inspected nor modified for this plan. No firmware was flashed and no hardware motion was performed. Mechanical limits, sustainable pitch load and real floor traction remain unverified.
+
+## October 2026 Implementation & Verification Addendum
+
+The web controller implementation has been completed and verified under `gen3-experimental-3d/backend/web_dashboard/web_app.py`.
+- **Launch Command**: `conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001`
+- **Commissioning Route**: `http://127.0.0.1:5001/gen3`
+- **Status**: 10-joint spatial commissioning, physical-order calibration map, finite pitch/yaw trials, operator auth leases, and disarmed bus diagnostics verified. Test suite passes (30 Node suites, 39 Python unit tests).
+

@@ -11,6 +11,9 @@
 
 constexpr double PI = 3.141592653589793;
 constexpr int SERIAL_8N1 = 0, WIFI_STA = 1, ESP_OK = 0, WIFI_IF_STA = 0, WIFI_SECOND_CHAN_NONE = 0;
+constexpr int OUTPUT = 1, HIGH = 1, LOW = 0;
+inline void pinMode(int, int) {}
+inline void digitalWrite(int, int) {}
 template<class T> T constrain(T value, T low, T high) { return std::max(low, std::min(high, value)); }
 using portMUX_TYPE = int;
 #define portMUX_INITIALIZER_UNLOCKED 0
@@ -77,11 +80,12 @@ struct HardwareSerial : Stream {
   }
 };
 inline HardwareSerial Serial, Serial1;
-struct Queue { unsigned size; std::deque<std::vector<uint8_t>> items; };
+struct Queue { unsigned size; std::deque<std::vector<uint8_t>> items; unsigned capacity; };
 using QueueHandle_t = Queue *;
 constexpr int pdTRUE = 1;
-inline QueueHandle_t xQueueCreate(int, unsigned size) { return new Queue{size,{}}; }
+inline QueueHandle_t xQueueCreate(int count, unsigned size) { return new Queue{size,{},(unsigned)count}; }
 inline int xQueueSend(QueueHandle_t q, const void *p, int) {
+  if (q->items.size() >= q->capacity) return 0;
   auto data=static_cast<const uint8_t *>(p);
   q->items.emplace_back(data, data+q->size); return pdTRUE;
 }
@@ -100,12 +104,21 @@ struct WireStub {
   int read() { return 0; }
 };
 inline WireStub Wire;
-struct WiFiStub { void mode(int) {} void disconnect() {} String macAddress() { return "00:00:00:00:00:00"; } };
+struct WiFiStub { void mode(int) {} void setSleep(bool) {} void disconnect() {} String macAddress() { return "00:00:00:00:00:00"; } };
 inline WiFiStub WiFi;
 struct esp_now_peer_info_t { uint8_t peer_addr[6]; int channel; bool encrypt; int ifidx; };
 inline int esp_now_init() { return ESP_OK; }
 template<class T> void esp_now_register_recv_cb(T) {}
+using esp_now_send_status_t = int;
+constexpr int ESP_NOW_SEND_SUCCESS = 0;
+template<class T> void esp_now_register_send_cb(T) {}
+inline bool esp_now_is_peer_exist(const uint8_t *) { return false; }
 inline int esp_now_add_peer(esp_now_peer_info_t *) { return ESP_OK; }
-inline int esp_now_send(uint8_t *, const uint8_t *, unsigned) { return ESP_OK; }
+inline std::string lastRadioReply;
+inline uint8_t lastRadioDestination[6];
+inline int esp_now_send(uint8_t *destination, const uint8_t *data, unsigned size) {
+  memcpy(lastRadioDestination, destination, 6);
+  lastRadioReply.assign(reinterpret_cast<const char *>(data), size); return ESP_OK;
+}
 inline int esp_wifi_set_mac(int, uint8_t *) { return ESP_OK; }
 inline int esp_wifi_set_channel(int,int) { return ESP_OK; }

@@ -3,6 +3,32 @@
 Gen 3 keeps the Gen 2 motors and connections and changes the joint arrangement.
 CAD is supplied by the owner and is not modified by these tools.
 
+## Current hardware result — 26 October 2026
+
+The owner has completed single-motor centering and reported successful pitch-only
+trials at 2°, 5° (including 30 seconds), and 10° with an 8-second ramp. Forward
+travel remains small and unmeasured. The battery is external on long wires; the
+central battery section has been removed. All ten motors, including previously
+disconnected IDs 7 and 8, are now responding.
+
+**New chats: read [the working handoff](../docs/GEN3_HANDOFF.md) and current
+`joint_map.json` before changing calibration.** It records the confirmed
+sign table, firmware repairs, successful commands, environment setup, remaining
+risks and requested simulation work.
+
+Known working 10° pitch trial, from the repository root:
+
+```powershell
+python gen3-experimental-3d/test_3d_snake.py --hardware --port COM6 --yaw 0 --pitch 10 --frequency 0.1 --ramp 8 --duration 30
+```
+
+Keep clearance and slack wires; Ctrl+C requests STOP. The shorter default ramp
+was rejected by the 100 counts/s speed envelope. Do not raise the speed limit to
+bypass that check. Successful bending does not establish efficient locomotion.
+
+Next: use the [measured travel trial sheet](TRAVEL_TRIALS.md) to record three
+repeats of this baseline before choosing a gait parameter to change.
+
 The controller supports single-joint commissioning, calibrated yaw/pitch waves,
 yaw bias for turning trials, reversed waves, CSV logging, and an optional simple
 PyBullet simulation. It reuses the Gen 2.1 receiver/transmitter target protocol.
@@ -13,9 +39,10 @@ It does not use the planar dashboard/path controller or onboard planar gait firm
 Run commands from the repository root with a working Python 3.11+ interpreter:
 
 ```powershell
-python -m pip install -r gen2-st3215/requirements.txt
+python -m pip install -r gen3-experimental-3d/requirements.txt
 python -B -m unittest discover -s gen3-experimental-3d/tests -v
-python gen3-experimental-3d/test_3d_snake.py
+python gen3-experimental-3d/main.py
+python gen3-experimental-3d/controller_node.py --gen 3
 ```
 
 The first command installs the existing serial dependency. Offline tests and
@@ -41,8 +68,10 @@ pio run -e receiver_gen2_1
 pio run -e transmitter_gen2_1
 ```
 
-These commands build, not upload. The previous ESP32 cross-build was blocked by
-toolchain downloads; this Gen 3 change does not claim a new firmware build or flash.
+These commands build, not upload. The earlier toolchain-download blocker was
+resolved during this chat: receiver and transmitter builds passed, and the owner
+uploaded the matching firmware. See the handoff for subsequent read-back fixes
+and the latest hardware trials; do not treat the earlier blocker as current.
 The receiver accepts IDs 1–10 and encoder positions 1252–2844. Its 750 ms target-loss
 watchdog releases torque. Confirm those behaviors on the supported robot before
 floor trials. Keep other controller applications closed during a run.
@@ -69,7 +98,33 @@ floor trials. Keep other controller applications closed during a run.
    bounds. It cannot know mechanical clearance: select a smaller jog where needed.
    Other joints remain torque-off and need physical support.
 
-4. Edit `joint_map.json`. Its example values are NOT measurements:
+4. Edit `joint_map.json`. For the current remounted robot, all ten straight-pose
+   targets are **2048** following individual motor centering. Refit the linkages
+   straight at that shaft position. This replaces the earlier individual zero
+   offsets. On 26 October the owner supplied the positive-jog direction table
+   for all ten motors: pitch ID 1 up, pitch IDs 3/5/7/9 down, yaw IDs 2/4/6/8/10
+   left. The confirmed JSON uses pitch ID 1 sign +1, pitch IDs 3/5/7/9 sign
+   -1, and all yaw signs +1. This is the confirmed sign mapping across the project.
+   The map is marked calibrated for small commissioning
+   trials at the jog-tested speed of 100 counts/s. This flag does not certify
+   communication reliability or sustained load capacity. Feedback/servo faults
+   were investigated and subsequent pitch trials succeeded; the stop checks remain.
+
+   Current operating orientation (owner photo, 26 October 2026): ID 1 is at the
+   bottom end and ID 10 at the top Waveshare-driver end. The map assumes IDs
+   increase consecutively along the body and uses odd IDs as pitch, even IDs as
+   yaw, based on the owner's alternating arrangement and ID 1/2 observations.
+   Use the ID 1 end as the head for this mapping. Intermediate order is based on
+   the owner's sequential ID description; encoder signs use the subsequent
+   positive-jog observations, not the still photograph.
+
+   The owner reports mechanical clearance of ±90° for every shaft. Around 2048,
+   that corresponds to encoder targets 1024–3072. The installed receiver and Gen 3
+   validation permit only 1252–2844 (about ±70°), so the current map uses that
+   intersection as its command limits. These replace the old ±10° example limits.
+   Recheck assembled clearance, including cables, after refitting linkages.
+   Reaching ±90° in software would also require a coordinated receiver/host change
+   and new hardware verification; changing JSON alone cannot enable it.
 
    | Field | What to record |
    |---|---|
@@ -77,7 +132,7 @@ floor trials. Keep other controller applications closed during a run.
    | `id` | Actual servo ID, each of 1–10 exactly once |
    | `axis` | `yaw` or `pitch` in the straight robot frame; must alternate |
    | `sign` | `1` or `-1` mapping the defined positive physical angle to encoder increase |
-   | `zero` | Encoder reading at the physically straight joint |
+   | `zero` | 2048 for every joint in the current straight-mounted assembly |
    | `min`, `max` | Conservative measured encoder limits, inside 1252–2844 |
    | `speed` | Measured usable tracking speed in counts/s; software accepts 1–1500 |
    | `tracking_error` | Allowed encoder error before the sustained-error timer starts |
@@ -98,7 +153,65 @@ floor trials. Keep other controller applications closed during a run.
    The supplied tracking threshold (25 counts, about 2.2 degrees for 0.5 s) and
    speed 200 are commissioning candidates, not validated hardware settings.
 
+## Mechanical centering with detached linkages
+
+Only when the selected output can rotate freely, use `center` to move one motor
+slowly to encoder 2048. Power off before detaching or refitting a horn/linkage;
+never open the servo case. Label IDs and physical locations before disassembly.
+
+From the repository root:
+
+```powershell
+python gen3-experimental-3d/test_3d_snake.py --hardware --port COM6 --mode center --id 1 --free-shaft --duration 2
+```
+
+Run one ID at a time and inspect the result before repeating for the next ID.
+The command enables only that ID, starts from measured position, slews at
+100 counts/s, checks tracking and receiver bounds, verifies 2048 within 3 counts,
+then releases torque. It stays at the center target rather than returning to the
+initial position like a jog. Torque release can allow the free output to shift.
+Ctrl+C and faults use the existing STOP/disconnect cleanup. Other joints must
+remain supported. Omit `--hardware` for a no-connection argument preview.
+
+This does not write EEPROM offsets or change `joint_map.json`. Refit the linkage
+straight with power disconnected, avoid turning the output while fitting, then
+verify the straight-pose readings again. The current map uses 2048 for all ten
+joints; earlier individual offsets have been retired. Small unpowered drift does
+not change that commanded neutral. A different horn mounting requires measuring
+and updating the map again. Axes, signs, physical order and limits still require
+calibration.
+
 ## Motion trials
+
+`run_pitch_gait.py` is a dedicated finite pitch-wave launcher. It fixes yaw
+amplitude and yaw bias to zero; yaw motors still receive their mapped neutral
+targets. Pitch joints follow the saved map (currently odd IDs). From this folder:
+
+```powershell
+python run_pitch_gait.py
+python run_pitch_gait.py --simulate
+python run_pitch_gait.py --hardware --port COM6 --pitch 5 --frequency 0.1 --duration 10
+```
+
+The first command only writes preview logs. Simulation uses the existing
+illustrative headless model at 2 Nm assumed torque. Hardware retains the full
+calibration gate, feedback/deadline checks and torque-off cleanup; it does not
+solve intermittent telemetry faults or declare the map calibrated. Support pitch
+links and keep power disconnection accessible. The wave is a motion experiment,
+not a guarantee of forward locomotion.
+
+To command all ten motors to 2048 without a gait or a calibrated map:
+
+```powershell
+python gen3-experimental-3d/test_3d_snake.py --hardware --port COM6 --mode align --duration 2
+```
+
+Support the body and provide joint/cable clearance first. This enables all ten
+motors, slews from measured positions at 100 counts/s, holds the 2048 targets for
+the specified duration, confirms feedback within the runner's 15-count neutral
+tolerance, and releases torque. Feedback, tracking, deadline and STOP checks
+remain active. It does not infer physical straightness or mark the gait map
+calibrated. Omit `--hardware` for a no-connection argument preview.
 
 All values below are test examples, subject to measured limits. Start with yaw only:
 
@@ -176,13 +289,26 @@ The repository's existing Gen 2.1 regression tests also cover the retained previ
 entry point. No new firmware, dependency framework, dashboard or CAD edits are
 needed for these workflows.
 
-Verified on 22 October 2026: 23 Gen 3 offline tests and 25 existing Gen 2.1
-regressions passed. A four-second headless PyBullet run with `--sim-torque 2`
-completed alignment, motion and settling. Lower simulated torque exercised the
-tracking-fault stop. No physical robot was connected or commanded.
+Verified on 28 October 2026: 77 Gen 3 offline tests, 29 Gen 2.1 regressions,
+and 11 Node dashboard component test suites passed cleanly. Headless PyBullet
+runs completed alignment, motion and settling. No physical robot was commanded.
 
 The implementation provides the software for commissioning and flat-floor gait
 experiments. Actual calibration, contact tuning, turning performance, sustained
 pitch loads, wireless loss behavior and obstacle maneuvers require hardware data.
 See `IMPLEMENTATION_PLAN.md` for the acceptance gates. Do not claim climbing or
 reliable sidewinding from a successful waveform preview alone.
+
+## October 2026 Web Dashboard Consolidation Addendum
+
+The web dashboard backend has been consolidated directly into `gen3-experimental-3d/backend/web_dashboard/web_app.py`, uniting Gen 2.1 planar control and Gen 3 3D spatial commissioning under a single server.
+
+### Launch Command
+
+```powershell
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+
+- **Routes**: `/` (Planar Gen 2.1 Cockpit), `/gen3` (Spatial Gen 3 Console), `/3d` (Spatial Visualizer).
+- **Features**: Symmetrical Slush UI header, generation switcher with informative hover cards, task tabs, operator session authentication with lease management, disarmed bus diagnostics, and persistent floating emergency Stop dock.
+

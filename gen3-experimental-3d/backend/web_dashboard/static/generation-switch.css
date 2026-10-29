@@ -1,0 +1,257 @@
+/* Native same-origin page transitions preserve each console's own lifecycle. */
+@view-transition { navigation: auto; }
+
+/* Modular Snake Control Eyebrow + Generation Switch */
+.modular-control-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 14px;
+  text-align: center;
+  position: relative;
+  z-index: 5;
+}
+
+.modular-control-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-aeonik-pro, 'Inter', system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-carbon, #0f172a);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid var(--color-carbon, #0f172a);
+  border-radius: 999px;
+  padding: 4px 14px;
+  box-shadow: 2px 2px 0 var(--color-carbon, #0f172a);
+  user-select: none;
+}
+
+.generation-switch {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px;
+  max-width: 100%;
+  border: 2px solid #0f172a;
+  border-radius: 999px;
+  background: #e9eef5;
+  font: 650 14px/1.25 system-ui, sans-serif;
+  isolation: isolate;
+}
+.generation-switch a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 90px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  color: #475569;
+  text-decoration: none;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+}
+.generation-switch a > span { position: relative; z-index: 1; font-weight: 700; }
+.generation-switch a[aria-current="page"] { color: #0f172a; }
+.generation-switch a[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  box-shadow: 0 2px 5px rgb(15 23 42 / 14%);
+  view-transition-name: generation-selection;
+}
+.generation-switch a:not([aria-current]):hover { color: #0f172a; background: #dbe4ef; }
+.generation-switch a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+.generation-switch-hero { margin: 0 auto; }
+.generation-switch-hero a:last-child { flex-shrink: 0; }
+
+/* ==========================================================================
+   Generation Hover Info Card (Planar Snake for Gen 2.1 & 3D Spatial for Gen 3)
+   ========================================================================== */
+.hero-section:has(.generation-switch a:hover),
+.hero-section:has(.generation-switch a:focus-visible) {
+  overflow: visible;
+  z-index: 10;
+}
+.gen-info-card {
+  position: absolute;
+  top: calc(100% + 11px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: 290px;
+  background: #ffffff;
+  border: 1.5px solid #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.22), 3px 3px 0 #0f172a;
+  padding: 12px 14px;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.18s;
+  cursor: default;
+}
+
+/* Upward pointing arrow */
+.gen-info-card::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-top: 1.5px solid #0f172a;
+  border-left: 1.5px solid #0f172a;
+  z-index: 101;
+}
+
+.generation-switch a:hover .gen-info-card,
+.generation-switch a:focus-visible .gen-info-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.gen-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.gen-card-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #0f172a;
+  display: inline-block;
+  line-height: 1.3;
+}
+
+.gen-card-badge.badge-mint {
+  background: #bbf7d0;
+  color: #14532d;
+}
+
+.gen-card-badge.badge-cyan {
+  background: #bae6fd;
+  color: #0369a1;
+}
+
+.gen-card-version {
+  font-size: 9px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gen-card-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 3px;
+  line-height: 1.2;
+}
+
+.gen-card-desc {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.gen-card-specs {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  border-top: 1px dashed #cbd5e1;
+  border-bottom: 1px dashed #cbd5e1;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4.5px;
+}
+
+.gen-card-specs li {
+  font-size: 10.5px;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.25;
+}
+
+.gen-card-specs strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.spec-icon {
+  font-size: 11px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.gen-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.footer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot-active {
+  background: #22c55e;
+  box-shadow: 0 0 4px #22c55e;
+}
+
+.dot-cyan {
+  background: #0284c7;
+  box-shadow: 0 0 4px #0284c7;
+}
+::view-transition-group(generation-selection) {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+}
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 180ms; }
+@media (max-width: 600px) {
+  .generation-switch a { padding: 10px 12px; }
+  .generation-switch-hero { width: 100%; }
+  .generation-switch-hero a:first-child { flex: 1; }
+  .gen-info-card { width: min(290px, calc(50vw + 50px)); left: 0; transform: translateY(6px); }
+  .generation-switch a:last-child .gen-info-card { left: auto; right: 0; }
+  .generation-switch a:hover .gen-info-card,
+  .generation-switch a:focus-visible .gen-info-card { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .generation-switch a { transition: none; }
+  .gen-info-card { transition: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none; }
+}

@@ -1,0 +1,19 @@
+<footer class="surge-team" aria-labelledby="surge-team-heading">
+  <div class="surge-team-heading">
+    <h2 id="surge-team-heading">The team behind SURGE 090</h2>
+    <p>Smart Snake System</p>
+  </div>
+  <ul class="surge-team-board">
+    {% for name, initials in [('Shashank Jangir', 'SJ'), ('Bhavesh Bansiwal', 'BB'), ('Mahima Chotiya', 'MC')] %}
+    <li class="surge-team-card">
+      {% if name == 'Shashank Jangir' %}
+      <img class="surge-team-avatar" src="/static/images/shashank-jangir.png" alt="" width="44" height="44">
+      {% else %}
+      <span class="surge-team-avatar" aria-hidden="true">{{ initials }}</span>
+      {% endif %}
+      <h3>{{ name }}</h3>
+      <span class="surge-team-tag">SURGE 090</span>
+    </li>
+    {% endfor %}
+  </ul>
+</footer>

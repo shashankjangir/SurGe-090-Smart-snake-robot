@@ -7,6 +7,51 @@ We are building a modular snake robot to study how joint motion, body geometry
 and ground contact affect locomotion. The project brings together mechanical
 design, servo control, embedded electronics and simulation.
 
+## Continue the current Gen 3 robot work
+
+**Updated 26 October 2026:** the physical ten-motor Gen 3 robot now performs
+pitch-only waves over ESP-NOW. The owner successfully tested 2° and 5° pitch
+waves, a 30-second 5° run, and a 10° run with an 8-second startup/shutdown ramp.
+Movement is visible, but forward travel remains small and unmeasured.
+
+**For a new chat, read [the Gen 3 handoff](docs/GEN3_HANDOFF.md) and the current
+[joint map](gen3-experimental-3d/joint_map.json) before changing code or asking
+the owner to repeat commissioning.** The handoff contains the hardware layout,
+direction observations, actual saved signs, firmware fixes, tested commands,
+environment setup, evidence and next work. Read the file on disk rather than
+copying an older sign table from conversation history.
+
+- Ten ST3215 motors; ID 1 is the head/end opposite the driver, ID 10 is the
+  Waveshare ESP32 driver end. Odd IDs bend vertically (pitch), even IDs sideways
+  (yaw), in the current resting orientation.
+- All commanded straight targets are **2048**. The map is marked calibrated for
+  commissioning at **100 counts/s**, with target limits **1252–2844** (about ±70°).
+  The owner reports ±90° mechanical clearance; software does not enable ±90°.
+- The central battery section has been removed. The 3S 1800 mAh LiPo is external
+  on long wires for now; its mass is not on the body and cable drag can affect
+  experiments. Motors 7 and 8, previously disconnected, now respond and move.
+- Normal control is **PC → USB transmitter ESP32 (currently COM6) → ESP-NOW →
+  Waveshare ESP32 bus driver → motors**. Temporary robot USB access was used for
+  receiver uploads. COM4 and COM5 on this PC are Bluetooth ports.
+
+Known working larger pitch trial, from the repository root:
+
+```powershell
+Set-Location 'C:\1. SurGe 090 Smart snake robot'
+python gen3-experimental-3d/test_3d_snake.py --hardware --port COM6 --yaw 0 --pitch 10 --frequency 0.1 --ramp 8 --duration 30
+```
+
+Use a clear floor and slack battery wires. Ctrl+C requests STOP; normal completion
+returns to neutral and releases torque. This command moves hardware; it is not
+a preview. Do not raise amplitude and frequency together or disable fault checks.
+
+The Gen 3 web page is `/gen3`; `/` and `/3d` are still the planar dashboard and
+viewer. A live Gen 3 3D web viewer, realistic battery-free assembly model and
+training system have **not** been implemented. Do not use the planar gait as the
+Gen 3 hardware controller. See the handoff for the Python 3.11 conda launch path.
+
+> **Network Security Notice:** The web application has no network security (no authentication/encryption layer) and should only be used on a trusted local network.
+
 ## Where the project stands
 
 **Gen 2.0 and Gen 2.1 are working. Our current development work is Gen 3.0.**
@@ -17,7 +62,8 @@ control software, dashboard, desktop interface and gamepad support.
 Gen 3.0 explores alternating yaw and pitch joints for motion beyond a flat
 plane. We are working on its connectors, body arrangement and gait experiments.
 The CAD and experimental scripts are in [gen3-experimental-3d](gen3-experimental-3d/README.md).
-It is still in development, with Gen 2 as our working reference.
+It is still in development, with successful small pitch-wave hardware trials and
+Gen 2 as the earlier working reference. Current commissioning status is above.
 
 ![The assembled Gen 2 snake robot](gen2-st3215/media/20260925_164442.jpg)
 
@@ -145,3 +191,23 @@ Shashank Jangir · Bhavesh Bansiwal · Mahima Chotiya<br>
 SURGE-090, IIT Delhi · Supervisor: Prof. Amartansh Dubey
 
 © 2026 SURGE-090 Team. All rights reserved; shared for academic and research purposes.
+
+## October 2026 Update: Consolidated Dashboard Architecture & Launch Command
+
+The unified web dashboard consolidating Gen 2.1 planar control and Gen 3 3D spatial commissioning has been consolidated under `gen3-experimental-3d/backend/web_dashboard/web_app.py`.
+
+### Unified Dashboard Execution Command
+
+From the repository root (`C:\1. SurGe 090 Smart snake robot`), launch the unified server using the configured `surge` Conda environment:
+
+```powershell
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+
+*(If omitting `--port 5001`, the default port is `5000`.)*
+
+### Available Web Routes
+- **Gen 2.1 Planar Cockpit**: [`http://127.0.0.1:5001/`](http://127.0.0.1:5001/) — Live trajectory canvas, mathematical waveform presets, physics tuning, port scanning, and planar controls.
+- **Gen 3 3D Console**: [`http://127.0.0.1:5001/gen3`](http://127.0.0.1:5001/gen3) — 10-joint spatial commissioning, finite pitch/yaw trials, physical-order calibration map, operator authentication, disarmed diagnostics, and firmware build/upload.
+- **3D Visualization**: [`http://127.0.0.1:5001/3d`](http://127.0.0.1:5001/3d) — WebGL 3D spatial body rendering.
+

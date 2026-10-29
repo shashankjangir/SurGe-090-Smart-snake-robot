@@ -20,6 +20,8 @@ g++ -std=c++17 -I gen2-st3215/tests/firmware_stubs gen2-st3215/tests/test_firmwa
 & "$env:TEMP/surge-firmware-test.exe"
 g++ -std=c++17 -I gen2-st3215/tests/firmware_stubs gen2-st3215/tests/test_receiver.cpp -o "$env:TEMP/surge-receiver-test.exe"
 & "$env:TEMP/surge-receiver-test.exe"
+g++ -std=c++17 -I gen2-st3215/tests/firmware_stubs gen2-st3215/tests/test_transmitter.cpp -o "$env:TEMP/surge-transmitter-test.exe"
+& "$env:TEMP/surge-transmitter-test.exe"
 g++ -std=c++17 -I gen2-st3215/tests/firmware_stubs gen2-st3215/tests/test_legacy_firmware.cpp -o "$env:TEMP/surge-legacy-test.exe"
 & "$env:TEMP/surge-legacy-test.exe"
 g++ -std=c++17 -I gen2-st3215/tests/firmware_stubs gen2-st3215/tests/test_sweep.cpp -o "$env:TEMP/surge-sweep-test.exe"

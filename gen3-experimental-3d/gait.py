@@ -49,8 +49,9 @@ def validate_map(config, require_calibrated=False):
     number(config.get("tracking_timeout"), "tracking_timeout", .1, 2)
 
 
-def validate_gait(config, yaw, pitch, bias, frequency, lag, offset, duration, ramp):
+def validate_gait(config, yaw, pitch, bias, frequency, lag, offset, duration, ramp, speed=None):
     validate_map(config)
+    effective_speed = config["speed"] if speed is None else number(speed, "speed", 1, 1500)
     for name, value in (("yaw", yaw), ("pitch", pitch)):
         number(value, name, 0, math.pi / 2)
     number(bias, "bias", -math.pi / 2, math.pi / 2)
@@ -69,8 +70,20 @@ def validate_gait(config, yaw, pitch, bias, frequency, lag, offset, duration, ra
             raise ValueError(f"Gait exceeds calibrated limits for joint {j['id']}")
         # Include the derivative of the cosine startup/shutdown envelope.
         peak_speed = COUNTS_PER_RADIAN * (2 * math.pi * abs(frequency) * amplitude + math.pi / (2 * ramp) * (amplitude + abs(center)))
-        if peak_speed > config["speed"]:
-            raise ValueError(f"Gait exceeds speed envelope for joint {j['id']}: {peak_speed:.1f} > {config['speed']}")
+        if peak_speed > effective_speed:
+            raise ValueError(f"Gait exceeds speed envelope for joint {j['id']}: {peak_speed:.1f} > {effective_speed}")
+
+
+def calc_peak_speed(config, yaw, pitch, bias, frequency, ramp):
+    """Returns the peak instantaneous speed demand across all joints in counts/s."""
+    max_demand = 0.0
+    for j in config["joints"]:
+        amplitude = yaw if j["axis"] == "yaw" else pitch
+        center = bias if j["axis"] == "yaw" else 0
+        speed_demand = COUNTS_PER_RADIAN * (2 * math.pi * abs(frequency) * amplitude + math.pi / (2 * ramp) * (amplitude + abs(center)))
+        if speed_demand > max_demand:
+            max_demand = speed_demand
+    return max_demand
 
 
 def envelope(t, duration, ramp):

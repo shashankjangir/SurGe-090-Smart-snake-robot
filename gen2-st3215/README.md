@@ -118,3 +118,18 @@ entry points are listed in the [version map](../docs/versions/VERSIONS.md).
 Run `python -m unittest discover -s gen2-st3215/tests -v` from the repository
 root. [Test instructions](tests/README.md) also cover the native firmware
 checks and the ESP32 builds. CAD is outside this software cleanup.
+
+## October 2026 Unified Cockpit & Consolidated Architecture Addendum
+
+The web dashboard serving Gen 2.1 planar control has been consolidated under `gen3-experimental-3d/backend/web_dashboard/web_app.py`.
+
+### How to Run
+
+From the repository root:
+
+```powershell
+conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+```
+
+Open `http://127.0.0.1:5001/` for the Gen 2.1 Planar Cockpit, featuring centralized trajectory canvas tracking, 8 mathematical waveform presets, simulation physics configuration, and serial port scanning.
+

@@ -79,6 +79,13 @@ class SimulationInterface:
                 self.p.setJointMotorControl2(self.body, i, self.p.POSITION_CONTROL,
                     targetPosition=angle, maxVelocity=speed / COUNTS_PER_RADIAN, force=self.torque)
 
+    def link_positions(self):
+        # World-space centers of the floating base and ten child links.
+        return [list(self.p.getBasePositionAndOrientation(self.body)[0])] + [
+            list(self.p.getLinkState(self.body, i, computeForwardKinematics=True)[0])
+            for i in range(10)
+        ]
+
     def read_telemetry(self):
         # shortcut: fixed 50 ms physics per sample; use a measured model for performance predictions.
         for _ in range(12):

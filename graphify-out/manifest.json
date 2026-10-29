@@ -1,0 +1,746 @@
+{
+  ".vscode/c_cpp_properties.json": {
+    "mtime": 1788192266.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "9484f0185d1d95a85b059eaf96fd2f69",
+    "semantic_hash": "9484f0185d1d95a85b059eaf96fd2f69"
+  },
+  ".vscode/extensions.json": {
+    "mtime": 1788192266.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "41e5d8dec3ff179fe5aecb46632391ca",
+    "semantic_hash": "41e5d8dec3ff179fe5aecb46632391ca"
+  },
+  ".vscode/launch.json": {
+    "mtime": 1788192266.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "0305ceb9cf890f2f34f0f03056d6bb00",
+    "semantic_hash": "0305ceb9cf890f2f34f0f03056d6bb00"
+  },
+  "docs/versions/gen1-git-baseline.json": {
+    "mtime": 1792094542.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "658dfbbb84ac1074fada9c4b154728ac",
+    "semantic_hash": "658dfbbb84ac1074fada9c4b154728ac"
+  },
+  "docs/versions/integration-map.json": {
+    "mtime": 1792094598.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "6c2bd97e865c34cd5ca1010fb6b07ff2",
+    "semantic_hash": "6c2bd97e865c34cd5ca1010fb6b07ff2"
+  },
+  "gen1-dynamixel/main.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "625c2ec6bc6c8ded29c7cd5ea78af236",
+    "semantic_hash": "625c2ec6bc6c8ded29c7cd5ea78af236"
+  },
+  "gen1-dynamixel/src/__init__.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "d207fd87bb32e72baefc5c720470e5dc",
+    "semantic_hash": "d207fd87bb32e72baefc5c720470e5dc"
+  },
+  "gen1-dynamixel/src/kinematics.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "63816580aa5f6c433e8692586900a4e2",
+    "semantic_hash": "63816580aa5f6c433e8692586900a4e2"
+  },
+  "gen1-dynamixel/src/obstacle_avoidance.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "18a3985c36e48eb2b2fb3cf20f2131bd",
+    "semantic_hash": "18a3985c36e48eb2b2fb3cf20f2131bd"
+  },
+  "gen1-dynamixel/src/robot_config.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "8fe47e732f89f75aef8a63b3f71318c2",
+    "semantic_hash": "8fe47e732f89f75aef8a63b3f71318c2"
+  },
+  "gen1-dynamixel/src/servo_driver.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "bf71cf1940ef16730397680ab0002d56",
+    "semantic_hash": "bf71cf1940ef16730397680ab0002d56"
+  },
+  "gen1-dynamixel/src/snake_locomotion.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "7aa7935fd4e656aaca49650c0f742ea8",
+    "semantic_hash": "7aa7935fd4e656aaca49650c0f742ea8"
+  },
+  "gen1-dynamixel/src/torque_controller.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "21100d23fc6f6ec5556eb69f18ea34fe",
+    "semantic_hash": "21100d23fc6f6ec5556eb69f18ea34fe"
+  },
+  "gen1-dynamixel/src/utils.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "2ebfbb85265aee6507247f738c53b32a",
+    "semantic_hash": "2ebfbb85265aee6507247f738c53b32a"
+  },
+  "gen1-dynamixel/tests/test_dynamixel_ping.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "055c7bda99d27cc477a8d5416b052960",
+    "semantic_hash": "055c7bda99d27cc477a8d5416b052960"
+  },
+  "gen1-dynamixel/tests/test_motor_feedback.py": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "c059550ac7a6ad9c4f4168622fc53234",
+    "semantic_hash": "c059550ac7a6ad9c4f4168622fc53234"
+  },
+  "gen2-st3215/base_station.py": {
+    "mtime": 1792606375.7157388,
+    "seen": 1793022623.917999,
+    "ast_hash": "a3be4c375c8053b330c6e45279e74270",
+    "semantic_hash": "a3be4c375c8053b330c6e45279e74270"
+  },
+  "gen2-st3215/cad/segments/older_versions/snake_segment.py": {
+    "mtime": 1787668140.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "ce4aaf549c761c2cc1bc745d9f239cba",
+    "semantic_hash": "ce4aaf549c761c2cc1bc745d9f239cba"
+  },
+  "gen2-st3215/cad/segments/v4/segment_v4.py": {
+    "mtime": 1787553758.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "ded360868da402fd0e42760c9359885a",
+    "semantic_hash": "ded360868da402fd0e42760c9359885a"
+  },
+  "gen2-st3215/cad/segments/v5/segment_v5.py": {
+    "mtime": 1787553752.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "67436ddb7b6eee356b24303760026b85",
+    "semantic_hash": "67436ddb7b6eee356b24303760026b85"
+  },
+  "gen2-st3215/cad/segments/v6/probe_st3215.py": {
+    "mtime": 1787668128.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "1f0a43f854ba9bada8afdf83e51d2833",
+    "semantic_hash": "1f0a43f854ba9bada8afdf83e51d2833"
+  },
+  "gen2-st3215/cad/segments/v6/segment_v6.py": {
+    "mtime": 1787671334.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "d193631d7172c3418cdd553d18135df0",
+    "semantic_hash": "d193631d7172c3418cdd553d18135df0"
+  },
+  "gen2-st3215/firmware/assign_ids/assign_ids.cpp": {
+    "mtime": 1792580322.428805,
+    "seen": 1793022623.917999,
+    "ast_hash": "b3f3a75a9429f5442b6838f5c1504480",
+    "semantic_hash": "b3f3a75a9429f5442b6838f5c1504480"
+  },
+  "gen2-st3215/firmware/base_esp32/base_esp32.cpp": {
+    "mtime": 1792579677.5545702,
+    "seen": 1793022623.917999,
+    "ast_hash": "fcf86857711d43228bcdae5c587cee50",
+    "semantic_hash": "fcf86857711d43228bcdae5c587cee50"
+  },
+  "gen2-st3215/firmware/base_esp32/surge_protocol.h": {
+    "mtime": 1792579594.2821336,
+    "seen": 1793022623.917999,
+    "ast_hash": "948c702a572fbdc819314f75e7195fd2",
+    "semantic_hash": "948c702a572fbdc819314f75e7195fd2"
+  },
+  "gen2-st3215/firmware/common/serial_line.h": {
+    "mtime": 1792579677.0964723,
+    "seen": 1793022623.917999,
+    "ast_hash": "f6fce92712f08268a6564151c41b7218",
+    "semantic_hash": "f6fce92712f08268a6564151c41b7218"
+  },
+  "gen2-st3215/firmware/common/surge_protocol.h": {
+    "mtime": 1792579594.280122,
+    "seen": 1793022623.917999,
+    "ast_hash": "da864b5a2989c6c3a8feb99cd6c8fe8c",
+    "semantic_hash": "da864b5a2989c6c3a8feb99cd6c8fe8c"
+  },
+  "gen2-st3215/firmware/get_mac_oled/get_mac_oled.cpp": {
+    "mtime": 1792579736.5107694,
+    "seen": 1793022623.917999,
+    "ast_hash": "11b4e35983a31bfe0d04c9e8e232db02",
+    "semantic_hash": "11b4e35983a31bfe0d04c9e8e232db02"
+  },
+  "gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp": {
+    "mtime": 1792580863.713515,
+    "seen": 1793022623.917999,
+    "ast_hash": "f9e6e4353a74731f4df96b1146e0a851",
+    "semantic_hash": "f9e6e4353a74731f4df96b1146e0a851"
+  },
+  "gen2-st3215/firmware/robot_esp32/robot_esp32.cpp": {
+    "mtime": 1792606375.7147312,
+    "seen": 1793022623.917999,
+    "ast_hash": "6f5053be0e6be62728763f4cb8c49cf0",
+    "semantic_hash": "6f5053be0e6be62728763f4cb8c49cf0"
+  },
+  "gen2-st3215/firmware/robot_esp32/surge_protocol.h": {
+    "mtime": 1792579594.2821336,
+    "seen": 1793022623.917999,
+    "ast_hash": "948c702a572fbdc819314f75e7195fd2",
+    "semantic_hash": "948c702a572fbdc819314f75e7195fd2"
+  },
+  "gen2-st3215/firmware/robot_esp32_v2/robot_esp32_v2.cpp": {
+    "mtime": 1792579677.535533,
+    "seen": 1793022623.917999,
+    "ast_hash": "abd91bbc5afade605ef5800e5f5917ba",
+    "semantic_hash": "abd91bbc5afade605ef5800e5f5917ba"
+  },
+  "gen2-st3215/firmware/robot_esp32_v2/surge_protocol.h": {
+    "mtime": 1792579594.2821336,
+    "seen": 1793022623.917999,
+    "ast_hash": "948c702a572fbdc819314f75e7195fd2",
+    "semantic_hash": "948c702a572fbdc819314f75e7195fd2"
+  },
+  "gen2-st3215/firmware/sensor_gen2_1/sensor_gen2_1.cpp": {
+    "mtime": 1792579801.244672,
+    "seen": 1793022623.917999,
+    "ast_hash": "71d4ad0009399a2bd036057a0ce4b430",
+    "semantic_hash": "71d4ad0009399a2bd036057a0ce4b430"
+  },
+  "gen2-st3215/firmware/spin_all/spin_all.cpp": {
+    "mtime": 1792579736.5107694,
+    "seen": 1793022623.917999,
+    "ast_hash": "48f0c4e283925e963245829007727a3c",
+    "semantic_hash": "48f0c4e283925e963245829007727a3c"
+  },
+  "gen2-st3215/firmware/transmitter_gen2_1/transmitter_gen2_1.cpp": {
+    "mtime": 1792579736.5107694,
+    "seen": 1793022623.917999,
+    "ast_hash": "762c9f0d57ffc132639c88c746bf5403",
+    "semantic_hash": "762c9f0d57ffc132639c88c746bf5403"
+  },
+  "gen2-st3215/firmware/usb_servo_bridge/usb_servo_bridge.cpp": {
+    "mtime": 1792580828.4062018,
+    "seen": 1793022623.917999,
+    "ast_hash": "1fbb72837a38d299a2a887b290766b4e",
+    "semantic_hash": "1fbb72837a38d299a2a887b290766b4e"
+  },
+  "gen2-st3215/main.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "1703599c444fb480355cb3418285ca85",
+    "semantic_hash": "1703599c444fb480355cb3418285ca85"
+  },
+  "gen2-st3215/servo_test.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "0072787e06e563cca943cd646637521d",
+    "semantic_hash": "0072787e06e563cca943cd646637521d"
+  },
+  "gen2-st3215/src/__init__.py": {
+    "mtime": 1787723426.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "f9595976bf6c2861e101f7971f8cdaf9",
+    "semantic_hash": "f9595976bf6c2861e101f7971f8cdaf9"
+  },
+  "gen2-st3215/src/feetech_protocol.py": {
+    "mtime": 1792579460.9340246,
+    "seen": 1793022623.917999,
+    "ast_hash": "bd806585676e3326b2579eece67e0a0c",
+    "semantic_hash": "bd806585676e3326b2579eece67e0a0c"
+  },
+  "gen2-st3215/src/kinematics.py": {
+    "mtime": 1792579532.9484575,
+    "seen": 1793022623.917999,
+    "ast_hash": "da13d97eef869649a181448147f4e82b",
+    "semantic_hash": "da13d97eef869649a181448147f4e82b"
+  },
+  "gen2-st3215/src/obstacle_avoidance.py": {
+    "mtime": 1792579532.9643834,
+    "seen": 1793022623.917999,
+    "ast_hash": "c8802417c3c5106bc691dbcd8c34f7e5",
+    "semantic_hash": "c8802417c3c5106bc691dbcd8c34f7e5"
+  },
+  "gen2-st3215/src/path_engine.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "ade285bdd33600f826725bdcebbccb36",
+    "semantic_hash": "ade285bdd33600f826725bdcebbccb36"
+  },
+  "gen2-st3215/src/robot_config.py": {
+    "mtime": 1792579460.9360383,
+    "seen": 1793022623.917999,
+    "ast_hash": "b70add4b1c41c71c22b6869561eadbd7",
+    "semantic_hash": "b70add4b1c41c71c22b6869561eadbd7"
+  },
+  "gen2-st3215/src/servo_driver.py": {
+    "mtime": 1792579939.9341369,
+    "seen": 1793022623.917999,
+    "ast_hash": "96f24be27177c9fa5ade58204569c3f1",
+    "semantic_hash": "96f24be27177c9fa5ade58204569c3f1"
+  },
+  "gen2-st3215/src/snake_locomotion.py": {
+    "mtime": 1792579532.9484575,
+    "seen": 1793022623.917999,
+    "ast_hash": "260cf231f94156266270fe80c105b794",
+    "semantic_hash": "260cf231f94156266270fe80c105b794"
+  },
+  "gen2-st3215/src/st3215_interface.py": {
+    "mtime": 1792050108.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "30ccefdbeffc7660f3b7b92b396fb7f2",
+    "semantic_hash": "30ccefdbeffc7660f3b7b92b396fb7f2"
+  },
+  "gen2-st3215/src/torque_controller.py": {
+    "mtime": 1792579532.9643834,
+    "seen": 1793022623.917999,
+    "ast_hash": "d45976d727c3e70f9912c76e829ca390",
+    "semantic_hash": "d45976d727c3e70f9912c76e829ca390"
+  },
+  "gen2-st3215/src/utils.py": {
+    "mtime": 1792606375.7167337,
+    "seen": 1793022623.917999,
+    "ast_hash": "09fa2a807e43d430ded2172d063038f8",
+    "semantic_hash": "09fa2a807e43d430ded2172d063038f8"
+  },
+  "gen2-st3215/tests/firmware_stubs/Adafruit_GFX.h": {
+    "mtime": 1792580785.671887,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/Adafruit_NeoPixel.h": {
+    "mtime": 1792580785.6756594,
+    "seen": 1793022623.917999,
+    "ast_hash": "dd443a7bd7c0a7148978c8acc0a3405b",
+    "semantic_hash": "dd443a7bd7c0a7148978c8acc0a3405b"
+  },
+  "gen2-st3215/tests/firmware_stubs/Adafruit_SSD1306.h": {
+    "mtime": 1792580785.6736302,
+    "seen": 1793022623.917999,
+    "ast_hash": "b368a1424a1e182f01171dbc17626f0b",
+    "semantic_hash": "b368a1424a1e182f01171dbc17626f0b"
+  },
+  "gen2-st3215/tests/firmware_stubs/Arduino.h": {
+    "mtime": 1792606398.2660773,
+    "seen": 1793022623.917999,
+    "ast_hash": "69ea248a81b33846836ea037c5ddb407",
+    "semantic_hash": "69ea248a81b33846836ea037c5ddb407"
+  },
+  "gen2-st3215/tests/firmware_stubs/SCServo.h": {
+    "mtime": 1792580785.6776772,
+    "seen": 1793022623.917999,
+    "ast_hash": "36652c21e8958ade29482a13a3ffb99a",
+    "semantic_hash": "36652c21e8958ade29482a13a3ffb99a"
+  },
+  "gen2-st3215/tests/firmware_stubs/WiFi.h": {
+    "mtime": 1792580277.0187776,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/Wire.h": {
+    "mtime": 1792580277.0177636,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/esp_mac.h": {
+    "mtime": 1792580785.6797016,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/esp_now.h": {
+    "mtime": 1792580277.0187776,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/esp_wifi.h": {
+    "mtime": 1792580277.0207925,
+    "seen": 1793022623.917999,
+    "ast_hash": "883a78dc55aa0283072e8246801805d2",
+    "semantic_hash": "883a78dc55aa0283072e8246801805d2"
+  },
+  "gen2-st3215/tests/firmware_stubs/soc/rtc_cntl_reg.h": {
+    "mtime": 1792580785.6857631,
+    "seen": 1793022623.917999,
+    "ast_hash": "b5ad224e236fc4a36c19d3cfb71bb8da",
+    "semantic_hash": "b5ad224e236fc4a36c19d3cfb71bb8da"
+  },
+  "gen2-st3215/tests/firmware_stubs/soc/soc.h": {
+    "mtime": 1792580785.6837468,
+    "seen": 1793022623.917999,
+    "ast_hash": "b5ad224e236fc4a36c19d3cfb71bb8da",
+    "semantic_hash": "b5ad224e236fc4a36c19d3cfb71bb8da"
+  },
+  "gen2-st3215/tests/test_firmware.cpp": {
+    "mtime": 1792580277.0218077,
+    "seen": 1793022623.917999,
+    "ast_hash": "0e521d74cb79b22e3214870f3db310ab",
+    "semantic_hash": "0e521d74cb79b22e3214870f3db310ab"
+  },
+  "gen2-st3215/tests/test_legacy_firmware.cpp": {
+    "mtime": 1792606375.8062916,
+    "seen": 1793022623.917999,
+    "ast_hash": "33013362ce6a5ccecd6dc72338496b69",
+    "semantic_hash": "33013362ce6a5ccecd6dc72338496b69"
+  },
+  "gen2-st3215/tests/test_motor_feedback.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "bc1e45a0797d2347b1500dadcfdc81ab",
+    "semantic_hash": "bc1e45a0797d2347b1500dadcfdc81ab"
+  },
+  "gen2-st3215/tests/test_offline.py": {
+    "mtime": 1792580828.4120207,
+    "seen": 1793022623.917999,
+    "ast_hash": "626db2d23fb480d6499339bb8b7e7928",
+    "semantic_hash": "626db2d23fb480d6499339bb8b7e7928"
+  },
+  "gen2-st3215/tests/test_receiver.cpp": {
+    "mtime": 1792580785.69182,
+    "seen": 1793022623.917999,
+    "ast_hash": "e733247f8c5f4586ddf6490c5a7a2452",
+    "semantic_hash": "e733247f8c5f4586ddf6490c5a7a2452"
+  },
+  "gen2-st3215/tests/test_st3215_ping.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "e6b5308743119136c83ca870e6497d89",
+    "semantic_hash": "e6b5308743119136c83ca870e6497d89"
+  },
+  "gen2-st3215/tests/test_sweep.cpp": {
+    "mtime": 1792606457.157097,
+    "seen": 1793022623.917999,
+    "ast_hash": "db660428b9e7c3585b7868a61179e16c",
+    "semantic_hash": "db660428b9e7c3585b7868a61179e16c"
+  },
+  "gen2-st3215/tools/align_gen2_1.py": {
+    "mtime": 1792049398.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "b0dc67625d6f6f99cbae0d58705633c6",
+    "semantic_hash": "b0dc67625d6f6f99cbae0d58705633c6"
+  },
+  "gen2-st3215/tools/assign_id.py": {
+    "mtime": 1792580828.411277,
+    "seen": 1793022623.917999,
+    "ast_hash": "ae363dc9d6839fceef869cf5b3092bd4",
+    "semantic_hash": "ae363dc9d6839fceef869cf5b3092bd4"
+  },
+  "gen2-st3215/tools/sine_gen2_1.py": {
+    "mtime": 1792049398.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "444342de195b8fa13c22a0455dea21b4",
+    "semantic_hash": "444342de195b8fa13c22a0455dea21b4"
+  },
+  "gen2-st3215/tools/spiral_gen2_1.py": {
+    "mtime": 1792049398.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "b11f401607b2260fb66e06f29a8a784e",
+    "semantic_hash": "b11f401607b2260fb66e06f29a8a784e"
+  },
+  "gen2-st3215/tools/test_st3215_terminal.py": {
+    "mtime": 1792579532.86721,
+    "seen": 1793022623.917999,
+    "ast_hash": "f19f320c5a1d7d1ffabafb26e71cf187",
+    "semantic_hash": "f19f320c5a1d7d1ffabafb26e71cf187"
+  },
+  "gen3-experimental-3d/gait.py": {
+    "mtime": 1792644105.8276677,
+    "seen": 1793022623.917999,
+    "ast_hash": "32a43d2640a7c2ccaa80ce4652a7820f",
+    "semantic_hash": "32a43d2640a7c2ccaa80ce4652a7820f"
+  },
+  "gen3-experimental-3d/joint_map.json": {
+    "mtime": 1793022084.286617,
+    "seen": 1793022623.917999,
+    "ast_hash": "bdb5eaf1aeee0bbd4b7a8ad6992eb4e4",
+    "semantic_hash": "bdb5eaf1aeee0bbd4b7a8ad6992eb4e4"
+  },
+  "gen3-experimental-3d/simulation.py": {
+    "mtime": 1792644453.781317,
+    "seen": 1793022623.917999,
+    "ast_hash": "bb01aced177a57302dc7b36db8356241",
+    "semantic_hash": "bb01aced177a57302dc7b36db8356241"
+  },
+  "gen3-experimental-3d/test_3d_snake.py": {
+    "mtime": 1793021215.8069732,
+    "seen": 1793022623.917999,
+    "ast_hash": "1cc90e7d866c18c00b8381346d4bfffa",
+    "semantic_hash": "1cc90e7d866c18c00b8381346d4bfffa"
+  },
+  "gen3-experimental-3d/tests/test_gait.py": {
+    "mtime": 1793022529.3174522,
+    "seen": 1793022623.917999,
+    "ast_hash": "e47ddebfcf6cc198c30a1579efdd2b6a",
+    "semantic_hash": "e47ddebfcf6cc198c30a1579efdd2b6a"
+  },
+  "gen3-experimental-3d/tests/test_web.py": {
+    "mtime": 1792845258.5184639,
+    "seen": 1793022623.917999,
+    "ast_hash": "3f09e9aa0f08d0bb5efcc6b9cfa74124",
+    "semantic_hash": "3f09e9aa0f08d0bb5efcc6b9cfa74124"
+  },
+  "removed/archive-inventory.json": {
+    "mtime": 1792096388.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "b3c670af673d1ca6f4d179509f305952",
+    "semantic_hash": "b3c670af673d1ca6f4d179509f305952"
+  },
+  "removed/baselines/gen1-sha256.json": {
+    "mtime": 1792041170.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "7123f484cf21f9428f28ff00aeb2acfe",
+    "semantic_hash": "7123f484cf21f9428f28ff00aeb2acfe"
+  },
+  "removed/baselines/incoming-sha256.json": {
+    "mtime": 1792041172.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "f885c4abd2ec5c913a11c654294ed7fe",
+    "semantic_hash": "f885c4abd2ec5c913a11c654294ed7fe"
+  },
+  "removed/baselines/preserved-active-sha256.json": {
+    "mtime": 1792041172.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "4ce42701fa90b05ca409a0d10c20e632",
+    "semantic_hash": "4ce42701fa90b05ca409a0d10c20e632"
+  },
+  "removed/baselines/working-tree-pre-finalize-sha256.json": {
+    "mtime": 1792041780.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "e0522fa3f00401c35177f7ededc6652f",
+    "semantic_hash": "e0522fa3f00401c35177f7ededc6652f"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/align_snake.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "245e0f959769671c43a3df0ff028c479",
+    "semantic_hash": "245e0f959769671c43a3df0ff028c479"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/app.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "483a52368480a16f52161e6e545e1109",
+    "semantic_hash": "483a52368480a16f52161e6e545e1109"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/controller_node.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "fe680ff6d1460f9134caa30622f90381",
+    "semantic_hash": "fe680ff6d1460f9134caa30622f90381"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/src/path_engine.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "7afac485eea19281fdbf788d30d163ef",
+    "semantic_hash": "7afac485eea19281fdbf788d30d163ef"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/src/simulation_interface.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "d23fc49b371723c0e776898106cdde71",
+    "semantic_hash": "d23fc49b371723c0e776898106cdde71"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/src/snake_locomotion.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "0c19e36faaff91cbcd350cc471d298df",
+    "semantic_hash": "0c19e36faaff91cbcd350cc471d298df"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/src/st3215_interface.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "c26303061be146c8753a661142c8352e",
+    "semantic_hash": "c26303061be146c8753a661142c8352e"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/static/script.js": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "76eea974e83802da465e9e5f62e02c0d",
+    "semantic_hash": "76eea974e83802da465e9e5f62e02c0d"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/static/socket.io.min.js": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "91f2ac7c65638948754573e3808f6ee6",
+    "semantic_hash": "91f2ac7c65638948754573e3808f6ee6"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/test_3d_snake.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "df19ae7afc337b557897b44f2d5d9946",
+    "semantic_hash": "df19ae7afc337b557897b44f2d5d9946"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/test_sine_wave.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "e8c5e72e3e1d6c6e0aec5f46ba435e43",
+    "semantic_hash": "e8c5e72e3e1d6c6e0aec5f46ba435e43"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/test_spiral.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "6219004468734828d1253fbf0d651f01",
+    "semantic_hash": "6219004468734828d1253fbf0d651f01"
+  },
+  "removed/gen2.1-source-snapshot/Snake_SURGE/web_app.py": {
+    "mtime": 1792095150.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "04b4d55f6440a3efaef7e5d5e5d64cb6",
+    "semantic_hash": "04b4d55f6440a3efaef7e5d5e5d64cb6"
+  },
+  "removed/pre-gen2.1/gen2-st3215/src/st3215_interface.py": {
+    "mtime": 1790157088.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "5d2f026e86cc87c52e95fa3a9de3847c",
+    "semantic_hash": "5d2f026e86cc87c52e95fa3a9de3847c"
+  },
+  "removed/pre-gen2.1/shared/desktop-app/app.py": {
+    "mtime": 1790157088.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "483a52368480a16f52161e6e545e1109",
+    "semantic_hash": "483a52368480a16f52161e6e545e1109"
+  },
+  "removed/pre-gen2.1/shared/simulation/pybullet/simulation_interface.py": {
+    "mtime": 1790157088.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "d23fc49b371723c0e776898106cdde71",
+    "semantic_hash": "d23fc49b371723c0e776898106cdde71"
+  },
+  "removed/pre-gen2.1/shared/simulation/wokwi/diagram.json": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "ff00daf29c1b4df55412997ab26a8669",
+    "semantic_hash": "ff00daf29c1b4df55412997ab26a8669"
+  },
+  "removed/pre-gen2.1/shared/web-dashboard/static/script.js": {
+    "mtime": 1790157088.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "96ee9266310be40f3de5ea21b1b58de2",
+    "semantic_hash": "96ee9266310be40f3de5ea21b1b58de2"
+  },
+  "removed/pre-gen2.1/shared/web-dashboard/web_app.py": {
+    "mtime": 1790157088.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "52b9cff07e0eb9fe3fe1cf38da73a011",
+    "semantic_hash": "52b9cff07e0eb9fe3fe1cf38da73a011"
+  },
+  "removed/pre-recheck-2026-10-15/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp": {
+    "mtime": 1792041918.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "7bbab677af08f668a0e546be1f0fcad9",
+    "semantic_hash": "7bbab677af08f668a0e546be1f0fcad9"
+  },
+  "shared/desktop-app/app.py": {
+    "mtime": 1792050108.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "e0855bba0ab2a3a116d7b12988c832c7",
+    "semantic_hash": "e0855bba0ab2a3a116d7b12988c832c7"
+  },
+  "shared/desktop-app/dashboard.py": {
+    "mtime": 1792094598.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "8096954a490334b4153b615160d8418e",
+    "semantic_hash": "8096954a490334b4153b615160d8418e"
+  },
+  "shared/gamepad/controller_node.py": {
+    "mtime": 1792049398.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "88721c19fc86be4304e03ba12d9d8192",
+    "semantic_hash": "88721c19fc86be4304e03ba12d9d8192"
+  },
+  "shared/simulation/pybullet/simulation_interface.py": {
+    "mtime": 1792050108.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "d8a9bfaea46bf1f865dae21ace79b5fc",
+    "semantic_hash": "d8a9bfaea46bf1f865dae21ace79b5fc"
+  },
+  "shared/simulation/wokwi/diagram.json": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "ff00daf29c1b4df55412997ab26a8669",
+    "semantic_hash": "ff00daf29c1b4df55412997ab26a8669"
+  },
+  "shared/surge_control/__init__.py": {
+    "mtime": 1792041256.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "8c26a5975f2fa0c375de8a25a68e27c0",
+    "semantic_hash": "8c26a5975f2fa0c375de8a25a68e27c0"
+  },
+  "shared/surge_control/bench.py": {
+    "mtime": 1792049398.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "4c8e608c43f4ee79b62e99b6d6d0e73b",
+    "semantic_hash": "4c8e608c43f4ee79b62e99b6d6d0e73b"
+  },
+  "shared/surge_control/gait.py": {
+    "mtime": 1792041256.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "8b5ca7e84b3a05f744f1e22d0af8f45e",
+    "semantic_hash": "8b5ca7e84b3a05f744f1e22d0af8f45e"
+  },
+  "shared/surge_control/gen3.py": {
+    "mtime": 1792845296.9750445,
+    "seen": 1793022623.917999,
+    "ast_hash": "6a4bbf84104c5f7c4cd0e6ab4693be10",
+    "semantic_hash": "6a4bbf84104c5f7c4cd0e6ab4693be10"
+  },
+  "shared/surge_control/hardware.py": {
+    "mtime": 1792579460.9399283,
+    "seen": 1793022623.917999,
+    "ast_hash": "389fda75b70c7b18c5ba98de7917d8e0",
+    "semantic_hash": "389fda75b70c7b18c5ba98de7917d8e0"
+  },
+  "shared/surge_control/path_engine.py": {
+    "mtime": 1792094598.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "2830f47f9e2e050267ac69c35f75801a",
+    "semantic_hash": "2830f47f9e2e050267ac69c35f75801a"
+  },
+  "shared/surge_control/runtime.py": {
+    "mtime": 1792041336.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "24fad1072bf38934f1f535b17ba76f8f",
+    "semantic_hash": "24fad1072bf38934f1f535b17ba76f8f"
+  },
+  "shared/surge_control/simulation.py": {
+    "mtime": 1792041256.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "be1dac46dc1dd05e4b3b7086c6a05d43",
+    "semantic_hash": "be1dac46dc1dd05e4b3b7086c6a05d43"
+  },
+  "shared/web-dashboard/static/gen3.js": {
+    "mtime": 1792845041.8840518,
+    "seen": 1793022623.917999,
+    "ast_hash": "deae5ac0aca51a7e723382047abb1429",
+    "semantic_hash": "deae5ac0aca51a7e723382047abb1429"
+  },
+  "shared/web-dashboard/static/script.js": {
+    "mtime": 1792050108.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "81f57989eea7e523428fc0dbb729d2f6",
+    "semantic_hash": "81f57989eea7e523428fc0dbb729d2f6"
+  },
+  "shared/web-dashboard/static/socket.io.min.js": {
+    "mtime": 1792034526.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "91f2ac7c65638948754573e3808f6ee6",
+    "semantic_hash": "91f2ac7c65638948754573e3808f6ee6"
+  },
+  "shared/web-dashboard/web_app.py": {
+    "mtime": 1792845072.0011747,
+    "seen": 1793022623.917999,
+    "ast_hash": "d6ce79b8bb1cd1bf7bc8e3a7099b2679",
+    "semantic_hash": "d6ce79b8bb1cd1bf7bc8e3a7099b2679"
+  },
+  "tests/test_gen2_1.py": {
+    "mtime": 1792096388.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "7c4760dfd53fc0b7e930378172118966",
+    "semantic_hash": "7c4760dfd53fc0b7e930378172118966"
+  },
+  "gen1-dynamixel/media/testing/testing video.mp4": {
+    "mtime": 1787201896.0,
+    "seen": 1793022623.917999,
+    "ast_hash": "8521c0a0ad1a7fbe751d5239ae7a59be",
+    "semantic_hash": "8521c0a0ad1a7fbe751d5239ae7a59be"
+  }
+}

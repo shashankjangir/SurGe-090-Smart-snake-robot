@@ -1,0 +1,241 @@
+/* Morphing Button - Smooth Spring Morphing Pill for Operator Password
+ * Adapted from MorphingButton pattern (React / Motion) to Vanilla CSS & ES6.
+ */
+
+.morphing-button-wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.morphing-button-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 32px;
+  border: 1.1px solid #e7e6e6;
+  background-color: #F4F4F4;
+  overflow: hidden;
+  padding: 2px;
+  height: 34px;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 96px;
+  max-width: 112px;
+  transition: max-width 0.38s cubic-bezier(0.34, 1.35, 0.64, 1),
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.morphing-button-container.is-expanded {
+  max-width: 295px;
+  background-color: #F4F4F4;
+  border-color: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.morphing-input-area {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0%;
+  width: 0;
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-10px);
+  overflow: hidden;
+  pointer-events: none;
+  transition: max-width 0.38s cubic-bezier(0.34, 1.35, 0.64, 1),
+              width 0.38s cubic-bezier(0.34, 1.35, 0.64, 1),
+              opacity 0.22s ease,
+              transform 0.38s cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+.morphing-button-container.is-expanded .morphing-input-area {
+  width: 180px;
+  max-width: 180px;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  padding: 0 6px 0 10px;
+}
+
+.morphing-password-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #18181B;
+  outline: none;
+  padding: 0;
+  letter-spacing: 0.06em;
+}
+
+.morphing-password-input::placeholder {
+  color: #A1A1AA;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.morphing-action-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: none;
+  background-color: #F4F4F4;
+  color: #18181B;
+  padding: 4px 12px;
+  height: 28px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              box-shadow 0.3s ease,
+              transform 0.2s ease,
+              padding 0.3s cubic-bezier(0.34, 1.35, 0.64, 1);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.morphing-action-btn:hover {
+  background-color: #ebeaea;
+}
+
+.morphing-action-btn:focus-visible {
+  outline: 2px solid var(--color-sunburst, #ffd731);
+  outline-offset: 1px;
+}
+
+.morphing-button-container.is-expanded .morphing-action-btn {
+  background-color: #FEFEFE;
+  color: #000000;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 4px 10px;
+}
+
+.morphing-button-container.is-expanded .morphing-action-btn:hover {
+  background-color: #fafafa;
+}
+
+.morphing-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: right center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.35, 0.64, 1),
+              opacity 0.2s ease;
+}
+
+.morphing-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+.morphing-button-container.is-expanded .morphing-icon-slot {
+  display: none;
+}
+
+.morphing-label {
+  letter-spacing: -0.01em;
+}
+
+/* Shake animation on login error */
+@keyframes morphing-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.morphing-button-container.has-error {
+  animation: morphing-shake 0.4s ease-in-out;
+  border-color: #ef4444;
+}
+
+/* Dark mode compatibility */
+@media (prefers-color-scheme: dark) {
+  .morphing-button-container {
+    background-color: #1C1C1E;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .morphing-button-container.is-expanded {
+    background-color: #1C1C1E;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  .morphing-password-input {
+    color: #fefefe;
+  }
+  .morphing-password-input::placeholder {
+    color: #B2B2B2;
+  }
+  .morphing-action-btn {
+    background-color: #1C1C1E;
+    color: #fefefe;
+  }
+  .morphing-action-btn:hover {
+    background-color: #252529;
+  }
+  .morphing-button-container.is-expanded .morphing-action-btn {
+    background-color: #2C2C2E;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+  .morphing-button-container.is-expanded .morphing-action-btn:hover {
+    background-color: #3A3A3C;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .morphing-button-container,
+  .morphing-input-area,
+  .morphing-action-btn,
+  .morphing-icon-slot {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+/* Password Visibility Toggle Button inside Morphing Pill */
+.morphing-eye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 3px;
+  margin: 0;
+  cursor: pointer;
+  color: #71717A;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.morphing-eye-btn:hover {
+  color: #18181B;
+  transform: scale(1.08);
+}
+
+.morphing-eye-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+.morphing-eye-btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}

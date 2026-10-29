@@ -49,6 +49,49 @@ motion and position commands set targets and speeds. `STOP` disables torque;
 a 750 ms target watchdog covers an interrupted command stream. Wireless
 acknowledgements return through the transmitter.
 
+Servo write/enable faults stop the receiver and now include diagnostics:
+`ERR,SERVO,ID=4,OP=TORQUE,RESULT=0,STATUS=32`. `OP` is `WRITE` for target writes
+or `TORQUE` for torque enabling. `RESULT` and `STATUS` are raw SCServo return
+and error values, captured before STOP changes the bus state. A zero return can
+represent an acknowledgement/communication failure; interpret nonzero status
+using the exact servo model documentation. Existing hosts accept the extended
+`ERR,` response. Rebuild/upload the receiver to obtain these details; this does
+not repair the underlying fault or relax stop checks.
+
+The maintained radio path disables Wi-Fi modem sleep on both boards. The
+transmitter waits for the ESP-NOW send callback before dispatching the next USB
+line and reports asynchronous delivery/queue failures as `ERR,RADIO,...`.
+Receiver replies use the requesting transmitter's MAC after learning its peer
+in the main loop; USB-only/legacy fallback replies remain broadcast. STOP is
+prioritized outside the command queue; queue overflow requests a stop rather
+than silently losing commands. A STOP acknowledgement is `OK,STOP` only when
+all ten torque-off writes are acknowledged; otherwise it reports
+`ERR,STOP,TORQUE_OFF_UNCONFIRMED` and physical power disconnection may be needed.
+
+The OLED connection indication is recent command activity, not an ESP-NOW
+connection state: it returns to Waiting after one second without commands.
+ESP-NOW is connectionless. The Python host now retains incomplete USB reply
+lines until newline, bounds its receive buffer, and reports short command writes.
+These changes do not extend the telemetry deadlines, add retries during motion,
+or prove the age of delayed radio replies (the protocol still has no sequence IDs).
+
+When STOP cannot be acknowledged but all position reads work, send `D` through
+miniterm after the receiver is disarmed. It only reads registers and returns
+`D,id:reg8:torque:voltage_raw:temperature_raw:status,...`. Register 8 is returned
+raw for response-setting diagnosis; torque reads RAM register 40. Voltage and
+temperature use the SCServo cached feedback fields. `-1` marks a failed read;
+status is the raw feedback error byte. It does not enable torque, move motors,
+unlock or write EEPROM. The command is rejected while armed. It requires the
+updated receiver; the transmitter already relays the command and reply.
+
+When a servo write has no ACK and no explicit servo error, the receiver now
+verifies its result with a fresh RAM-register read: torque must equal the requested
+state, or both goal position and speed must equal the requested target. Only a
+matching read-back confirms success. Failed reads, mismatches and explicit servo
+errors still stop the run. This handles applied writes whose acknowledgements
+were missed without changing EEPROM, blindly retrying movement, or treating a
+missing acknowledgement as success. Physical position tracking remains separate.
+
 The receiver uses a configured MAC on channel 1. Two receivers with the same
 MAC must not operate together. The radio link is unencrypted. The complete
 message format is in the [protocol reference](../../docs/API_DOCUMENTATION.md).

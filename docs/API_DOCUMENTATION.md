@@ -65,3 +65,25 @@ This protocol drives the **planar Gen 2 / Gen 2.1** ST3215 chain. Gen 3.0 3D mot
 Pre-integration API wording is preserved under `removed/pre-gen2.1/docs/API_DOCUMENTATION.md`.
 
 The handshake/STOP ACK confirms receiver command handling, not a measured torque or motion state. The physical stop path needs bench verification.
+
+## Gen 3 Web REST API
+
+The Gen 3 console exposes dedicated JSON endpoints on /api/gen3/:
+
+| Endpoint | Method | Role | Description |
+|---|---|---|---|
+| /api/gen3/status | GET | All | Current runtime status, 10-joint telemetry, elapsed duration, operator lease |
+| /api/gen3/session | GET | All | Current session role, active operator name, lease expiration time |
+| /api/gen3/session/login | POST | All | Operator login with name and shared password (via MorphingButton) |
+| /api/gen3/session/logout | POST | Operator | Release operator lease and revert to Viewer |
+| /api/gen3/session/heartbeat | POST | Operator | Renew active operator lease (1.0s interval, 3.0s timeout) |
+| /api/gen3/start | POST | Operator | Start finite motion trial (requires valid calibrated map) |
+| /api/gen3/apply | POST | Operator | Apply live gait tuning parameters (smooth C¹ monotonic transition) |
+| /api/gen3/stop | POST | **All** | Emergency safety stop and torque-off (available to Viewers & Operators) |
+| /api/gen3/diagnostics | POST | Operator | Query disarmed D bus diagnostics snapshot |
+| /api/gen3/center | POST | Operator | Centering maintenance for uncoupled motor output shafts |
+| /api/gen3/presets | GET/POST | Viewer (read), Operator (save/delete) | Manage gait presets |
+| /api/gen3/runs | GET | All | Run journal history with CSV/JSON log links |
+| /api/gen3/runs/<id>/annotate | POST | Operator | Record manual trial annotations (displacement in cm, surface, notes) |
+| /api/gen3/firmware/build | POST | Operator | Trigger allowlisted PlatformIO compilation |
+| /api/gen3/firmware/upload | POST | Operator | Triple-confirmed firmware upload (executes in safe mock mode) |

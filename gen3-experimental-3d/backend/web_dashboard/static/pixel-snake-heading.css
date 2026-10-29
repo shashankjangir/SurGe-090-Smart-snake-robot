@@ -1,0 +1,52 @@
+/* ==========================================================================
+   SURGE 090 — Pixel Snake Heading
+   Serpentine wave motion & cursor-reactive pixel blinking for .display-headline
+   ========================================================================== */
+
+.display-headline.pixel-snake-active {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  letter-spacing: normal;
+  /* Allow 3D transforms to render crisply without clipping */
+  overflow: visible;
+}
+
+.pixel-snake-char {
+  display: inline-block;
+  position: relative;
+  transform-origin: 50% 80%;
+  will-change: transform, filter, color;
+  transition: color 0.12s ease, text-shadow 0.12s ease;
+  user-select: none;
+}
+
+.pixel-snake-space {
+  display: inline-block;
+  width: 0.32em;
+  pointer-events: none;
+}
+
+/* Pixel Blinking State: neon pulse + pixel font accent */
+.pixel-snake-char.blinking {
+  color: #0066ff !important;
+  text-shadow:
+    0 0 8px rgba(0, 102, 255, 0.7),
+    0 0 16px rgba(0, 245, 160, 0.6),
+    2px 2px 0 var(--color-paper-white, #fff),
+    -2px -2px 0 var(--color-paper-white, #fff) !important;
+}
+
+.pixel-snake-char.pixel-mode {
+  font-family: 'Courier New', monospace, var(--font-lateral);
+  letter-spacing: 0.04em;
+}
+
+/* Reduced motion preference: disable snake transforms */
+@media (prefers-reduced-motion: reduce) {
+  .pixel-snake-char {
+    transform: none !important;
+    transition: none !important;
+  }
+}
