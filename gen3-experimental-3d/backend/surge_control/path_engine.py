@@ -5,12 +5,93 @@ class PathEngine:
     def __init__(self):
         self.lookahead_distance = 0.5
         self.max_turn_offset = 0.8
-        self.progress_idx = 0
-        self.active_path_len = 0
+        self.reset()
 
     def reset(self):
         self.progress_idx = 0
         self.active_path_len = 0
+        self.checkpoints = []
+        self.passed = 0
+        self.last_checkpoint_pose = None
+        self.last_observed_pose = None
+        self.distances = []
+        self.segments = []
+
+    def set_path(self, path):
+        if not path:
+            self.reset()
+            return
+        checkpoints = [tuple(path[0])]
+        distances = [0.]
+        segments = []
+        current_segments = []
+        total = 0.
+        next_distance = .2
+        for start, end in zip(path, path[1:]):
+            start, end = tuple(start), tuple(end)
+            length = math.dist(start, end)
+            if not length:
+                continue
+            offset = 0.
+            segment_start = start
+            while next_distance <= total + length + 1e-12:
+                offset = min(length, next_distance - total)
+                point = (start[0] + (end[0] - start[0]) * offset / length,
+                         start[1] + (end[1] - start[1]) * offset / length)
+                current_segments.append((segment_start, point))
+                segments.append(current_segments)
+                current_segments = []
+                checkpoints.append(point)
+                distances.append(min(next_distance, total + length))
+                if len(checkpoints) > 50000:
+                    raise ValueError('Path is too long to track safely')
+                segment_start = point
+                next_distance += .2
+            if offset < length:
+                current_segments.append((segment_start, end))
+            total += length
+        if current_segments:
+            if len(checkpoints) >= 50000:
+                raise ValueError('Path is too long to track safely')
+            checkpoints.append(tuple(path[-1]))
+            distances.append(total)
+            segments.append(current_segments)
+        self.reset()
+        self.checkpoints = checkpoints
+        self.distances = distances
+        self.segments = segments
+
+    def observe(self, x, y):
+        if not math.isfinite(x) or not math.isfinite(y):
+            return False
+        if self.last_observed_pose is not None and math.dist((x, y), self.last_observed_pose) > 0.25:
+            return False
+        self.last_observed_pose = (x, y)
+        if self.passed < len(self.checkpoints) and math.hypot(
+                x - self.checkpoints[self.passed][0], y - self.checkpoints[self.passed][1]) <= 0.1 and (
+                self.last_checkpoint_pose is None or math.dist((x, y), self.last_checkpoint_pose) >= min(0.05, (self.distances[self.passed] - self.distances[self.passed - 1]) / 2)):
+            self.passed += 1
+            self.last_checkpoint_pose = (x, y)
+        return True
+
+    def progress(self):
+        if not self.distances or not self.distances[-1] or not self.passed:
+            return 0.
+        return self.distances[self.passed - 1] / self.distances[-1]
+
+    def deviation(self, x, y):
+        if not self.passed or len(self.checkpoints) < 2:
+            return None
+        index = min(self.passed - 1, len(self.checkpoints) - 2)
+        def distance(a, b):
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            length = dx * dx + dy * dy
+            t = max(0., min(1., ((x - a[0]) * dx + (y - a[1]) * dy) / length)) if length else 0.
+            return math.hypot(x - a[0] - t * dx, y - a[1] - t * dy)
+        return min(distance(a, b) for a, b in self.segments[index])
+
+    def complete(self):
+        return len(self.checkpoints) > 1 and self.passed == len(self.checkpoints)
 
     def predict_path(self, current_x, current_y, current_yaw, speed, turn_offset, dt=0.1, steps=50):
         """Predicts the future kinematic path of the snake."""

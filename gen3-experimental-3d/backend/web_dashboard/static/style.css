@@ -665,6 +665,15 @@ button, .btn {
   align-items: start;
 }
 
+@media (min-width: 1201px) {
+  .main-content { grid-template-areas: "controls tracking physics" "controls telemetry telemetry" "controls report report"; }
+  .main-content > .control-panel:first-child { grid-area: controls; }
+  .main-content > .control-panel:nth-child(3) { grid-area: physics; }
+  #canvas-hub { grid-area: tracking; }
+  #telemetry-hub { grid-area: telemetry; }
+  #accuracy-modal { grid-area: report; }
+}
+
 .cockpit-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -1203,6 +1212,12 @@ canvas#pathCanvas {
    Actuator Telemetry Grid — 10 Motor Sticker Cards
    ========================================================================== */
 
+#telemetry-hub, #accuracy-modal { min-width: 0; }
+#accuracy-modal > * + * { margin-top: var(--spacing-16); }
+@media (max-width: 1200px) {
+  #telemetry-hub, #accuracy-modal { grid-column: 1 / -1; }
+}
+
 .telemetry-section {
   display: flex;
   flex-direction: column;
@@ -1333,6 +1348,11 @@ canvas#pathCanvas {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-20);
+}
+
+#accuracy-modal .modal-content {
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
 }
 
 .modal-content h2 {

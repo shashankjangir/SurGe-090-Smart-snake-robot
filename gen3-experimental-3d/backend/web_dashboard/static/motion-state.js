@@ -5,7 +5,7 @@ window.MotionState = {
     if (/^Stop requested/i.test(status)) return 'stopping';
     if (running) return 'running';
     if (/^(Stopped|Completed)\b|^Path Complete$/i.test(status)) return 'stopped';
-    if (/^(Idle|Disconnected|Connected|Ready)\b/i.test(status)) return 'idle';
+    if (/^(Idle|Disconnected|Connected|Ready|Planar simulation)\b/i.test(status)) return 'idle';
     return 'unknown';
   },
   label(state) {

@@ -68,8 +68,18 @@ class RuntimeTests(unittest.TestCase):
         self.assertFalse(self.f.sent)
 
     def test_path_completion_stops_once(self):
-        self.c.state["target_path"] = [[1, 0], [0, 0]]
+        self.c.set_path([[0, 0], [1, 0]])
+        self.c.start()
+        self.f.stops = 0
+        self.f.pose = (1., 0., 0.)
         self.c.tick(.02)
+        self.assertNotEqual(self.c.state["status"], "Path Complete")
+        self.c.set_path([[0, 0], [1, 0]])
+        self.c.start()
+        self.f.stops = 0
+        for i in range(6):
+            self.f.pose = (i / 5, 0., 0.)
+            self.c.tick(.02)
         self.c.tick(.02)
         self.assertEqual(self.c.state["status"], "Path Complete")
         self.assertEqual(self.f.stops, 1)
@@ -77,18 +87,84 @@ class RuntimeTests(unittest.TestCase):
     def test_path_completion_requires_moving_on_whole_path(self):
         loop_path = [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2], [1, 2], [0, 2], [0, 1], [0, 0.5], [0, 0]]
         self.c.set_path(loop_path)
-        self.c.state["is_paused"] = False
+        self.c.start()
         self.f.pose = (0., 0., 0.)
         self.c.tick(.02)
         self.assertFalse(self.c.state["is_paused"], "Must not complete at start of loop")
         self.assertNotEqual(self.c.state["status"], "Path Complete")
 
-        for pt in loop_path:
-            self.f.pose = (float(pt[0]), float(pt[1]), 0.)
-            self.c.tick(.02)
+        for a, b in zip(loop_path, loop_path[1:]):
+            count = math.ceil(math.dist(a, b) / .2)
+            for i in range(1, count + 1):
+                self.f.pose = (a[0] + (b[0] - a[0]) * i / count, a[1] + (b[1] - a[1]) * i / count, 0.)
+                self.c.tick(.02)
 
         self.assertTrue(self.c.state["is_paused"], "Must complete when whole path has been traversed")
         self.assertEqual(self.c.state["status"], "Path Complete")
+
+    def test_arc_length_progress_and_stall_does_not_claim_completion(self):
+        self.c.set_path([[0, 0], [.2, 0], [1.2, 0]])
+        self.c.start()
+        for x in (0, .2):
+            self.f.pose = (x, 0, 0)
+            self.c.tick(.02)
+        self.assertAlmostEqual(self.c.state['path_progress'], 1 / 6)
+        for i in range(301):
+            self.c.tick(.1, now=i * .1)
+        self.assertTrue(self.c.state['is_paused'])
+        self.assertIn('stalled', self.c.state['status'])
+        self.assertNotEqual(self.c.state['status'], 'Path Complete')
+
+    def test_dense_path_progress_uses_distance_not_waypoint_density(self):
+        self.c.set_path([[i / 100, 0] for i in range(101)])
+        self.c.start()
+        for i in range(11):
+            self.f.pose = (i / 10, 0, 0)
+            self.c.tick(.02)
+        self.assertEqual(self.c.state['status'], 'Path Complete')
+        self.assertAlmostEqual(self.c.state['path_progress'], 1.)
+
+    def test_short_final_interval_requires_motion(self):
+        self.c.set_path([[0, 0], [.21, 0]])
+        self.c.start()
+        for x in (0, .2):
+            self.f.pose = (x, 0, 0)
+            self.c.tick(.02)
+        for _ in range(3): self.c.tick(.02)
+        self.assertFalse(self.c.state['is_paused'])
+        self.f.pose = (.21, 0, 0)
+        self.c.tick(.02)
+        self.assertEqual(self.c.state['status'], 'Path Complete')
+
+    def test_deviation_uses_original_curved_path_within_ordered_interval(self):
+        self.c.set_path([[0, 0], [.05, .05], [.1, 0], [.2, 0]])
+        self.c.start()
+        self.f.pose = (0, 0, 0)
+        self.c.tick(.02)
+        self.f.pose = (.05, .05, 0)
+        self.c.tick(.02)
+        self.assertAlmostEqual(self.c.report_errors[-1], 0.)
+
+    def test_crossing_does_not_match_later_segment_or_skip_checkpoints(self):
+        self.c.set_path([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0], [-1, 0]])
+        self.c.start()
+        self.c.tick(.02)
+        for point in ((0, .1), (0, .2), (0, .1), (0, 0)):
+            self.f.pose = (*point, 0.)
+            self.c.tick(.02)
+        self.assertEqual(self.c.state['path_progress'], 0.)
+        self.assertNotEqual(self.c.state['status'], 'Path Complete')
+        self.assertGreater(self.c.report_errors[-2], .05)
+
+    def test_pause_does_not_accumulate_stall_time(self):
+        self.c.set_path([[0, 0], [1, 0]])
+        self.c.start()
+        self.c.tick(.02)
+        self.c.pause()
+        for i in range(400): self.c.tick(.1, now=i * .1)
+        self.c.start()
+        self.c.tick(.1)
+        self.assertEqual(self.c.state['status'], 'Running')
 
     def test_preset_reaches_gait(self):
         self.c.controller({"btn_preset": True})
@@ -132,6 +208,62 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(len(self.c.state["target_path"]), 0)
         self.assertTrue(self.c.state["is_paused"])
         self.assertEqual(self.f.pose_resets, 1)
+        self.assertEqual(self.c.state['sim_time'], 0)
+
+    def test_path_shortcut_cannot_complete(self):
+        self.c.set_path([[0, 0], [1, 0], [1, 1], [0, 1]])
+        self.c.start()
+        for point in [(0, 0), (0, .5), (0, 1)]:
+            self.f.pose = (*point, 0.)
+            self.c.tick(.02)
+        self.assertNotEqual(self.c.state['status'], 'Path Complete')
+
+    def test_stationary_head_cannot_advance_path(self):
+        self.c.set_path([[0, 0], [.1, 0], [.2, 0]])
+        self.c.start()
+        for _ in range(20):
+            self.c.tick(.02)
+        self.assertNotEqual(self.c.state['status'], 'Path Complete')
+
+    def test_invalid_pose_stops_without_reporting_progress(self):
+        self.c.set_path([[0, 0], [1, 0]])
+        self.c.start()
+        self.f.pose = (float('nan'), 0, 0)
+        self.c.tick(.02)
+        self.assertTrue(self.c.state['is_paused'])
+        self.assertFalse(self.c.state['pose_valid'])
+        self.assertEqual(self.c.state['path_progress'], 0.)
+        self.assertEqual(self.c.state['actual_path'], [])
+
+    def test_teleport_cannot_advance_progress(self):
+        self.c.set_path([[0, 0], [1, 0]])
+        self.c.start()
+        self.c.tick(.02)
+        self.f.pose = (1., 0., 0.)
+        for _ in range(10):
+            self.c.tick(.02)
+        self.assertEqual(self.c.path.passed, 1)
+
+
+class HeadlessPathRegression(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec('pybullet'), 'PyBullet unavailable')
+    def test_endpoint_skipping_stalls_and_short_path_completes(self):
+        for length, expected in ((1., 'stalled'), (.5, 'Path Complete')):
+            runtime = ControlRuntime()
+            self.addCleanup(runtime.close)
+            ok, message = runtime.connect('SIM', headless=True)
+            self.assertTrue(ok, message)
+            runtime.set_path([[0, 0], [length, 0]])
+            runtime.start()
+            for i in range(1800):
+                runtime.tick(.02, now=i * .02)
+                if runtime.state['is_paused']:
+                    break
+            self.assertTrue(runtime.state['is_paused'])
+            self.assertIn(expected, runtime.state['status'])
+            if length == 1.:
+                self.assertLess(runtime.state['path_progress'], 1.)
+                self.assertLess(math.dist(tuple(runtime.state['robot_pose'][k] for k in ('x', 'y')), (1., 0.)), .2)
 
 
 class HardwareTests(unittest.TestCase):
@@ -208,6 +340,7 @@ class ApiTests(unittest.TestCase):
         self.c.iface = FakeInterface()
         self.c.state.update(is_running=True, engine="SIM")
         self.client = self.module.create_app(self.c).test_client()
+        self.assertEqual(self.client.post('/api/gen3/session/login', json={'name': 'Shashank', 'password': 'xyz@1234'}).status_code, 200)
 
     def test_import_has_no_worker(self):
         self.assertIsNone(self.module.app.config["CONTROL"].thread)
@@ -226,10 +359,56 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/params", json={"speed":0}).status_code, 400)
         self.assertEqual(self.client.post("/api/set_path", json={"path":[[1]]}).status_code, 400)
 
-    def test_report_uses_segments_not_only_waypoints(self):
-        self.c.state.update(target_path=[[0,0],[10,0]], actual_path=[[4,.1],[5,.1]])
-        response = self.client.get("/api/report")
-        self.assertAlmostEqual(response.json["avg_error"], .1)
+    def test_clear_path_resets_simulation_but_never_hardware(self):
+        self.c.state.update(is_paused=False, sim_time=3, target_path=[[0, 0], [1, 0]])
+        response = self.client.post('/api/set_path', json={'path': []})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.c.state['is_paused'])
+        self.assertEqual(self.c.state['sim_time'], 0)
+        self.assertEqual(self.c.iface.pose_resets, 1)
+        self.c.state['engine'] = 'ST3215'
+        self.assertEqual(self.client.post('/api/set_path', json={'path': []}).status_code, 400)
+        self.assertEqual(self.c.iface.pose_resets, 1)
+
+    def test_report_requires_progress_and_uses_ordered_segments(self):
+        self.c.set_path([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]])
+        self.assertEqual(self.client.post('/api/start', json={}).status_code, 200)
+        self.assertEqual(self.client.get('/api/report').status_code, 400)
+        for i in range(6):
+            self.c.iface.pose = (i * .2, .04, 0.)
+            self.c.tick(.02)
+        response = self.client.get('/api/report')
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(response.json['path_progress'], .2)
+        self.assertGreaterEqual(response.json['sample_count'], 2)
+        self.assertIn('not physical accuracy', response.json['metric'])
+        self.assertLess(response.json['avg_error'], .2)
+        self.c.set_path([[0, 0], [1, 0]])
+        self.assertEqual(self.client.get('/api/report').status_code, 400)
+        self.c.set_path([])
+        self.assertEqual(self.client.get('/api/report').status_code, 400)
+        self.c.disconnect()
+        self.assertEqual(self.client.get('/api/report').status_code, 409)
+
+    def test_clear_reports_only_manually_stopped_runs_over_twenty_percent(self):
+        for progress, stop, expect_report in ((.19, True, False), (.2, True, False),
+                                               (.4, False, False), (.4, True, True)):
+            with self.subTest(progress=progress, stop=stop):
+                self.c.set_path([[0, 0], [1, 0]])
+                self.c.start()
+                self.c.state.update(path_progress=progress, actual_path=[[0, 0], [.4, .04]])
+                self.c.report_errors = [0., .04]
+                if stop:
+                    self.assertEqual(self.client.post('/api/stop', json={}).status_code, 200)
+                response = self.client.post('/api/set_path', json={'path': [], 'include_report': True})
+                self.assertEqual(response.status_code, 200)
+                report = response.json['report']
+                self.assertEqual(report is not None, expect_report)
+                if report:
+                    self.assertEqual(report['path_progress'], progress)
+                    self.assertEqual(report['target_path'], [[0, 0], [1, 0]])
+                    self.assertEqual(report['actual_path'], [[0, 0], [.4, .04]])
+                self.assertEqual(self.c.state['target_path'], [])
 
 
 class PreservationTests(unittest.TestCase):

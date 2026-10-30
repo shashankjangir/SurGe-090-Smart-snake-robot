@@ -70,11 +70,16 @@ leaving, keep power disconnection accessible, and monitor battery/temperature
 separately. Job faults are recorded in CSV; JSON snapshots preserve run settings.
 The backend never starts a job automatically on page load.
 
-Control APIs support access across a trusted local network without origin/CSRF gating.
+Control APIs reject cross-origin browser mutations; public STOP remains available.
 Two roles are enforced: Viewer (default for all browser tabs, read-only observation with
 emergency STOP access) and Operator (login via MorphingButton with shared password).
 An active operator holds a 3.0s lease renewed via 1.0s heartbeats. Notice: The app has
 no transport encryption or network security and must only be operated on a trusted local network.
+
+Both generations stop motion when the owning operator lease expires. Logout and
+expired-lease handoff require stopped motion. Either dashboard's emergency STOP
+stops both generations. Missing or invalid `operators.json` disables operator
+authentication instead of falling back to a built-in password.
 
 Gen 3 live Apply requires the current run ID, settings revision and a unique
 request ID. Overlapping transitions are rejected. Speed, duration and ramp

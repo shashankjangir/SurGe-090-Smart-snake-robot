@@ -8,7 +8,8 @@ const activity = source.slice(source.indexOf('  function syncSimulationActivity(
 let requests = 0;
 let timers = 0;
 const state = { textContent: '' };
-const context = { $: () => state, visible: true, isSimulationVisible() { return context.visible; },
+const connection = { textContent: '' };
+const context = { $: id => id === 'sim-connection-status' ? connection : state, updateSimulationControls() {}, simulationState: 'unknown', simulationBusy: false, visible: true, isSimulationVisible() { return context.visible; },
   isSimPolling: false, simPollGeneration: 0, simPollTimeout: null, isRenderRunning: false,
   wasSimVisible: false, currentAngles: Array(10).fill(0), isResumingSimulation: false,
   requestAnimationFrame: () => 1, cancelAnimationFrame() {}, clearTimeout() {}, renderLoop() {},

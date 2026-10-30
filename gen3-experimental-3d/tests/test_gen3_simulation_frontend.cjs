@@ -57,7 +57,7 @@ assert(simPanelContent.includes('5 Pitch Joints'), 'Must highlight 5 Pitch Joint
 assert(simPanelContent.includes('5 Yaw Joints'), 'Must highlight 5 Yaw Joints badge');
 assert(simPanelContent.includes('11 Links'), 'Must highlight 11 Links badge');
 assert(simPanelContent.includes('id="btn-gen3-sim-start"'), 'Must have Start 3D Sim button');
-assert(simPanelContent.includes('id="btn-gen3-sim-stop"'), 'Must have STOP button');
+assert(gen3Html.includes('id="floating-stop-btn"'), 'Persistent Stop is available during simulation');
 assert(simPanelContent.includes('id="btn-gen3-sim-reset"'), 'Must have Reset 3D Pose button');
 console.log('  PASS: Center column verified (3D Canvas, badges & Start/Stop/Reset buttons)');
 

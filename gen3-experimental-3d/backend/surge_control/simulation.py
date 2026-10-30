@@ -59,7 +59,7 @@ class SimulationInterface:
             p.resetBaseVelocity(self.snake_id, [0, 0, 0], [0, 0, 0])
             for j in range(self.num_motors):
                 p.resetJointState(self.snake_id, j, targetValue=0.0, targetVelocity=0.0)
-                p.setJointMotorControl2(self.snake_id, j, p.POSITION_CONTROL, targetPosition=0.0, force=2.0)
+                p.setJointMotorControl2(self.snake_id, j, p.VELOCITY_CONTROL, force=0)
 
     def disconnect(self):
         if self.p is not None:

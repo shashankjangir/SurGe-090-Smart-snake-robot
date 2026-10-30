@@ -77,6 +77,29 @@ class ConsoleHardeningTests(unittest.TestCase):
         for endpoint in ('start', 'controller', 'params'):
             self.assertEqual(self.client.post('/api/' + endpoint, json={}, headers=viewer_headers).status_code, 403)
         self.app.config['CONTROL'].state['engine'] = 'SIM'
+        for endpoint in ('start', 'controller', 'params', 'set_path'):
+            self.assertEqual(self.client.post('/api/' + endpoint, json={}, headers=viewer_headers).status_code, 403)
+
+    def test_planar_connection_requires_operator_for_both_engines_and_disconnect(self):
+        viewer = self.client.get('/api/gen3/session').get_json()['current_user']
+        headers = {'X-Session-ID': viewer['session_id']}
+        runtime = self.app.config['CONTROL']
+        with patch.object(runtime, 'connect', return_value=(True, 'Connected')) as connect, \
+             patch.object(runtime, 'disconnect') as disconnect:
+            for payload in ({}, {'engine': 'SIM'}, {'engine': 'HARDWARE', 'port': 'COM6'}):
+                self.assertEqual(self.client.post('/api/connect', json=payload, headers=headers).status_code, 403)
+            runtime.state['is_running'] = True
+            self.assertEqual(self.client.post('/api/connect', json={}, headers=headers).status_code, 403)
+            disconnect.assert_not_called()
+            runtime.state['is_running'] = False
+            _, operator_headers = self.operator()
+            for engine in ('SIM', 'HARDWARE'):
+                self.assertEqual(self.client.post('/api/connect', json={'engine': engine}, headers=operator_headers).status_code, 200)
+            self.assertEqual(connect.call_count, 2)
+            runtime.state['is_running'] = True
+            self.assertEqual(self.client.post('/api/connect', json={}, headers=operator_headers).status_code, 200)
+            disconnect.assert_called_once()
+            runtime.state['is_running'] = False
 
     def test_viewer_stop_works(self):
         user = self.client.get('/api/gen3/session').get_json()['current_user']
@@ -103,10 +126,96 @@ class ConsoleHardeningTests(unittest.TestCase):
         self.assertTrue(finished.is_set())
 
     def test_default_lease_and_cookie_safety(self):
-        self.assertIsNone(self.control.sessions.lease_timeout)
+        self.assertEqual(self.control.sessions.lease_timeout, 3.0)
         cookie = self.client.get('/api/gen3/session').headers['Set-Cookie']
         self.assertIn('HttpOnly', cookie)
         self.assertIn('SameSite=Lax', cookie)
+
+    def test_every_mutation_rejects_viewer_forged_and_expired_sessions(self):
+        public = {'/api/stop', '/api/gen3/stop'}
+        routes = [(rule.rule.replace('<name>', 'audit').replace('<run_id>', 'web-audit'), method)
+                  for rule in self.app.url_map.iter_rules()
+                  for method in rule.methods & {'POST', 'PUT', 'PATCH', 'DELETE'}
+                  if not rule.rule.startswith('/api/gen3/session') and rule.rule not in public]
+        user, _ = self.operator()
+        self.control.sessions.active_operator['expires_at'] = 0
+        for headers in ({}, {'X-Session-ID': 'operator'}, {'X-Session-ID': user['session_id']}):
+            with self.app.test_client() as client:
+                for route, method in routes:
+                    with self.subTest(route=route, method=method, headers=headers):
+                        response = client.open(route, method=method, json={}, headers=headers)
+                        self.assertEqual(response.status_code, 403)
+                        self.assertEqual(response.get_json()['error'], 'Operator mode required')
+
+    def test_cross_origin_actions_and_malformed_objects(self):
+        self.operator()
+        for route in ('/api/start', '/api/params', '/api/gen3/session/login', '/api/gen3/session/heartbeat'):
+            response = self.client.post(route, json={}, headers={'Origin': 'https://untrusted.example'})
+            self.assertEqual(response.status_code, 403)
+        for route in ('/api/params', '/api/controller', '/api/gen3/session/login', '/api/gen3/map'):
+            self.assertEqual(self.client.post(route, json=[1]).status_code, 400)
+        self.assertEqual(self.client.post('/api/params', json={'amp': .5},
+                                         headers={'Origin': 'http://localhost'}).status_code, 200)
+
+    def test_either_public_stop_stops_both_generations(self):
+        runtime = self.app.config['CONTROL']
+        for route in ('/api/stop', '/api/gen3/stop'):
+            self.control.cancel.clear()
+            with patch.object(runtime, 'pause') as pause:
+                response = self.client.post(route, json={}, headers={'Origin': 'https://untrusted.example'})
+                self.assertEqual(response.status_code, 200)
+                pause.assert_called_once()
+                self.assertTrue(self.control.cancel.is_set())
+
+    def test_planar_expiry_stops_without_requests_and_blocks_handoff(self):
+        from unittest.mock import Mock
+        runtime = self.app.config['CONTROL']
+        user, _ = self.operator()
+        fake = Mock()
+        runtime.iface = fake
+        runtime.state.update(is_running=True, is_paused=True)
+        self.assertEqual(self.client.post('/api/start', json={}).status_code, 200)
+        self.assertEqual(runtime.owner_session, user['session_id'])
+        self.assertEqual(self.client.post('/api/gen3/session/logout', json={}).status_code, 409)
+        self.control.sessions.active_operator['expires_at'] = 0
+        self.assertFalse(self.client.post('/api/gen3/session/heartbeat', json={}).get_json()['active'])
+        for client in (self.client, self.app.test_client()):
+            self.assertEqual(client.post('/api/gen3/session/login', json={
+                'name': 'Shashank', 'password': 'xyz@1234'}).status_code, 401)
+        runtime.tick(.02)
+        fake.stop.assert_called_once()
+        fake.write_positions.assert_not_called()
+        self.assertTrue(runtime.state['is_paused'])
+        self.assertEqual(self.client.post('/api/params', json={'amp': .5}).status_code, 403)
+
+    def test_missing_or_corrupt_credentials_fail_closed(self):
+        from surge_control.session import SessionManager
+        config = self.path.parent / 'operators.json'
+        for content in (None, '{', '{}', '{"password": 123}'):
+            if content is not None:
+                config.write_text(content)
+            manager = SessionManager(config_path=config)
+            self.assertFalse(manager.authenticate('Shashank', 'xyz@1234')[0])
+
+    def test_authorized_commissioning_routes_dispatch_without_physical_transport(self):
+        user, _ = self.operator()
+        for mode in ('read', 'align', 'jog', 'gait', 'center'):
+            route = '/api/gen3/center' if mode == 'center' else '/api/gen3/start'
+            payload = dict(mode=mode, execution='hardware', port='FAKE', request_id='audit-' + mode)
+            with patch.object(self.control, 'start') as start:
+                self.assertEqual(self.client.post(route, json=payload).status_code, 202)
+                start.assert_called_once_with(payload, session_id=user['session_id'])
+        for route, method, payload, result in (
+            ('diagnostics', 'read_diagnostics', {'port': 'FAKE'}, {'servos': {}}),
+            ('simulation/connect', 'connect_simulation', {}, None),
+            ('simulation/disconnect', 'disconnect_simulation', {}, None),
+        ):
+            with patch.object(self.control, method, return_value=result) as handler:
+                self.assertIn(self.client.post('/api/gen3/' + route, json=payload).status_code, (200, 202))
+                handler.assert_called_once()
+        with patch.object(self.control.firmware, 'build') as build:
+            self.assertEqual(self.client.post('/api/gen3/firmware/build', json={'env': 'receiver_gen2_1'}).status_code, 200)
+            build.assert_called_once_with('receiver_gen2_1', operator_name='Shashank')
 
     def test_authentication_validation_and_all_operators(self):
         # Invalid operator name
@@ -195,6 +304,135 @@ class ConsoleHardeningTests(unittest.TestCase):
         preset = dict(DEFAULT_PRESETS[0], yaw='0')
         with self.assertRaises(ValueError):
             self.control.save_preset(preset)
+
+    def test_preset_save_rejects_stale_snapshot_without_overwriting(self):
+        _, headers = self.operator()
+        before = self.path.read_bytes()
+        preset = dict(DEFAULT_PRESETS[0], name='test draft')
+        create = self.client.post('/api/gen3/presets', json={'preset': preset, 'expected': None}, headers=headers)
+        self.assertEqual(create.status_code, 200)
+        changed = dict(preset, description='Edited draft')
+        stale = self.client.post('/api/gen3/presets', json={'preset': changed, 'expected': None}, headers=headers)
+        self.assertEqual(stale.status_code, 409)
+        self.assertEqual(next(p for p in self.control.get_presets() if p['name'] == preset['name']), preset)
+        replace = self.client.post('/api/gen3/presets', json={'preset': changed, 'expected': preset}, headers=headers)
+        self.assertEqual(replace.status_code, 200)
+        self.assertEqual(next(p for p in self.control.get_presets() if p['name'] == preset['name']), changed)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_simulation_connection_lifecycle_and_stale_map(self):
+        import types
+        class Sim:
+            instances = []
+            def __init__(self, *args): self.closed = False; self.instances.append(self)
+            def connect(self): return True, 'ready'
+            def disconnect(self): self.closed = True
+        viewer = self.client.get('/api/gen3/session').get_json()['current_user']
+        self.assertEqual(self.client.post('/api/gen3/simulation/connect', json={}, headers={'X-Session-ID': viewer['session_id']}).status_code, 403)
+        _, headers = self.operator()
+        with patch.dict(sys.modules, {'simulation': types.SimpleNamespace(SimulationInterface=Sim)}):
+            self.assertEqual(self.client.post('/api/gen3/simulation/connect', json={}, headers=headers).status_code, 202)
+            self.control.simulation_thread.join(1)
+            self.assertEqual(self.control.snapshot()['simulation_state'], 'connected')
+            self.path.write_text(self.path.read_text() + ' ')
+            response = self.client.post('/api/gen3/start', headers=headers, json={'request_id':'stale', 'mode':'gait', 'execution':'simulation', 'simulation_tracking': {'tracking_error': 100, 'tracking_timeout': .5, 'verified': True}})
+            self.assertEqual(response.status_code, 409)
+            self.assertIn('joint map changed', response.get_json()['error'])
+            self.assertEqual(self.client.post('/api/gen3/simulation/disconnect', json={}, headers=headers).status_code, 200)
+            self.assertTrue(Sim.instances[0].closed)
+            self.assertEqual(self.control.snapshot()['simulation_state'], 'disconnected')
+
+    def test_simulation_connection_failure_is_reported_without_hardware(self):
+        import types
+        class Sim:
+            instances = []
+            def __init__(self, *args): self.closed = False; self.instances.append(self)
+            def connect(self): raise RuntimeError('mock connection failed')
+            def disconnect(self): self.closed = True
+        _, headers = self.operator()
+        with patch.dict(sys.modules, {'simulation': types.SimpleNamespace(SimulationInterface=Sim)}):
+            self.assertEqual(self.client.post('/api/gen3/simulation/connect', json={}, headers=headers).status_code, 202)
+            self.control.simulation_thread.join(1)
+            state = self.control.snapshot()
+            self.assertEqual(state['simulation_state'], 'error')
+            self.assertIn('mock connection failed', state['simulation_error'])
+            self.assertTrue(Sim.instances[0].closed)
+
+    def test_stop_during_simulation_connection_closes_engine(self):
+        import types
+        entered, release = threading.Event(), threading.Event()
+        class Sim:
+            instances = []
+            def __init__(self, *args): self.closed = False; self.instances.append(self)
+            def connect(self): entered.set(); release.wait(1); return True, 'ready'
+            def disconnect(self): self.closed = True
+        _, headers = self.operator()
+        with patch.dict(sys.modules, {'simulation': types.SimpleNamespace(SimulationInterface=Sim)}):
+            self.assertEqual(self.client.post('/api/gen3/simulation/connect', json={}, headers=headers).status_code, 202)
+            self.assertTrue(entered.wait(1))
+            self.assertEqual(self.client.post('/api/gen3/stop', json={}).status_code, 200)
+            release.set()
+            self.control.simulation_thread.join(1)
+            self.assertTrue(Sim.instances[0].closed)
+            self.assertEqual(self.control.snapshot()['simulation_state'], 'disconnected')
+
+    @unittest.skipUnless(importlib.util.find_spec('pybullet'), 'PyBullet unavailable')
+    def test_headless_simulation_start_stop_and_cleanup(self):
+        _, headers = self.operator()
+        before = self.path.read_bytes()
+        self.assertEqual(self.client.post('/api/gen3/simulation/connect', json={}, headers=headers).status_code, 202)
+        self.control.simulation_thread.join(5)
+        self.assertEqual(self.control.snapshot()['simulation_state'], 'connected')
+        body = dict(request_id='simulation-test', mode='gait', execution='simulation', yaw=1, pitch=0, duration=4,
+                    simulation_tracking={'tracking_error': 33, 'tracking_timeout': 1.2, 'verified': True})
+        self.assertEqual(self.client.post('/api/gen3/start', json=body, headers=headers).status_code, 202)
+        self.assertEqual(self.client.post('/api/gen3/stop', json={}).status_code, 200)
+        self.control.thread.join(5)
+        self.assertFalse(self.control.state['busy'])
+        self.assertEqual(self.control.state['simulation_state'], 'connected')
+        manifest = json.loads((self.path.parent / 'runs' / (self.control.active_run_id + '.json')).read_text())
+        self.assertEqual(manifest['simulation_tracking'], {'tracking_error': 33, 'tracking_timeout': 1.2})
+        self.assertEqual(self.client.post('/api/gen3/start', json=dict(body, request_id='simulation-disconnect'), headers=headers).status_code, 202)
+        self.assertEqual(self.client.post('/api/gen3/simulation/disconnect', json={}, headers=headers).status_code, 200)
+        self.control.thread.join(5)
+        self.assertEqual(self.control.snapshot()['simulation_state'], 'disconnected', self.control.snapshot())
+        self.assertIsNone(self.control.simulation)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_simulation_tracking_is_request_scoped_and_validated(self):
+        before = self.path.read_bytes()
+        self.control.simulation = type('FakeSimulation', (), {'disconnect': lambda self: None})()
+        self.control.simulation_revision = self.control.get_map_revision()
+        self.control.state['simulation_state'] = 'connected'
+        data = dict(mode='gait', execution='simulation', yaw=1, pitch=0, duration=4,
+                    simulation_tracking={'tracking_error': 33, 'tracking_timeout': 1.2, 'verified': True})
+        with self.assertRaisesRegex(ValueError, 'Verify simulation tracking'):
+            self.control.start({k: v for k, v in data.items() if k != 'simulation_tracking'})
+        captured = []
+        with patch.object(self.control, '_run', side_effect=lambda *args: captured.append(args)):
+            self.control.start(data)
+            self.control.thread.join(1)
+        self.assertEqual(captured[0][3]['tracking_error'], 33)
+        self.assertEqual(captured[0][3]['tracking_timeout'], 1.2)
+        self.assertEqual(self.path.read_bytes(), before)
+        for error, timeout in ((1, .1), (796, 2)):
+            self.control.state['busy'] = False
+            self.control.state['simulation_state'] = 'connected'
+            with patch.object(self.control, '_run', side_effect=lambda *args: captured.append(args)):
+                self.control.start(dict(data, simulation_tracking={'tracking_error': error, 'tracking_timeout': timeout, 'verified': True}))
+                self.control.thread.join(1)
+            self.assertEqual((captured[-1][3]['tracking_error'], captured[-1][3]['tracking_timeout']), (error, timeout))
+        self.control.state['busy'] = False
+        self.control.state['simulation_state'] = 'connected'
+        for tracking in ({'tracking_error': 0, 'tracking_timeout': .5, 'verified': True},
+                         {'tracking_error': 33, 'tracking_timeout': 3, 'verified': True},
+                         {'tracking_error': 33, 'tracking_timeout': .5, 'verified': False},
+                         {'tracking_error': float('nan'), 'tracking_timeout': .5, 'verified': True}):
+            with self.assertRaises(ValueError):
+                self.control.start(dict(data, simulation_tracking=tracking))
+        with self.assertRaises(ValueError):
+            self.control.start(dict(data, execution='hardware', port='MOCK'))
+        self.assertEqual(self.path.read_bytes(), before)
 
     def test_initial_applied_settings_use_numeric_degrees_and_defaults(self):
         self.control.start(dict(mode='gait', execution='preview', yaw=1, pitch=0, duration=4))

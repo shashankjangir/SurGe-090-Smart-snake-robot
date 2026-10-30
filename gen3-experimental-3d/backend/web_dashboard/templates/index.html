@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="/static/pixel-snake-heading.css">
     <link rel="stylesheet" href="/static/hero-snake-motion.css">
     <link rel="stylesheet" href="/static/unified-cockpit.css">
+    <script src="/static/math-path.js" defer></script>
     <script src="/static/rolling-number.js" defer></script>
     <script src="/static/morphing-button.js" defer></script>
     <script src="/static/shader-lens-blur.js" defer></script>
@@ -88,13 +89,6 @@
                 </div>
             </div>
 
-            <nav class="nav-pills" aria-label="Quick links">
-                <a href="#control-hub" class="nav-pill active">🎮 Controls</a>
-                <a href="#canvas-hub" class="nav-pill">📍 Trajectory</a>
-                <a href="#telemetry-hub" class="nav-pill">⚡ Telemetry</a>
-                <button type="button" id="btn-open-3d" class="nav-pill" style="border: 1px solid var(--color-carbon); background: var(--color-paper-white);">🌐 3D Viewer</button>
-            </nav>
-
             <div class="nav-right">
                 <div class="system-stats">
                     <div class="stat-pill pill-cpu" title="Host CPU utilization">
@@ -112,12 +106,13 @@
                 </div>
                 <div class="operator-controls" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span id="mode-badge" class="stat-pill" style="font-weight: 700; background: var(--color-soft-mist);">Viewer</span>
-                    <span id="user-badge" class="stat-pill" style="display: none;">User: None</span>
+                    <span id="user-badge" class="stat-pill" style="display: none; background: var(--color-ember); color: #200c50;">User: None</span>
                     <span id="active-operator-badge" class="stat-pill" style="display: none;">Active: None</span>
                     <span id="lease-badge" class="stat-pill" style="display: none;">Lease: inactive</span>
                     <form id="operator-login-form" class="operator-login-form" style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
-                        <select id="login-name" class="input-sm operator-select" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--color-paper-light, #fff); border: 1.1px solid rgba(0,0,0,0.18);" aria-label="Operator name">
-                            <option value="Shashank">Shashank</option>
+                        <select id="login-name" class="input-sm operator-select" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--color-paper-light, #fff); border: 1.1px solid rgba(0,0,0,0.18);" aria-label="Operator name" required>
+                            <option value="" selected disabled>Select operator</option>
+              <option value="Shashank">Shashank</option>
                             <option value="Bhavesh">Bhavesh</option>
                             <option value="Mahima">Mahima</option>
                         </select>
@@ -175,7 +170,6 @@
             <div class="hero-content">
                 <h1 class="display-headline distorted-glass-headline" id="hero-snake-heading">SURGE 090</h1>
                     <div class="modular-control-wrapper">
-          <span class="modular-control-badge">Modular Snake Control</span>
           <nav class="generation-switch generation-switch-hero" aria-label="Robot generation switcher">
             <a href="/" aria-current="page" class="gen-switch-link gen-2-1 active" aria-describedby="tooltip-gen21">
               <span>Gen 2.1</span>
@@ -222,7 +216,6 @@
           </nav>
         </div>
 
-                <p class="hero-tagline">Gen 2.1 Modular Snake Control — 11 Links &amp; 10 Active Yaw Joints</p>
                 <div class="hero-actions">
                     <div class="port-select-group" style="display: inline-flex; align-items: center; gap: 6px;">
                         <label for="serial-port" style="font-size: 12px; font-weight: 700; text-transform: uppercase;">Serial port</label>
@@ -232,10 +225,6 @@
                         <button type="button" id="refresh-ports" class="btn btn-secondary btn-sm" title="Scan serial ports" aria-label="Refresh serial ports">🔄</button>
                     </div>
                     <button id="btn-connect" class="btn btn-secondary">Connect Engine</button>
-                    <button id="btn-hero-start" type="button" class="btn btn-primary">Start motion</button>
-                    <button id="btn-hero-stop" type="button" class="btn btn-danger">STOP / torque off</button>
-                    <a href="#canvas-hub" class="btn btn-secondary">Trace Trajectory</a>
-                    <button type="button" id="btn-hero-3d" class="btn btn-secondary" onclick="window.open('/3d', 'Snake 3D Viewer', 'width=960,height=720')">🌐 3D Viewer</button>
                     <div class="status-indicator">
                         <span class="dot" id="status-dot"></span>
                         <span id="conn-status">Disconnected</span>
@@ -245,17 +234,9 @@
             </div>
         </section>
 
-        <nav class="nav-pills cockpit-tabs" role="tablist" aria-label="Dashboard sections">
-            <button type="button" role="tab" id="planar-tab-cockpit" class="nav-pill tab-btn" aria-controls="control-hub" aria-selected="true">🎮 Cockpit</button>
-            <button type="button" role="tab" id="planar-tab-telemetry" class="nav-pill tab-btn" aria-controls="telemetry-hub" aria-selected="false" tabindex="-1">⚡ Telemetry</button>
-            <button type="button" id="tab-stop-btn" class="nav-pill tab-stop-action-btn" title="Emergency STOP / Torque Off">
-                <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
-                STOP / TORQUE
-            </button>
-        </nav>
 
         <!-- Main Dashboard 3-Column Layout -->
-        <div class="main-content" id="control-hub" role="tabpanel" aria-labelledby="planar-tab-cockpit">
+        <div class="main-content" id="control-hub">
             <!-- Left Column: Connection & Math Engine & Gamepad -->
             <aside class="control-panel">
                 <!-- Connection Engine Card -->
@@ -293,7 +274,10 @@
                             <option value="lemniscate">Lemniscate (Figure-8) — ∞ Parametric</option>
                             <option value="spiral">Archimedean Spiral — r = a + bθ</option>
                             <option value="circle">Circular Orbit — x² + y² = r²</option>
-                            <option value="damped">Damped Wave (Barrier Avoidance) — e^(-0.2x)sin(x)</option>
+                            <option value="damped">Damped Wave — e^(-0.2x)sin(x)</option>
+                            <option value="cosine">Cosine Wave</option>
+                            <option value="two-wave">Combined Waves</option>
+                            <option value="parabola">Parabola</option>
                             <option value="custom">Custom Formula f(x)</option>
                         </select>
                     </div>
@@ -311,7 +295,14 @@
                             <input type="number" id="math-b" value="10" step="any">
                         </div>
                     </div>
-                    <button id="btn-generate" class="btn btn-primary" style="margin-top: 4px;">Generate Path</button>
+                    <div class="input-group">
+                        <label for="math-scale">Path scale (0–10)</label>
+                        <input type="number" id="math-scale" min="0.01" max="10" step="0.1" value="1">
+                    </div>
+                    <button id="btn-generate" class="btn btn-secondary" style="margin-top: 4px;">Preview Path</button>
+                    <button id="btn-use-generated" class="btn btn-primary" disabled>Use Generated Path</button>
+                    <button id="btn-cancel-generated" class="btn btn-secondary" disabled>Cancel Preview</button>
+                    <p>Preview appears in purple in the tracking view.</p>
                 </section>
 
                 <!-- Gamepad State Card -->
@@ -361,7 +352,7 @@
                     </div>
                     <div class="qr-label-panel">
                         <div class="qr-badge-title">GAMEPAD NODE</div>
-                        <div class="qr-badge-desc">Run controller_node.py to steer snake wirelessly</div>
+                        <div class="qr-badge-desc">Run controller_node.py --gen 2.1 --operator NAME; stop and log out here before handing over control.</div>
                     </div>
                 </div>
             </aside>
@@ -374,20 +365,20 @@
                         <span class="badge-pill badge-target" style="background-color: var(--badge-target-bg, #4da2ff); color: var(--badge-target-text, #000000);">● Target Path</span>
                         <span class="badge-pill badge-actual" style="background-color: var(--badge-actual-bg, #fb4903); color: var(--badge-actual-text, #000000);">● Actual Path</span>
                         <span class="badge-pill badge-snake">● 11 Links / 10 Joints</span>
+                        <span class="badge-pill" id="path-progress" aria-live="polite">Path: 0%</span>
                     </div>
                 </div>
                 <div class="canvas-wrapper">
-                    <canvas id="pathCanvas" width="700" height="500" tabindex="0" aria-label="Robot live trajectory viewport. Drag to draw path, arrow keys to pan, scroll to zoom."></canvas>
+                    <canvas id="pathCanvas" width="700" height="500" style="display:none" aria-hidden="true"></canvas>
+                    <iframe id="tracker-3d" src="/3d?embedded=1" title="Interactive 3D trajectory viewer" style="width:100%;height:100%;border:0;display:block"></iframe>
                 </div>
                 <div class="canvas-controls-footer">
                     <p class="canvas-instructions" id="path-canvas-help">
-                        💡 <strong>Controls:</strong> Left click &amp; drag to draw custom path • Right click &amp; drag or Arrow keys to pan • Scroll to zoom • Arrow keys pan the view; press Esc or Tab to leave
+                        💡 Select Draw in the 3D viewer to draw on the ground. Orbit, pan and zoom in Navigate mode.
                     </p>
                     <div class="canvas-actions-row">
                         <button id="btn-canvas-start" class="btn btn-primary btn-sm">Start motion</button>
-                        <button id="btn-canvas-stop" class="btn btn-danger btn-sm">STOP / torque off</button>
                         <button id="btn-clear" class="btn btn-danger btn-sm">Clear Canvas</button>
-                        <button type="button" id="btn-tracker-3d" class="btn btn-secondary btn-sm" onclick="window.open('/3d', 'Snake 3D Viewer', 'width=960,height=720')">🌐 3D Viewer</button>
                     </div>
                 </div>
             </main>
@@ -439,19 +430,8 @@
                     <div id="physics-applied-pill" style="display: none; font-size: 11.5px; font-weight: 700; color: var(--color-btn-start, #15803d); text-align: center; margin-top: 6px;">✓ Simulation Physics Applied</div>
                 </section>
             </aside>
-        </div>
-
-        <!-- Bottom Motion Dock -->
-        <nav class="motion-dock" aria-label="Motion controls">
-            <div class="motion-dock-content">
-                <span class="dock-label">OPERATOR COMMAND:</span>
-                <button id="btn-start" class="btn btn-primary">Start motion</button>
-                <button id="btn-stop" class="btn btn-danger">STOP / torque off</button>
-            </div>
-        </nav>
-
         <!-- Bottom Panel: 10-Joint Actuator Telemetry -->
-        <section class="telemetry-section" id="telemetry-hub" role="tabpanel" aria-labelledby="planar-tab-telemetry" hidden>
+        <section class="telemetry-section" id="telemetry-hub">
             <div class="telemetry-section-header">
                 <div class="telemetry-title-block">
                     <h2>10-Joint Actuator Telemetry</h2>
@@ -469,13 +449,13 @@
             </div>
         </section>
 
-        <!-- Accuracy Report Modal -->
-        <div id="accuracy-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content">
-                <h2>Simulation Path Deviation</h2>
+        <!-- Nonblocking simulation report -->
+        <section id="accuracy-modal" class="card report-panel" aria-labelledby="report-title" aria-live="polite" style="display: none;">
+                <h2 id="report-title">Simulation Path Deviation</h2>
+                <button id="btn-close-modal" class="btn btn-primary w-full">Hide Report</button>
                 <div class="report-stats">
                     <div class="stat">
-                        <span>Accuracy Score</span>
+                        <span>Simulation visualization score</span>
                         <span id="report-accuracy" class="value">--%</span>
                     </div>
                     <div class="stat">
@@ -483,15 +463,24 @@
                         <span id="report-deviation" class="value" style="font-family: monospace; font-size: 24px;">-- m</span>
                     </div>
                 </div>
+                <p id="report-coverage"></p>
                 <div class="modal-canvas-wrapper">
                     <canvas id="reportCanvas" width="600" height="320"></canvas>
                 </div>
-                <button id="btn-close-modal" class="btn btn-primary w-full">Close Report</button>
-            </div>
+        </section>
+
         </div>
 
+        <!-- Bottom Motion Dock -->
+        <nav class="motion-dock" aria-label="Motion controls">
+            <div class="motion-dock-content">
+                <span class="dock-label">OPERATOR COMMAND:</span>
+                <button id="btn-start" class="btn btn-primary">Start motion</button>
+            </div>
+        </nav>
+
         <!-- Factor Confirmation Modal -->
-        <div id="factor-confirm-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="factor-confirm-title">
+        <div id="factor-confirm-modal" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="factor-confirm-title">
             <div class="modal-content">
                 <h2 id="factor-confirm-title">Operator Confirmation Required</h2>
                 <p id="factor-confirm-msg">High torque or speed changes exceed standard research limits.</p>
@@ -528,7 +517,6 @@
     </svg>
     <script src="/static/motion-state.js"></script>
     <script src="/static/operator-session.js"></script>
-    <script src="/static/planar-tabs.js"></script>
     <script src="/static/script.js"></script>
 </body>
 </html>

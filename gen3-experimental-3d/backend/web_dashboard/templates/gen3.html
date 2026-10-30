@@ -112,11 +112,12 @@
 
         <div class="operator-controls" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <span id="mode-badge" class="stat-pill" style="font-weight: 700; background: var(--color-soft-mist);">Viewer</span>
-          <span id="user-badge" class="stat-pill" style="display: none;">User: None</span>
+          <span id="user-badge" class="stat-pill" style="display: none; background: var(--color-ember); color: #200c50;">User: None</span>
           <span id="active-operator-badge" class="stat-pill" style="display: none;">Active: None</span>
           <span id="lease-badge" class="stat-pill" style="display: none;">Lease: inactive</span>
           <form id="operator-login-form" class="operator-login-form" style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
-            <select id="login-name" class="input-sm operator-select" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--color-paper-light, #fff); border: 1.1px solid rgba(0,0,0,0.18);" aria-label="Operator name">
+            <select id="login-name" class="input-sm operator-select" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--color-paper-light, #fff); border: 1.1px solid rgba(0,0,0,0.18);" aria-label="Operator name" required>
+              <option value="" selected disabled>Select operator</option>
               <option value="Shashank">Shashank</option>
               <option value="Bhavesh">Bhavesh</option>
               <option value="Mahima">Mahima</option>
@@ -151,7 +152,6 @@
           </form>
           <button id="btn-logout" class="btn btn-secondary btn-sm" type="button" style="padding: 4px 10px; font-size: 12px; display: none;">Logout</button>
           <span id="login-error" role="alert" style="font-size: 11px; color: #d32f2f; display: none;"></span>
-          <button id="stop" class="btn btn-danger btn-sm" type="button" style="font-weight: 800;" title="Immediate hardware torque release">STOP / TORQUE OFF</button>
         </div>
       </div>
     </header>
@@ -231,8 +231,6 @@
           <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; text-transform: uppercase;">
             Serial port <select id="hero-port" style="min-width: 170px;"><option value="">Select serial port</option></select>
           </label>
-          <button id="hero-btn-start" type="button" class="btn btn-primary">Start motion</button>
-          <button id="hero-btn-stop" type="button" class="btn btn-danger">STOP / torque off</button>
           <div class="status-indicator" style="margin-top: 0;">
             <span class="dot headlight-glass" id="status-dot"></span>
             <span id="conn-status">Disconnected</span>
@@ -269,10 +267,6 @@
         <button role="tab" tabindex="-1" id="tab-runs" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-runs">📍 Runs &amp; Presets</button>
         <button role="tab" tabindex="-1" id="tab-calibration" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-calibration">⚡ Calibration &amp; Diag</button>
         <button role="tab" tabindex="-1" id="tab-firmware" class="nav-pill tab-btn" aria-selected="false" aria-controls="panel-firmware">🛠 Firmware</button>
-        <button type="button" id="tab-stop-btn" class="nav-pill tab-stop-action-btn" style="background-color: #dc2626; color: #ffffff; font-weight: 800; border: 1.5px solid #000000; box-shadow: 0 2px 6px rgba(220,38,38,0.35); padding: 6px 18px; border-radius: 9999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; text-transform: uppercase; margin-left: 4px;" title="Emergency STOP / Torque Off">
-          <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
-          STOP / TORQUE
-        </button>
       </nav>
 
       <div class="console-search" role="search" aria-label="Search Gen 3 console">
@@ -372,8 +366,9 @@
               💡 <strong>3D Controls:</strong> Left click & drag to orbit / rotate 3D view • Right click & drag to pan • Scroll to zoom in/out • Positions update from the active PyBullet simulation
             </p>
             <div class="canvas-actions-row">
+              <button type="button" id="btn-gen3-sim-connect" class="btn btn-secondary btn-sm" disabled>Connect simulation engine</button>
+              <span id="sim-connection-status" role="status" aria-live="polite">Simulation status unknown</span>
               <button type="button" id="btn-gen3-sim-start" class="btn btn-primary btn-sm" title="Start a finite PyBullet simulation">▶ Start simulation</button>
-              <button type="button" id="btn-gen3-sim-stop" class="btn btn-danger btn-sm" title="Stop this simulation">⏹ Stop simulation</button>
               <button type="button" id="btn-gen3-sim-reset" class="btn btn-secondary btn-sm" title="Reset the camera view">↺ Reset view</button>
             </div>
             <span class="motion-permission-hint" style="font-size: 11px; color: var(--color-muted, #64748b); display: block;" hidden>Log in as Operator to start</span>
@@ -387,7 +382,7 @@
               <h2>Simulation gait settings</h2>
               <span class="card-tag">Tuning</span>
             </div>
-            <p class="physics-help">Settings are used when starting a run. The model is illustrative and is not calibrated for predicting robot travel.</p>
+            <p class="physics-help">Confirm gait changes before starting a run. The model is illustrative and is not calibrated for predicting robot travel.</p>
             
             <div class="input-group">
               <label for="sim-param-yaw-amp">Yaw Amplitude (deg): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
@@ -425,6 +420,16 @@
               <span class="physics-help" id="help-sim-bias">Constant yaw angle offset for curved steering.</span>
             </div>
 
+            <fieldset class="simulation-tracking-settings">
+              <legend>Simulation tracking limits</legend>
+              <p>These values apply only to this simulation run; the saved physical map is unchanged.</p>
+              <div class="input-group"><label for="sim-tracking-error">Tracking error threshold (counts)</label>
+                <input id="sim-tracking-error" type="number" min="1" max="796" step="any" disabled required></div>
+              <div class="input-group"><label for="sim-tracking-timeout">Tracking timeout (seconds)</label>
+                <input id="sim-tracking-timeout" type="number" min="0.1" max="2" step="any" disabled required></div>
+              <label class="check"><input id="sim-tracking-verified" type="checkbox" disabled> I verified these simulation limits.</label>
+              <p id="sim-tracking-status" role="status">Loading saved map settings…</p>
+            </fieldset>
             <div class="sim-settings-actions">
               <button type="button" id="btn-sim-apply-physics" class="btn btn-primary">Confirm settings</button>
               <button type="button" id="btn-sim-reset-physics" class="btn btn-secondary">Set to Default</button>
@@ -533,7 +538,7 @@
                   <label for="speed">Run Speed</label>
                   <span id="speed-deg-equiv" class="unit-equiv">~8.8 °/s</span>
                 </div>
-                <input id="speed" type="number" min="1" max="1500" step="5" value="100" required>
+                <input id="speed" type="number" min="1" max="1500" step="1" value="100" required>
               </div>
               <div class="control-group" title="Cosine envelope">
                 <label for="ramp">Ramp (s)</label>
@@ -665,9 +670,14 @@
           </div>
           <form id="save-preset-form" class="save-preset-card">
             <h3>Save Current Draft as Preset</h3>
+            <label for="save-preset-pattern">Gait pattern</label>
+            <select id="save-preset-pattern"><option value="custom">Current Operate draft</option></select>
+            <div class="gait-preset-details" id="save-preset-pattern-details" role="status">Uses the current Operate draft.</div>
+            <p class="preset-save-help">Selected gait values use the draft speed, ramp and duration. Saving checks the current joint map limits.</p>
             <label>Preset Name<input id="preset-name" type="text" placeholder="e.g. Low-slip carpet wave" required></label>
             <label>Description<input id="preset-desc" type="text" placeholder="e.g. 5 deg pitch, 0.1 Hz, 4s ramp"></label>
-            <button type="submit" class="btn-sm">Save Preset</button>
+            <button type="submit" id="btn-save-preset" class="btn-sm">Save Preset</button>
+            <p id="preset-save-status" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
@@ -767,6 +777,7 @@
         </div>
       </section>
 
+      <div class="diagnostics-layout">
       <section class="card" aria-labelledby="cal-map-heading">
         <h2 id="cal-map-heading">Joint Map Calibration (Physical Order)</h2>
         <p id="calibration-state"></p>
@@ -790,6 +801,8 @@
               <tbody id="joint-map-body"></tbody>
             </table>
           </div>
+          <div class="map-settings">
+          <h3>Saved map safety settings</h3>
           <div class="controls-grid">
             <div class="control-group">
               <label for="cal-speed">Default Map Speed (counts/s)</label>
@@ -810,6 +823,7 @@
           </label>
           <p class="text-muted">Modifying any field clears this confirmation. Every save writes a timestamped backup in <code>runs/</code>.</p>
           <button type="submit" id="btn-save-map" class="job">Save Calibration</button>
+          </div>
         </form>
       </section>
 
@@ -836,6 +850,7 @@
           <button type="submit" class="job">Jog Selected Joint</button>
         </form>
       </section>
+      </div>
     </div>
 
     <!-- PANEL 4: FIRMWARE -->
@@ -881,6 +896,10 @@
     </div>
   </main>
     {% include 'team_footer.html' %}
+  </div>
+
+
+  </div>
   <!-- Fixed quick actions -->
   <aside class="floating-action-dock" id="floating-action-dock" aria-label="Quick Actions Dock">
     <button type="button" class="floating-stop-btn" id="floating-stop-btn" title="Emergency STOP / Torque Off">
@@ -888,12 +907,9 @@
       <span>STOP / torque off</span><span id="floating-stop-state" aria-live="polite">Status unknown</span>
     </button>
   </aside>
-  </div>
 
-
-  </div>
   <!-- Factor Update Confirmation Modal -->
-  <div id="factor-confirm-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="factor-confirm-title">
+  <div id="factor-confirm-modal" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="factor-confirm-title">
     <div class="modal-content factor-confirm-dialog" style="max-width: 620px; width: 94%; max-height: 85vh; overflow-y: auto; background: var(--color-paper-white, #ffffff); border: 2px solid var(--color-carbon, #000000); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); padding: 24px;">
       <div style="display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 2px solid var(--color-carbon, #000); padding-bottom: 12px; margin-bottom: 16px;">
         <div>

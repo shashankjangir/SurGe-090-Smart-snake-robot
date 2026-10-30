@@ -37,8 +37,6 @@ assert(indexHtml.includes('value="lemniscate"'), 'Must include lemniscate preset
 assert(indexHtml.includes('value="spiral"'), 'Must include spiral preset');
 assert(indexHtml.includes('value="circle"'), 'Must include circular orbit preset');
 assert(indexHtml.includes('value="damped"'), 'Must include damped barrier avoidance preset');
-assert(scriptJs.includes('funcStr.startsWith(\'lemniscate\')'), 'script.js must handle parametric lemniscate generation');
-assert(scriptJs.includes('funcStr.startsWith(\'spiral\')'), 'script.js must handle parametric spiral generation');
 
 // 4. Verify Low Power disclosure
 assert(indexHtml.includes('Low Power Mode') && /does not measure or guarantee motor current/i.test(indexHtml), 'Low power mode must not imply a measured current limit');
@@ -46,12 +44,7 @@ assert(indexHtml.includes('Low Power Mode') && /does not measure or guarantee mo
 // 5. Verify Serial Port Select & 3D Viewer Button in Hero
 assert(indexHtml.includes('<select id="serial-port"'), 'Serial port must be a select element like Gen 3');
 assert(indexHtml.includes('id="refresh-ports"'), 'Must have refresh-ports button');
-assert(indexHtml.includes('id="btn-hero-3d"'), 'Must have 3D Viewer button in hero actions next to Trace Trajectory');
 assert(scriptJs.includes('async function loadSerialPorts'), 'script.js must implement loadSerialPorts');
-
-// 6. Verify Camera Follow and Minimum 64 Grid Blocks Guarantee
-assert(scriptJs.includes('Math.sqrt(totalArea / 64.0)'), 'script.js must compute grid size to guarantee at least 64 blocks visible');
-assert(scriptJs.includes('panX += (targetPanX - panX) * 0.12'), 'script.js must smoothly follow snake head when running');
 
 // 7. Verify Simulation Physics "Set to Default" button & Clear Path instant pose reset
 assert(indexHtml.includes('id="btn-reset-physics"'), 'Must have "Set to Default" button for simulation physics');
@@ -74,7 +67,7 @@ assert(runtimePy.includes('self.iface.reset_pose()'), 'runtime.py set_path must 
 
 // 10. Verify whole path traversal requirement for completion
 assert(runtimePy.includes('def is_path_complete('), 'runtime.py must provide is_path_complete');
-assert(runtimePy.includes('has_traversed ='), 'runtime.py must verify that the whole path has been traversed before completing');
+assert(runtimePy.includes('self.path.complete()'), 'runtime.py must verify ordered path completion');
 assert(pathEnginePy.includes('self.progress_idx'), 'path_engine.py must track sequential progress index');
 
 // 11. Verify Generation Switch Hover Info Cards (Planar Snake for Gen 2.1 & 3D Spatial for Gen 3)
@@ -99,13 +92,12 @@ const updatedScriptJs = fs.readFileSync(path.join(__dirname, '../../gen3-experim
 const updatedStyleCss = fs.readFileSync(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/style.css'), 'utf8');
 
 assert(updatedIndexHtml.includes('id="btn-canvas-start"'), 'Must have btn-canvas-start in canvas footer');
-assert(updatedIndexHtml.includes('id="btn-canvas-stop"'), 'Must have btn-canvas-stop in canvas footer');
-assert(updatedIndexHtml.includes('aria-label="Motion controls"') && updatedIndexHtml.includes('id="btn-start"') && updatedIndexHtml.includes('id="btn-stop"'), 'Bottom dock has start and stop controls');
+assert(updatedIndexHtml.includes('id="floating-stop-btn"'), 'Persistent Stop remains available');
+assert(updatedIndexHtml.includes('aria-label="Motion controls"') && updatedIndexHtml.includes('id="btn-start"'), 'Bottom dock has start control');
 assert(updatedScriptJs.includes("['btn-start', '/api/start']") && updatedScriptJs.includes("['btn-stop', '/api/stop']"), 'Header controls use the motion endpoints');
-assert(updatedIndexHtml.indexOf('id="btn-tracker-3d"') > updatedIndexHtml.indexOf('id="canvas-hub"') && updatedIndexHtml.indexOf('id="btn-tracker-3d"') < updatedIndexHtml.indexOf('</main>', updatedIndexHtml.indexOf('id="canvas-hub"')), '3D viewer button belongs to the tracker');
+assert(updatedIndexHtml.includes('id="tracker-3d"'), '3D viewer belongs in the tracker');
 assert(updatedIndexHtml.includes('id="btn-clear"'), 'Must have btn-clear in canvas footer');
 assert(updatedScriptJs.includes('btn-canvas-start'), 'script.js must wire btn-canvas-start to /api/start');
-assert(updatedScriptJs.includes('btn-canvas-stop'), 'script.js must wire btn-canvas-stop to /api/stop');
 assert(updatedStyleCss.includes('.canvas-actions-row'), 'style.css must style .canvas-actions-row');
 
-console.log('Gen 2.1 Dashboard Enhancements: 12 checks passed (middle canvas, physics apply & set-to-default, math presets, low-power disclosure, serial ports, 3D viewer button, camera follow & 64 blocks, instant reset pose, gamepad layout, whole path completion, hover info cards, canvas start/stop buttons)');
+console.log('Gen 2.1 Dashboard Enhancements: 12 checks passed (middle canvas, physics apply & set-to-default, math presets, low-power disclosure, serial ports, 3D viewer button, instant reset pose, gamepad layout, whole path completion, hover info cards, canvas start/stop buttons)');

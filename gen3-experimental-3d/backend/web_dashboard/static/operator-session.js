@@ -17,10 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function render(data) {
         isOperator = Boolean(data.is_current_operator);
         $('mode-badge').textContent = isOperator ? 'Operator' : 'Viewer';
-        $('user-badge').textContent = `User: ${data.current_user?.name || 'Viewer'}`;
-        $('user-badge').style.display = 'inline-flex';
+        $('user-badge').textContent = data.current_user?.name || '';
+        $('user-badge').style.display = isOperator ? 'inline-flex' : 'none';
         form.style.display = isOperator ? 'none' : 'inline-flex';
         $('btn-logout').style.display = isOperator ? 'inline-block' : 'none';
+        window.dispatchEvent(new CustomEvent('surge-session', {detail: data}));
     }
 
     function showError(error) {

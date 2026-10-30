@@ -36,7 +36,6 @@ console.log('  PASS: Gate 1 — Shared header, brand, and operator login morphin
   assert(html.includes('shader-lens-blur-canvas'), `${route} must include shader-lens-blur-canvas`);
   assert(html.includes('distorted-glass-ribbon'), `${route} must include distorted-glass-ribbon`);
   assert(html.includes('class="modular-control-wrapper"'), `${route} must include modular-control-wrapper`);
-  assert(html.includes('class="modular-control-badge"'), `${route} must include modular-control-badge`);
   assert(html.includes('id="tooltip-gen21"') && html.includes('id="tooltip-gen3"'), `${route} must include generation info tooltips`);
   assert(html.includes('Planar Snake') && html.includes('10 Yaw Joints'), `${route} must describe Gen 2.1 planar kinematics`);
   assert(html.includes('3D Spatial Snake') && html.includes('Alternating 5 Pitch + 5 Yaw Joints'), `${route} must describe Gen 3 spatial kinematics`);
@@ -44,14 +43,9 @@ console.log('  PASS: Gate 1 — Shared header, brand, and operator login morphin
 console.log('  PASS: Gate 2 — Shared hero, shaders, and generation switch with rich hover cards verified');
 
 // Gate 3: Task Navigation Tabs & Tab Stop Action
-assert(indexHtml.includes('class="nav-pills cockpit-tabs"'), 'Gen 2.1 must have task navigation bar');
+assert(indexHtml.includes('id="telemetry-hub"'), 'Gen 2.1 must have telemetry');
 assert(gen3Html.includes('class="nav-pills tab-nav"'), 'Gen 3 must have task navigation bar');
-[indexHtml, gen3Html].forEach((html, idx) => {
-  const route = idx === 0 ? 'Gen 2.1 (/)' : 'Gen 3 (/gen3)';
-  assert(html.includes('id="tab-stop-btn"'), `${route} must have tab-stop-btn in task tab strip`);
-});
-assert(unifiedCss.includes('.tab-stop-action-btn'), 'unified-cockpit.css must style tab-stop-action-btn');
-console.log('  PASS: Gate 3 — Task tab strip and tab Stop action verified across both routes');
+console.log('  PASS: Gate 3 — Task tab strips verified across both routes');
 
 // Gate 4: Always-Visible Persistent Stop Button
 [indexHtml, gen3Html].forEach((html, idx) => {

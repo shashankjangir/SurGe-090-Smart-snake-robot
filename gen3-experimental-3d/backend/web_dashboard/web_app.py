@@ -5,7 +5,6 @@ import math
 import sys
 import time
 from pathlib import Path
-from urllib.parse import urlsplit
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from flask import Flask, jsonify, request, render_template, send_from_directory, abort, g
@@ -19,6 +18,7 @@ def create_app(runtime=None):
     app.config["CONTROL"] = control
     gen3 = Gen3Control(control.lock)
     app.config['GEN3'] = gen3
+    control.sessions = gen3.sessions
 
     def get_current_session(create_if_missing=True):
         session_id = request.headers.get('X-Session-ID') or request.cookies.get('surge_gen3_session')
@@ -36,9 +36,17 @@ def create_app(runtime=None):
 
     @app.before_request
     def connection_owner():
-        if request.method == 'POST' and request.path == '/api/gen3/stop':
+        if request.path.startswith('/api/') and request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            if request.path not in ('/api/stop', '/api/gen3/stop'):
+                origin = request.headers.get('Origin')
+                if (origin and origin != request.host_url.rstrip('/')) or request.headers.get('Sec-Fetch-Site') == 'cross-site':
+                    return jsonify(error='Cross-origin control requests are not allowed'), 403
+            payload = request.get_json(silent=True)
+            if payload is not None and not isinstance(payload, dict):
+                return jsonify(error='Request body must be a JSON object'), 400
+        if request.method == 'POST' and request.path in ('/api/stop', '/api/gen3/stop'):
             data = request.get_json(silent=True)
-            if not isinstance(data, dict) or not data.get('run_id'):
+            if request.path == '/api/stop' or not isinstance(data, dict) or not data.get('run_id'):
                 gen3.cancel.set()
         if request.path.startswith('/api/'):
             if request.method != 'GET' or request.path == '/api/gen3/session':
@@ -67,20 +75,17 @@ def create_app(runtime=None):
                     if request.path.startswith('/api/gen3/firmware/') and gen3.state['busy']:
                         return jsonify(error='Stop motion before firmware maintenance'), 409
             elif request.path == '/api/connect':
-                data = request.get_json(silent=True) or {}
-                if data.get('engine') in ('HARDWARE', 'ST3215') or data.get('port'):
-                    session = get_current_session(create_if_missing=True)
-                    if not session or not gen3.sessions.is_operator(session['session_id']):
-                        return jsonify(error='Operator mode required'), 403
+                session = get_current_session(create_if_missing=True)
+                if not session or not gen3.sessions.is_operator(session['session_id']):
+                    return jsonify(error='Operator mode required'), 403
                 with control.lock:
                     if gen3.state['busy'] or gen3.firmware.snapshot()['is_busy']:
                         return jsonify(error='Stop the Gen 3 job first'), 409
-            elif request.path in ('/api/start', '/api/controller', '/api/params'):
+            elif request.path in ('/api/start', '/api/controller', '/api/params', '/api/set_path'):
+                session = get_current_session(create_if_missing=True)
+                if not session or not gen3.sessions.is_operator(session['session_id']):
+                    return jsonify(error='Operator mode required'), 403
                 with control.lock:
-                    if control.state.get('engine') in ('HARDWARE', 'ST3215'):
-                        session = get_current_session(create_if_missing=True)
-                        if not session or not gen3.sessions.is_operator(session['session_id']):
-                            return jsonify(error='Operator mode required'), 403
                     if gen3.state['busy'] or gen3.firmware.snapshot()['is_busy']:
                         return jsonify(error='Stop the Gen 3 job first'), 409
 
@@ -109,7 +114,7 @@ def create_app(runtime=None):
         password = data.get('password')
         session = get_current_session(create_if_missing=True)
         with control.lock:
-            busy = gen3.state['busy']
+            busy = gen3.state['busy'] or (control.state['is_running'] and not control.state['is_paused'])
             res = gen3.sessions.login(session['session_id'], name=name, password=password, busy_with_motion=busy)
         if not res.get('success'):
             return jsonify(error=res.get('error', 'Authentication failed')), 401
@@ -120,7 +125,7 @@ def create_app(runtime=None):
         session = get_current_session(create_if_missing=False)
         if session:
             with control.lock:
-                busy = gen3.state['busy']
+                busy = gen3.state['busy'] or (control.state['is_running'] and not control.state['is_paused'])
                 if busy and gen3.sessions.is_operator(session['session_id']):
                     return jsonify(error='Stop motion before releasing operator lease'), 409
                 gen3.sessions.logout(session['session_id'], busy_with_motion=busy)
@@ -133,7 +138,7 @@ def create_app(runtime=None):
         password = data.get('password', '')
         session = get_current_session(create_if_missing=True)
         with control.lock:
-            busy = gen3.state['busy']
+            busy = gen3.state['busy'] or (control.state['is_running'] and not control.state['is_paused'])
             res = gen3.sessions.login(session['session_id'], name=name, password=password, busy_with_motion=busy)
         if not res.get('success'):
             return jsonify(error=res.get('error', 'Authentication failed')), 401
@@ -178,6 +183,16 @@ def create_app(runtime=None):
             gen3.save_map(config, expected_revision=expected_revision, operator_name=op_name)
         return jsonify(success=True)
 
+    @app.post('/api/gen3/simulation/connect')
+    def gen3_simulation_connect():
+        gen3.connect_simulation()
+        return jsonify(success=True, state='connecting'), 202
+
+    @app.post('/api/gen3/simulation/disconnect')
+    def gen3_simulation_disconnect():
+        gen3.disconnect_simulation()
+        return jsonify(success=True, state=gen3.state['simulation_state'])
+
     @app.post('/api/gen3/start')
     def gen3_start():
         with control.lock:
@@ -219,6 +234,8 @@ def create_app(runtime=None):
                                        gen3.state.get('execution') != 'simulation'):
                 raise RuntimeError('That simulation is no longer the active job')
             gen3.stop(operator_name=op_name)
+            if not data.get('run_id'):
+                control.pause()
         return jsonify(success=True)
 
     @app.post('/api/gen3/diagnostics')
@@ -249,7 +266,12 @@ def create_app(runtime=None):
     @app.post('/api/gen3/presets')
     def gen3_save_preset():
         data = request.get_json() or {}
-        presets = gen3.save_preset(data)
+        if 'preset' in data:
+            if set(data) != {'preset', 'expected'}:
+                raise ValueError('Expected preset snapshot is required')
+            presets = gen3.save_preset(data['preset'], expected=data['expected'])
+        else:
+            presets = gen3.save_preset(data)
         return jsonify(success=True, presets=presets)
 
     @app.delete('/api/gen3/presets/<name>')
@@ -342,11 +364,13 @@ def create_app(runtime=None):
             if gen3.state['busy']:
                 raise RuntimeError('Stop the Gen 3 job first')
             control.start()
+            control.owner_session = g.current_session['session_id']
         return jsonify(success=True)
 
     @app.post("/api/stop")
     def stop():
         with control.lock:
+            gen3.stop()
             control.pause()
         return jsonify(success=True)
 
@@ -359,8 +383,17 @@ def create_app(runtime=None):
     @app.post("/api/set_path")
     def path():
         with control.lock:
-            control.set_path((request.get_json() or {}).get("path", []))
-        return jsonify(success=True)
+            data = request.get_json() or {}
+            new_path = data.get("path", [])
+            report = None
+            if (not new_path and data.get("include_report") and control.state['engine'] == 'SIM'
+                    and control.state['is_running'] and control.state['is_paused']
+                    and control.state['status'] == 'Stopped; torque off'
+                    and control.state['path_progress'] > .2):
+                report = report_data()
+            control.set_path(new_path)
+            revision = control.path_revision
+        return jsonify(success=True, report=report, path_revision=revision)
 
     @app.post("/api/controller")
     def controller():
@@ -368,6 +401,7 @@ def create_app(runtime=None):
             if gen3.state['busy']:
                 raise RuntimeError('Stop the Gen 3 job first')
             control.controller(request.get_json() or {})
+            control.owner_session = g.current_session['session_id']
         return jsonify(success=True)
 
     @app.get("/api/status")
@@ -375,6 +409,7 @@ def create_app(runtime=None):
         with control.lock:
             result = copy.deepcopy(control.state)
             result["actual_path"] = result["actual_path"][-500:]
+            result["path_revision"] = control.path_revision
         return jsonify(result)
 
     @app.get("/api/3d_status")
@@ -392,23 +427,27 @@ def create_app(runtime=None):
             cpu, ram = 0., 0.
         return jsonify(cpu=cpu, ram=ram, temp="N/A")
 
+    def report_data():
+        target, actual = copy.deepcopy((control.state["target_path"], control.state["actual_path"]))
+        errors = list(control.report_errors)
+        progress, revision = control.state["path_progress"], control.path_revision
+        if len(target) < 2 or progress < .2 - 1e-9 or len(errors) < 2:
+            return None
+        error = sum(errors) / len(errors)
+        return dict(avg_error=error, accuracy_percent=max(0, 100*(1-error/.5)),
+                    metric="Simulation visualization score = max(0, 100 × (1 − average deviation / 0.5 m)); not physical accuracy",
+                    sample_count=len(errors), trace_sample_count=len(actual), path_progress=progress, path_revision=revision,
+                    target_path=target, actual_path=actual)
+
     @app.get("/api/report")
     def report():
         with control.lock:
-            target, actual = copy.deepcopy((control.state["target_path"], control.state["actual_path"]))
-            if control.state["engine"] != "SIM":
-                return jsonify(error="No hardware localization; a physical tracking report is unavailable"), 409
-        if len(target) < 2 or len(actual) < 2:
-            return jsonify(error="Not enough data"), 400
-        def distance(point, a, b):
-            dx, dy = b[0] - a[0], b[1] - a[1]
-            length = dx*dx + dy*dy
-            t = max(0, min(1, ((point[0]-a[0])*dx + (point[1]-a[1])*dy)/length)) if length else 0
-            return math.hypot(point[0]-a[0]-t*dx, point[1]-a[1]-t*dy)
-        error = sum(min(distance(p, a, b) for a, b in zip(target, target[1:])) for p in actual) / len(actual)
-        return jsonify(avg_error=error, accuracy_percent=max(0, 100*(1-error/.5)),
-                       metric="Visualization score relative to 0.5 m; not a calibrated accuracy measurement",
-                       target_path=target, actual_path=actual)
+            if control.state["engine"] != "SIM" or not control.state["is_running"]:
+                return jsonify(error="Simulation report unavailable"), 409
+            data = report_data()
+        if data is None:
+            return jsonify(error="At least 20% verified progress and two samples are required"), 400
+        return jsonify(data)
 
     return app
 

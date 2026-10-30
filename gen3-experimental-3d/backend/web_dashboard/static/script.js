@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPanning = false;
     let isRunning = false;
     let lastStatus = '';
+    let currentPathRevision = null;
+    let reportRequest = 0;
     let lastAnnouncedMotionState = '';
     function announceStateTransition(newState) {
         if (!newState || newState === lastAnnouncedMotionState) return;
@@ -53,6 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function sendMotion(endpoint) {
         const stopping = endpoint === '/api/stop';
+        if (!stopping) {
+            reportRequest++;
+            const report = document.getElementById('accuracy-modal');
+            if (report) report.style.display = 'none';
+        }
         if (stopping) {
             stopAwaitingConfirmation = true;
             for (const id of ['btn-stop', 'btn-hero-stop', 'btn-canvas-stop']) {
@@ -151,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rateEl.textContent = `${hz.toFixed(1)} Hz`;
     }
     let statusInFlight = false;
+    let statusEpoch = 0;
     let statusFailures = 0;
     let statusPollTimer = null;
     function scheduleStatusPoll(delay = 100) {
@@ -160,19 +168,24 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateStatus() {
         if (statusInFlight) return;
         statusInFlight = true;
+        const epoch = statusEpoch;
         try {
             const res = await fetch('/api/status');
             const data = await res.json();
+            if (epoch !== statusEpoch) return;
 
-            const wasRunning = isRunning;
             isRunning = Boolean(data.is_running && !data.is_paused);
+            if (isRunning) {
+                const report = document.getElementById('accuracy-modal');
+                if (report) report.style.display = 'none';
+            }
 
             const connStatusEl = document.getElementById('conn-status');
             const statusDotEl = document.getElementById('status-dot');
             const btnConnectEl = document.getElementById('btn-connect');
 
             const expectedState = !data.is_running ? 'Disconnected' : data.is_paused ? 'Stopped' : 'Running';
-            if (connStatusEl) connStatusEl.textContent = expectedState;
+            if (connStatusEl) connStatusEl.textContent = /stalled/i.test(data.status || '') ? data.status : expectedState;
             if (statusDotEl) statusDotEl.className = isRunning ? 'dot active' : 'dot';
             if (btnConnectEl) btnConnectEl.textContent = data.is_running ? 'Disconnect Engine' : 'Connect Engine';
 
@@ -190,8 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (lastStatus !== 'Path Complete' && data.status === 'Path Complete') {
-                setTimeout(fetchAndShowReport, 300);
+            if (currentPathRevision !== data.path_revision) {
+                currentPathRevision = data.path_revision;
+                const modal = document.getElementById('accuracy-modal');
+                if (modal) modal.style.display = 'none';
             }
 
             if (typeof MotionState !== 'undefined') {
@@ -200,9 +215,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const floatState = document.getElementById('floating-stop-state');
                 if (floatState) floatState.textContent = (stopAwaitingConfirmation || stopUnconfirmed) ? 'Stop requested' : MotionState.label(motionState);
             }
-            announceStateTransition(expectedState);
+            announceStateTransition(/stalled/i.test(data.status || '') ? data.status : expectedState);
 
             lastStatus = data.status;
+            const progress = document.getElementById('path-progress');
+            if (progress) progress.textContent = `Path: ${Math.round((data.path_progress || 0) * 100)}%`;
             const sensorBox = document.getElementById('sensor-status');
             if (sensorBox) sensorBox.textContent = data.sensor_age_s == null ? 'No sensor data' : `Age: ${data.sensor_age_s.toFixed(1)} s\n${JSON.stringify(data.sensors, null, 2)}`;
             robotPose = data.robot_pose || {x: 0, y: 0, yaw: 0};
@@ -313,24 +330,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const engine = engineRadio ? engineRadio.value : 'SIM';
             const headlessCheckbox = document.getElementById('sim-headless');
             const headless = headlessCheckbox ? headlessCheckbox.checked : true;
-            const wasRunning = isRunning;
 
             try { await post('/api/connect', {engine, headless, port: document.getElementById('serial-port')?.value || null}); } catch(e) { alert(e.message); }
 
-            if (wasRunning) {
-                setTimeout(fetchAndShowReport, 300);
-            }
         });
     }
 
     const btnClear = document.getElementById('btn-clear');
     if (btnClear) {
         btnClear.addEventListener('click', async () => {
-            targetPath = [];
-            actualPath = [];
-            robotPose = { x: 0, y: 0, yaw: 0 };
-            await sendPath();
-            renderCanvas();
+            try {
+                const report = document.getElementById('accuracy-modal');
+                if (report) report.style.display = 'none';
+                const request = ++reportRequest;
+                statusEpoch++;
+                const result = await post('/api/set_path', {path: [], include_report: true});
+                currentPathRevision = result.path_revision;
+                targetPath = [];
+                actualPath = [];
+                robotPose = { x: 0, y: 0, yaw: 0 };
+                document.getElementById('tracker-3d')?.contentWindow?.postMessage({type: 'reset-view'}, location.origin);
+                await updateStatus();
+                if (result.report && request === reportRequest) showReport(result.report);
+            } catch (e) { alert(e.message); }
         });
     }
 
@@ -342,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = e.target.value;
             const labelSpan = document.getElementById(`val-${id.split('-')[1]}`);
             if (labelSpan) labelSpan.textContent = val;
-            sendParams();
         });
     });
 
@@ -364,20 +385,21 @@ document.addEventListener('DOMContentLoaded', () => {
             speed: speedEl ? parseFloat(speedEl.value) : 1.0,
             low_power: lowPowerEl ? lowPowerEl.checked : false
         };
-        try {
-            await post('/api/params', params);
-        } catch(e){ console.error(e.message); }
+        await post('/api/params', params);
     }
 
     const btnApplyPhysics = document.getElementById('btn-apply-physics');
     if (btnApplyPhysics) {
         btnApplyPhysics.addEventListener('click', async () => {
-            await sendParams();
             const pill = document.getElementById('physics-applied-pill');
-            if (pill) {
-                pill.style.display = 'block';
-                setTimeout(() => { pill.style.display = 'none'; }, 2500);
-            }
+            if (pill) pill.style.display = 'none';
+            try {
+                await sendParams();
+                if (pill) {
+                    pill.style.display = 'block';
+                    setTimeout(() => { pill.style.display = 'none'; }, 2500);
+                }
+            } catch (error) { alert(error.message); }
         });
     }
 
@@ -402,7 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const lp = document.getElementById('param-lowpower');
             if (lp) lp.checked = false;
-            sendParams();
         });
     }
 
@@ -442,10 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('refresh-ports')?.addEventListener('click', loadSerialPorts);
     loadSerialPorts();
 
-    const btnOpen3d = document.getElementById('btn-open-3d');
-    if (btnOpen3d) {
-        btnOpen3d.addEventListener('click', () => {
-            window.open('/3d', 'Snake 3D Viewer', 'width=960,height=720');
+    for (const id of ['btn-open-3d', 'btn-hero-3d']) {
+        document.getElementById(id)?.addEventListener('click', () => {
+            document.getElementById('planar-tab-cockpit')?.click();
+            document.getElementById('canvas-hub')?.scrollIntoView({behavior: 'smooth'});
         });
     }
 
@@ -456,11 +477,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function fetchAndShowReport() {
-        try {
-            const res = await fetch('/api/report');
-            const data = await res.json();
-            if (data.error) return;
+    function showReport(data) {
+            document.getElementById('report-coverage').textContent = `${data.metric} · ${data.sample_count} of ${data.trace_sample_count} retained trace samples · ${(data.path_progress * 100).toFixed(1)}% verified path`;
 
             const accuracyEl = document.getElementById('report-accuracy');
             if (accuracyEl) {
@@ -512,10 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            document.getElementById('accuracy-modal').style.display = 'flex';
-        } catch (e) {
-            console.error('Report error:', e);
-        }
+            document.getElementById('accuracy-modal').style.display = 'block';
     }
 
     const mathPreset = document.getElementById('math-preset');
@@ -544,6 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (funcInput) funcInput.value = 'circle(t, 2.0)';
                 if (aInput) aInput.value = 0;
                 if (bInput) bInput.value = 6.28;
+            } else if (['cosine', 'two-wave', 'parabola'].includes(val)) {
+                if (funcInput) funcInput.value = {cosine: 'cos(x)', 'two-wave': 'sin(x)+0.3*sin(3*x)', parabola: '0.05*x^2'}[val];
+                if (aInput) aInput.value = 0;
+                if (bInput) bInput.value = 10;
             } else if (val === 'damped') {
                 if (funcInput) funcInput.value = 'exp(-0.2*x)*sin(x)';
                 if (aInput) aInput.value = 0;
@@ -553,61 +572,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const btnGenerate = document.getElementById('btn-generate');
-    if (btnGenerate) {
-        btnGenerate.addEventListener('click', async () => {
-            const funcStr = document.getElementById('math-func').value;
-            const a = parseFloat(document.getElementById('math-a').value);
-            const b = parseFloat(document.getElementById('math-b').value);
-
-            targetPath = [];
-            try {
-                if (funcStr.startsWith('lemniscate')) {
-                    const scale = 2.5;
-                    const step = 0.05;
-                    for (let t = a; t <= b; t += step) {
-                        const denom = 1 + Math.sin(t) * Math.sin(t);
-                        const px = (scale * Math.cos(t)) / denom;
-                        const py = (scale * Math.sin(t) * Math.cos(t)) / denom;
-                        targetPath.push([px, py]);
-                    }
-                } else if (funcStr.startsWith('spiral')) {
-                    const a0 = 0.1, b0 = 0.15;
-                    const step = 0.05;
-                    for (let t = a; t <= b; t += step) {
-                        const r = a0 + b0 * t;
-                        const px = r * Math.cos(t);
-                        const py = r * Math.sin(t);
-                        targetPath.push([px, py]);
-                    }
-                } else if (funcStr.startsWith('circle')) {
-                    const radius = 2.0;
-                    const step = 0.05;
-                    for (let t = a; t <= b; t += step) {
-                        const px = radius * Math.cos(t);
-                        const py = radius * Math.sin(t);
-                        targetPath.push([px, py]);
-                    }
-                } else {
-                    const safeFunc = funcStr
-                        .replace(/sin/g, 'Math.sin')
-                        .replace(/cos/g, 'Math.cos')
-                        .replace(/tan/g, 'Math.tan')
-                        .replace(/abs/g, 'Math.abs')
-                        .replace(/exp/g, 'Math.exp')
-                        .replace(/sqrt/g, 'Math.sqrt');
-
-                    for (let x = a; x <= b; x += 0.1) {
-                        let y = eval(safeFunc.replace(/x/g, `(${x})`));
-                        targetPath.push([x, y]);
-                    }
-                }
-                await sendPath();
-                renderCanvas();
-            } catch (e) {
-                alert('Invalid math function expression');
-            }
-        });
+    const useGenerated = document.getElementById('btn-use-generated');
+    const cancelGenerated = document.getElementById('btn-cancel-generated');
+    let generatedPath = null;
+    function clearGeneratedPreview() {
+        generatedPath = null;
+        if (useGenerated) useGenerated.disabled = true;
+        if (cancelGenerated) cancelGenerated.disabled = true;
+        document.getElementById('tracker-3d')?.contentWindow?.postMessage({type: 'preview-path', path: []}, location.origin);
     }
+    for (const id of ['math-preset', 'math-func', 'math-a', 'math-b', 'math-scale']) {
+        document.getElementById(id)?.addEventListener('input', clearGeneratedPreview);
+        document.getElementById(id)?.addEventListener('change', clearGeneratedPreview);
+    }
+    btnGenerate?.addEventListener('click', () => {
+        try {
+            generatedPath = SurgeMathPath.generate(mathPreset.value, document.getElementById('math-func').value,
+                document.getElementById('math-a').valueAsNumber, document.getElementById('math-b').valueAsNumber,
+                document.getElementById('math-scale').valueAsNumber);
+            document.getElementById('tracker-3d')?.contentWindow?.postMessage({type: 'preview-path', path: generatedPath}, location.origin);
+            useGenerated.disabled = false;
+            cancelGenerated.disabled = false;
+        } catch (e) {
+            clearGeneratedPreview();
+            alert(e.message || 'Invalid math path');
+        }
+    });
+    cancelGenerated?.addEventListener('click', clearGeneratedPreview);
+    useGenerated?.addEventListener('click', async () => {
+        if (!generatedPath) return;
+        try {
+            await post('/api/set_path', {path: generatedPath});
+            clearGeneratedPreview();
+        } catch (e) { alert(e.message); }
+    });
 
     function readPathPoints() {
         const body = document.getElementById('path-points-body');
@@ -643,6 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof alert === 'function') alert(e.message);
         }
     }
+
 
     const pathEditor = document.getElementById('path-edit-points');
 

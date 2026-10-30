@@ -28,18 +28,20 @@ def load_operators_config(config_path=None):
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                return {
-                    'operators': tuple(data.get('operators', ALLOWED_OPERATORS)),
-                    'password': str(data.get('password', 'xyz@1234'))
-                }
+                names = data.get('operators', ALLOWED_OPERATORS)
+                password = data.get('password')
+                if (isinstance(names, (list, tuple)) and names
+                        and all(n in ALLOWED_OPERATORS for n in names)
+                        and isinstance(password, str) and password):
+                    return {'operators': tuple(names), 'password': password}
         except Exception:
             pass
-    return {'operators': ALLOWED_OPERATORS, 'password': 'xyz@1234'}
+    return {'operators': ALLOWED_OPERATORS, 'password': ''}
 
 
 class SessionManager:
     HEARTBEAT_INTERVAL = 1.0
-    LEASE_TIMEOUT = None  # Lease timeout disabled per user request
+    LEASE_TIMEOUT = 3.0
 
     def __init__(self, heartbeat_interval=1.0, lease_timeout=LEASE_TIMEOUT, config_path=None):
         self.heartbeat_interval = heartbeat_interval
@@ -76,7 +78,9 @@ class SessionManager:
         if not canonical:
             return False, None, 'Invalid operator name: allowed operators are Shashank, Bhavesh, Mahima'
 
-        expected_pw = self._config.get('password', 'xyz@1234')
+        expected_pw = self._config['password']
+        if not expected_pw:
+            return False, None, 'Operator credentials are not configured'
         if not password or not isinstance(password, str):
             return False, None, 'Incorrect password'
 
@@ -122,7 +126,7 @@ class SessionManager:
             }
 
         # If motion is currently busy from an expired operator, handoff must wait for stop
-        if busy_with_motion and self.active_operator and self.active_operator['session_id'] != session['session_id']:
+        if busy_with_motion:
             return {'success': False, 'error': 'Stop motion before transferring operator ownership'}
 
         # Grant active operator lease

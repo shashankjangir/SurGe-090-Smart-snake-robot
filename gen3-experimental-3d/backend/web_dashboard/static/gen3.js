@@ -18,7 +18,6 @@ let selectedPresetName = null;
 let pendingAction = false;
 let appliedSettings = null;
 let currentRunId = null;
-let heartbeatTimer = null;
 let statusOnline = false;
 
 // Helper for showing user-facing error messages
@@ -33,8 +32,11 @@ function showError(error) {
   }
 }
 
-// Session-aware API fetch (no CSRF or origin checking)
+// Session-aware API fetch.
 async function api(path, body, method = 'POST') {
+  if (method === 'POST' && (path === 'start' || path === 'center')) {
+    body = { ...body, request_id: body?.request_id || crypto.randomUUID() };
+  }
   const headers = {};
   if (session && session.session_id) {
     headers['X-Session-ID'] = session.session_id;
@@ -77,6 +79,14 @@ async function action(callback) {
 // Tab navigation
 let tabNavAnimated = null;
 let modeTogglesAnimated = null;
+window.addEventListener('resize', () => {
+  for (const pill of document.querySelectorAll('.animated-bg-pill')) pill.style.transition = 'none';
+  tabNavAnimated?.sync();
+  modeTogglesAnimated?.sync();
+  requestAnimationFrame(() => {
+    for (const pill of document.querySelectorAll('.animated-bg-pill')) pill.style.transition = '';
+  });
+});
 
 function initAnimatedBackground(container, options = {}) {
   if (!container) return null;
@@ -109,6 +119,7 @@ function initAnimatedBackground(container, options = {}) {
   function moveTo(target) {
     if (!target) {
       pill.style.opacity = '0';
+      pill.style.display = 'none';
       return;
     }
     const cRect = container.getBoundingClientRect();
@@ -118,6 +129,7 @@ function initAnimatedBackground(container, options = {}) {
     pill.style.transform = `translate3d(${left}px, ${top}px, 0)`;
     pill.style.width = `${tRect.width}px`;
     pill.style.height = `${tRect.height}px`;
+    pill.style.display = 'block';
     pill.style.opacity = '1';
   }
 
@@ -130,6 +142,7 @@ function initAnimatedBackground(container, options = {}) {
       }
     }
     pill.style.opacity = '0';
+    pill.style.display = 'none';
   }
 
   if (enableHover) {
@@ -166,6 +179,8 @@ function selectTab(index, focus = true) {
   });
   if (consoleTabs[index]) {
     const panelId = consoleTabs[index].getAttribute('aria-controls');
+    if (panelId === 'panel-runs') loadRuns().catch(showError);
+    if (panelId === 'panel-firmware') pollFirmwareLog().catch(showError);
     if (window.location) window.location.hash = panelId;
     if (focus && typeof consoleTabs[index].focus === 'function') consoleTabs[index].focus();
   }
@@ -410,13 +425,13 @@ function confirmParameterChanges(changes, actionTitle = 'Confirm Factor Update')
 
     if (!modal || !listEl) {
       const summary = changes.map(c => `${c.label || c.key}: ${c.oldVal} -> ${c.newVal}\nWARNING: ${c.warning || ''}`).join('\n\n');
-      const ok = window.confirm(`${actionTitle}\n\nOperator: ${session || 'Active'}\n\n${summary}\n\nProceed with update?`);
+      const ok = window.confirm(`${actionTitle}\n\nOperator: ${session?.name || 'Active'}\n\n${summary}\n\nProceed with update?`);
       resolve(ok);
       return;
     }
 
     titleEl.textContent = actionTitle;
-    opEl.textContent = `Operator: ${session || lastKnownOperator || 'Authenticated'} · Verified Lease`;
+    opEl.textContent = `Operator: ${session?.name || lastKnownOperator || 'Authenticated'} · Verified Lease`;
     listEl.replaceChildren();
 
     changes.forEach(c => {
@@ -535,7 +550,6 @@ function setViewerMode(isViewer) {
   const mutatingButtons = [
     $('start'),
     $('btn-start'),
-    $('hero-btn-start'),
     $('btn-gen3-sim-start'),
     $('btn-apply'),
     $('jog-forward'),
@@ -544,13 +558,16 @@ function setViewerMode(isViewer) {
     $('read-all'),
     $('align-all'),
     $('btn-save-map'),
-    $('btn-run-diagnostics'),
+    $('run-diagnostics'),
     $('btn-save-preset'),
     $('btn-build-fw'),
     $('btn-upload-fw')
   ].filter(Boolean);
 
-  document.querySelectorAll('.btn-delete-preset').forEach(b => mutatingButtons.push(b));
+  document.querySelectorAll('.btn-del, .btn-save-ann').forEach(b => {
+    b.disabled = isViewer || !statusOnline || pendingAction;
+    mutatingButtons.push(b);
+  });
 
   for (const btn of mutatingButtons) {
     if (isViewer) {
@@ -567,6 +584,7 @@ function setViewerMode(isViewer) {
     }
   }
 
+  $('btn-save-preset').disabled = isViewer || !statusOnline || pendingAction;
   document.querySelectorAll('.motion-permission-hint').forEach(hint => {
     hint.hidden = !isViewer;
   });
@@ -578,129 +596,18 @@ async function initSession() {
     session = data.current_user;
   }
   updateOperatorUI(data);
-  startHeartbeat();
 }
 
 function updateOperatorUI(data) {
   currentIsOperator = Boolean(data.is_current_operator);
 
-  const modeBadge = $('mode-badge');
-  const userBadge = $('user-badge');
-  const activeBadge = $('active-operator-badge');
-  const leaseBadge = $('lease-badge');
-  const loginForm = $('operator-login-form');
-  const logoutBtn = $('btn-logout');
-
-  if (modeBadge) {
-    modeBadge.textContent = currentIsOperator ? 'Operator' : 'Viewer';
-    modeBadge.style.background = currentIsOperator ? '#dcfce7' : 'var(--color-soft-mist)';
-    modeBadge.style.color = currentIsOperator ? '#15803d' : 'inherit';
-  }
-
-  if (userBadge) {
-    const userName = data.current_user?.name || 'Viewer';
-    userBadge.textContent = `User: ${userName}`;
-    userBadge.style.display = 'inline-flex';
-  }
-
-  if (activeBadge) {
-    if (data.has_active_operator && data.active_operator) {
-      activeBadge.textContent = `Active: ${data.active_operator}`;
-      activeBadge.style.display = 'inline-flex';
-    } else {
-      activeBadge.textContent = 'Active: None';
-      activeBadge.style.display = 'inline-flex';
-    }
-  }
-
-  if (leaseBadge) {
-    if (data.has_active_operator && typeof data.expires_in === 'number') {
-      leaseBadge.textContent = `Lease: ${data.expires_in.toFixed(1)}s`;
-      leaseBadge.style.display = 'inline-flex';
-    } else if (data.has_active_operator) {
-      leaseBadge.textContent = 'Active (No Timeout)';
-      leaseBadge.style.display = 'inline-flex';
-    } else {
-      leaseBadge.style.display = 'none';
-    }
-  }
-
-  if (loginForm && logoutBtn) {
-    if (data.current_user && data.current_user.role === 'operator') {
-      loginForm.style.display = 'none';
-      logoutBtn.style.display = 'inline-block';
-    } else {
-      loginForm.style.display = 'inline-flex';
-      logoutBtn.style.display = 'none';
-    }
-  }
+  if (data.current_user) session = data.current_user;
 
   setViewerMode(!currentIsOperator);
   if (typeof checkDraftDifferences === 'function') checkDraftDifferences();
 }
 
-function startHeartbeat() {
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
-  heartbeatTimer = setInterval(async () => {
-    if (currentIsOperator) {
-      try {
-        const hb = await api('session/heartbeat', {});
-        if (!hb.active) {
-          const s = await api('session', undefined, 'GET');
-          updateOperatorUI(s);
-        } else if ($('lease-badge')) {
-          $('lease-badge').textContent = `Lease: ${hb.expires_in.toFixed(1)}s`;
-        }
-      } catch (e) {}
-    }
-  }, 1000);
-}
-
-const loginForm = $('operator-login-form');
-if (loginForm) {
-  loginForm.onsubmit = (e) => {
-    e.preventDefault();
-    action(async () => {
-      const name = $('login-name').value;
-      const password = $('login-password').value;
-      const errEl = $('login-error');
-      if (errEl) errEl.style.display = 'none';
-      try {
-        const res = await api('session/login', { name, password });
-        $('login-password').value = '';
-        if (window.morphingPasswordButton) window.morphingPasswordButton.collapse();
-        if (res.message && res.role === 'viewer' && res.active_operator) {
-          if (errEl) {
-            errEl.textContent = res.message;
-            errEl.style.display = 'inline';
-          }
-          if (window.morphingPasswordButton) window.morphingPasswordButton.shake();
-        }
-        const s = await api('session', undefined, 'GET');
-        if (s.current_user) session = s.current_user;
-        updateOperatorUI(s);
-      } catch (err) {
-        if (errEl) {
-          errEl.textContent = err.message || 'Login failed';
-          errEl.style.display = 'inline';
-        }
-        if (window.morphingPasswordButton) window.morphingPasswordButton.shake();
-      }
-    });
-  };
-}
-
-const logoutBtn = $('btn-logout');
-if (logoutBtn) {
-  logoutBtn.onclick = () => action(async () => {
-    const errEl = $('login-error');
-    if (errEl) errEl.style.display = 'none';
-    await api('session/logout', {});
-    const s = await api('session', undefined, 'GET');
-    if (s.current_user) session = s.current_user;
-    updateOperatorUI(s);
-  });
-}
+window.addEventListener('surge-session', event => updateOperatorUI(event.detail));
 
 // Serial Ports
 async function loadPorts() {
@@ -741,12 +648,6 @@ if (heroPort) {
   heroPort.onchange = () => { if ($('port')) $('port').value = heroPort.value; };
   if ($('port')) $('port').addEventListener('change', () => { heroPort.value = $('port').value; });
 }
-const heroStart = $('hero-btn-start');
-if (heroStart) heroStart.onclick = () => { if ($('btn-start')) $('btn-start').click(); };
-const heroStop = $('hero-btn-stop');
-if (heroStop) heroStop.onclick = () => { if ($('stop')) $('stop').click(); };
-const floatingStop = $('floating-stop-btn');
-if (floatingStop) floatingStop.onclick = () => { if ($('stop')) $('stop').click(); };
 
 const loginPasswordEl = $('login-password');
 if (loginPasswordEl) {
@@ -1037,9 +938,13 @@ if (gaitForm) {
       if (!confirmed) return;
     }
 
+    const execution = $('execution').value;
+    const simulationTracking = execution === 'simulation' ? window.getSimulationTracking() : undefined;
     await api('start', {
+      request_id: crypto.randomUUID(),
       mode: 'gait',
-      execution: $('execution').value,
+      execution,
+      ...(simulationTracking ? {simulation_tracking: simulationTracking} : {}),
       port: $('port').value,
       ...draft
     });
@@ -1048,7 +953,7 @@ if (gaitForm) {
 }
 
 // Stop Button (Emergency & Normal Torque Release)
-$('stop').onclick = async () => {
+$('floating-stop-btn').onclick = async () => {
   try {
     await api('stop', {});
     await poll();
@@ -1106,6 +1011,7 @@ function renderPresets() {
       updatePresetSelection();
     };
     card.querySelector('.btn-del').setAttribute('aria-label', `Delete preset ${p.name}`);
+    card.querySelector('.btn-del').disabled = !currentIsOperator;
     card.querySelector('.btn-del').onclick = () => action(async () => {
       await api(`presets/${encodeURIComponent(p.name)}`, undefined, 'DELETE');
       await loadPresets();
@@ -1170,16 +1076,33 @@ const savePresetForm = $('save-preset-form');
 if (savePresetForm) {
   savePresetForm.onsubmit = e => {
     e.preventDefault();
+    $('preset-save-status').textContent = '';
+    if (!statusOnline) { $('preset-save-status').textContent = 'Dashboard offline; reconnect before saving.'; return; }
     action(async () => {
       const draft = getDraftSettings();
+      const pattern = $('save-preset-pattern').value;
+      const selected = window.SurgeSimulationPresets?.[pattern];
+      if (pattern !== 'custom') {
+        if (!selected) throw new Error('Gait patterns are unavailable; reload this page');
+        Object.assign(draft, {yaw: selected.yaw, pitch: selected.pitch, bias: selected.bias,
+          frequency: selected.freq, lag: selected.lag, offset: selected.offset});
+      }
       const newPreset = {
         name: $('preset-name').value.trim(),
         description: $('preset-desc').value.trim(),
         ...draft
       };
-      await api('presets', newPreset);
+      const previous = presets.find(p => p.name === newPreset.name) || null;
+      if (previous && !window.confirm(`Replace the saved preset “${newPreset.name}”?`)) return;
+      try {
+        await api('presets', {preset: newPreset, expected: previous});
+      } catch (error) {
+        $('preset-save-status').textContent = error.message;
+        throw error;
+      }
       $('preset-name').value = '';
       $('preset-desc').value = '';
+      $('preset-save-status').textContent = `Saved ${newPreset.name}.`;
       await loadPresets();
     });
   };
@@ -1238,6 +1161,7 @@ async function loadRuns() {
       <td><button type="button" class="btn-sm btn-repeat">Repeat to Draft</button></td>
     `;
 
+    tr.querySelector('.btn-save-ann').disabled = !currentIsOperator;
     tr.querySelector('.btn-save-ann').onclick = () => action(async () => {
       const disp = tr.querySelector('.ann-disp').value;
       const surf = tr.querySelector('.ann-surf').value;
@@ -1309,7 +1233,7 @@ async function pollFirmwareLog() {
     term.scrollTop = term.scrollHeight;
   }
   if (data.is_busy) {
-    setTimeout(pollFirmwareLog, 500);
+    setTimeout(() => pollFirmwareLog().catch(showError), 500);
   }
 }
 
@@ -1325,6 +1249,7 @@ async function poll() {
     const state = await api('status', undefined, 'GET');
     if (!statusOnline) showError(null);
     statusOnline = true;
+    $('btn-save-preset').disabled = !currentIsOperator || pendingAction;
     $('status').textContent = state.status;
     $('stage').textContent = state.stage ? `[${state.stage}]` : '';
     if ($('conn-status')) $('conn-status').textContent = state.status;
@@ -1343,16 +1268,14 @@ async function poll() {
     }
     $('run-timer-state').textContent = state.busy ? 'Active' : state.run_id ? 'Ended' : 'Idle';
     const gaitRunning = Boolean(state.busy && state.active_settings);
-    for (const id of ['hero-btn-start', 'btn-start']) {
+    for (const id of ['btn-start']) {
       $(id).textContent = gaitRunning ? (state.status === 'Starting' ? 'Starting…' : 'Running') : id === 'btn-start' ? 'Start Finite Motion Trial' : 'Start motion';
       $(id).classList.toggle('motion-active', gaitRunning);
     }
-    $('hero-btn-stop').textContent = state.status.startsWith('Stop requested') ? 'STOP requested…' : state.status === 'Stopped: Stop requested' ? 'STOP / torque off · Stopped' : 'STOP / torque off';
-    $('hero-btn-stop').classList.toggle('motion-stopped', state.status === 'Stopped: Stop requested');
     document.querySelector('.run-timers').classList.toggle('is-running', Boolean(state.busy));
     if (typeof MotionState !== 'undefined') {
       $('floating-stop-state').textContent = MotionState.label(MotionState.classify(state.status, Boolean(state.busy)));
-      MotionState.render(['hero-btn-start', 'btn-start', 'hero-btn-stop'], MotionState.classify(state.status, Boolean(state.busy)));
+      MotionState.render(['btn-start'], MotionState.classify(state.status, Boolean(state.busy)));
     }
 
     currentRunId = state.run_id;
@@ -1383,10 +1306,10 @@ async function poll() {
     }
 
     document.querySelectorAll('.job').forEach(btn => {
-      btn.disabled = state.busy || pendingAction;
+      btn.disabled = !currentIsOperator || state.busy || pendingAction;
     });
-    $('hero-btn-start').disabled = !currentIsOperator || state.busy || pendingAction;
 
+    $('btn-start').disabled = !currentIsOperator || state.busy || pendingAction;
     checkDraftDifferences();
 
     // Render Telemetry Table with in-place row reuse
@@ -1438,6 +1361,7 @@ async function poll() {
     }
   } catch (err) {
     statusOnline = false;
+    $('btn-save-preset').disabled = true;
     $('status').textContent = 'Dashboard offline · robot status unknown';
     $('stage').textContent = '';
     $('conn-status').textContent = 'Status unknown';
@@ -1449,19 +1373,15 @@ async function poll() {
     $('applied-readout').textContent = 'Applied: unknown · dashboard offline';
     $('pending-readout').hidden = true;
     document.querySelectorAll('.job').forEach(btn => btn.disabled = true);
-    $('hero-btn-start').disabled = true;
     $('btn-apply').disabled = true;
-    $('hero-btn-start').textContent = 'Start motion';
+    $('btn-start').disabled = true;
     $('btn-start').textContent = 'Start Finite Motion Trial';
-    $('hero-btn-stop').textContent = 'STOP / torque off';
     $('floating-stop-state').textContent = 'Status unknown';
-    $('hero-btn-stop').classList.remove('motion-stopped');
-    $('hero-btn-start').classList.remove('motion-active');
     $('btn-start').classList.remove('motion-active');
     $('run-timer-state').textContent = 'Offline · frozen';
     document.querySelector('.run-timers').classList.remove('is-running');
     if (typeof MotionState !== 'undefined') {
-      MotionState.render(['hero-btn-start', 'btn-start', 'hero-btn-stop'], 'unknown');
+      MotionState.render(['btn-start'], 'unknown');
     }
     showError(new Error('Dashboard connection lost: ' + err.message));
   }
@@ -1509,13 +1429,6 @@ async function pollSystemStats() {
   }
   setTimeout(updateLoop, 400);
 })();
-const tabStop = $('tab-stop-btn');
-if (tabStop) {
-  tabStop.onclick = () => {
-    const stopBtn = $('stop');
-    if (stopBtn) stopBtn.click();
-  };
-}
 
 
 // --- Marquee Banner Pause / Play Toggle (WCAG 2.2.2 & Session Memory) ---

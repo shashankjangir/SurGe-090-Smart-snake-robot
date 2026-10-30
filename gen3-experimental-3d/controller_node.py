@@ -18,7 +18,7 @@ def create_payload(stick_x, stick_y, buttons, previous_buttons):
     return payload
 
 
-def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
+def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False, operator=None):
     import requests
 
     base_url = url.rstrip("/")
@@ -35,11 +35,21 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
             pass
         return 0
 
-    import pygame
-    pygame.init()
-    pygame.joystick.init()
+    if not operator:
+        raise ValueError('Use --operator NAME to authenticate before controlling motion')
+    import getpass
+    client = requests.Session()
+    response = client.post(f'{base_url}/api/gen3/session/login', json={
+        'name': operator, 'password': getpass.getpass('Operator password: ')}, timeout=3)
+    response.raise_for_status()
+    if response.json().get('role') != 'operator':
+        client.close()
+        raise RuntimeError(response.json().get('message', 'Operator lease unavailable'))
 
     try:
+        import pygame
+        pygame.init()
+        pygame.joystick.init()
         if pygame.joystick.get_count() < 1:
             raise RuntimeError("No gamepad found. Connect a USB/Bluetooth controller or pass --mock")
         joystick = pygame.joystick.Joystick(0)
@@ -55,7 +65,14 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
         ]
         preset_idx = 0
 
+        last_heartbeat = 0.
         while True:
+            if time.monotonic() - last_heartbeat >= 1:
+                heartbeat = client.post(f'{base_url}/api/gen3/session/heartbeat', json={}, timeout=.4)
+                heartbeat.raise_for_status()
+                if not heartbeat.json().get('active'):
+                    raise RuntimeError('Operator lease expired; stopping')
+                last_heartbeat = time.monotonic()
             pygame.event.pump()
             if not joystick.get_attached():
                 print("Controller detached.")
@@ -75,6 +92,7 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
                     start_data = {
                         "request_id": req_id,
                         "mode": "gait",
+                        "execution": "preview",
                         "yaw": p["yaw"],
                         "pitch": p["pitch"],
                         "bias": round(stick_x * 5.0, 1),
@@ -83,14 +101,14 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
                         "speed": 100
                     }
                     try:
-                        requests.post(f"{base_url}/api/gen3/start", json=start_data, timeout=0.4)
-                        print(f"[Gen 3] Started preset {preset_idx}: pitch={p['pitch']}°, yaw={p['yaw']}°")
+                        client.post(f"{base_url}/api/gen3/start", json=start_data, timeout=0.4).raise_for_status()
+                        print(f"[Gen 3] Preview requested for preset {preset_idx}: pitch={p['pitch']}°, yaw={p['yaw']}°")
                     except requests.RequestException as exc:
                         print(f"[Gen 3] Start error: {exc}")
 
                 elif payload["btn_stop"]:
                     try:
-                        requests.post(f"{base_url}/api/gen3/stop", json={}, timeout=0.4)
+                        client.post(f"{base_url}/api/gen3/stop", json={}, timeout=0.4).raise_for_status()
                         print("[Gen 3] Stopped.")
                     except requests.RequestException as exc:
                         print(f"[Gen 3] Stop error: {exc}")
@@ -103,7 +121,8 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
             else:
                 # Gen 2.1 API target
                 try:
-                    requests.post(f"{base_url}/api/controller", json=payload, timeout=0.3).raise_for_status()
+                    endpoint = '/api/stop' if payload['btn_stop'] else '/api/controller'
+                    client.post(f"{base_url}{endpoint}", json=payload, timeout=0.3).raise_for_status()
                 except requests.RequestException as exc:
                     print(f"[Gen 2.1] Control link error: {exc}")
 
@@ -115,13 +134,18 @@ def run_controller(url="http://127.0.0.1:5000", generation="3", mock=False):
     finally:
         stop_endpoint = "/api/gen3/stop" if str(generation) == "3" else "/api/stop"
         try:
-            requests.post(f"{base_url}{stop_endpoint}", json={}, timeout=0.5)
+            client.post(f"{base_url}{stop_endpoint}", json={}, timeout=0.5).raise_for_status()
         except requests.RequestException:
             pass
         try:
             pygame.quit()
         except Exception:
             pass
+        try:
+            client.post(f'{base_url}/api/gen3/session/logout', json={}, timeout=.5).raise_for_status()
+        except requests.RequestException:
+            pass
+        client.close()
     return 0
 
 
@@ -130,8 +154,9 @@ def main():
     parser.add_argument("--url", default="http://127.0.0.1:5000", help="Web dashboard base URL")
     parser.add_argument("--gen", choices=["2.1", "3"], default="3", help="Target robot generation (default: 3)")
     parser.add_argument("--mock", action="store_true", help="Run self-test without physical gamepad")
+    parser.add_argument("--operator", help="Operator name; password is prompted without echo")
     args = parser.parse_args()
-    return run_controller(url=args.url, generation=args.gen, mock=args.mock)
+    return run_controller(url=args.url, generation=args.gen, mock=args.mock, operator=args.operator)
 
 
 if __name__ == "__main__":

@@ -375,6 +375,10 @@ class Gen3Control:
         self.sessions = SessionManager()
         self.firmware = FirmwareManager()
         self.motion_generator = None
+        self.simulation = None
+        self.simulation_thread = None
+        self.simulation_revision = None
+        self.simulation_disconnect_requested = False
         self.active_run_id = None
         self.active_run_log = None
         self.start_requests = {}
@@ -387,6 +391,8 @@ class Gen3Control:
             status='Idle; no connection',
             telemetry={},
             simulation_links=None,
+            simulation_state='disconnected',
+            simulation_error=None,
             stage='idle',
             log=None,
             execution=None,
@@ -464,6 +470,73 @@ class Gen3Control:
                 Path(name).unlink()
 
     @locked
+    def connect_simulation(self):
+        if self.state['busy'] or self.firmware.snapshot()['is_busy']:
+            raise RuntimeError('Stop the active job before connecting simulation')
+        if self.state['simulation_state'] in ('connecting', 'connected', 'running', 'disconnecting'):
+            raise RuntimeError('Simulation is already connected or changing state')
+        config = runner.load_map(self.map_path)
+        revision = self.get_map_revision()
+        self.cancel.clear()
+        self.simulation_disconnect_requested = False
+        self.state.update(simulation_state='connecting', simulation_error=None)
+
+        def connect():
+            iface = None
+            cancelled = False
+            try:
+                from simulation import SimulationInterface
+                iface = SimulationInterface(config, .1, .25, 2, True)
+                ok, message = iface.connect()
+                if not ok:
+                    raise RuntimeError(message)
+                with self.lock:
+                    if not self.cancel.is_set() and not self.simulation_disconnect_requested:
+                        self.simulation = iface
+                        self.simulation_revision = revision
+                        self.state.update(simulation_state='connected', simulation_error=None)
+                        iface = None
+                    else:
+                        cancelled = True
+                        self.state['simulation_state'] = 'disconnecting'
+            except Exception as exc:
+                with self.lock:
+                    self.state.update(simulation_state='error', simulation_error=str(exc))
+            finally:
+                if iface is not None:
+                    try:
+                        iface.disconnect()
+                        if cancelled:
+                            with self.lock:
+                                self.state.update(simulation_state='disconnected', simulation_error=None)
+                    except Exception as exc:
+                        with self.lock:
+                            self.state.update(simulation_state='error', simulation_error=f'Simulation cleanup failed: {exc}')
+        self.simulation_thread = threading.Thread(target=connect, daemon=True)
+        self.simulation_thread.start()
+
+    @locked
+    def disconnect_simulation(self):
+        if self.state['simulation_state'] in ('connecting', 'running'):
+            self.simulation_disconnect_requested = True
+            self.cancel.set()
+            self.state['simulation_state'] = 'disconnecting'
+            if self.state['busy']:
+                self.stop()
+            return
+        if self.state['simulation_state'] == 'disconnecting':
+            return
+        iface, self.simulation = self.simulation, None
+        self.simulation_revision = None
+        try:
+            if iface is not None:
+                iface.disconnect()
+        except Exception as exc:
+            self.state.update(simulation_state='error', simulation_error=str(exc))
+            raise RuntimeError('Simulation disconnect failed') from exc
+        self.state.update(simulation_state='disconnected', simulation_error=None, simulation_links=None)
+
+    @locked
     def start(self, data, session_id=None):
         if not isinstance(data, dict):
             raise ValueError('Job settings must be an object')
@@ -484,6 +557,17 @@ class Gen3Control:
         execution = data.get('execution', 'preview')
         if mode not in ('read', 'jog', 'gait', 'center', 'align') or execution not in ('preview', 'simulation', 'hardware'):
             raise ValueError('Select read, jog, gait, or center and a valid execution mode')
+        if self.state['simulation_state'] in ('connecting', 'disconnecting'):
+            raise RuntimeError('Wait for the simulation connection to finish changing')
+        if execution == 'simulation' and 'simulation_tracking' not in data:
+            raise ValueError('Verify simulation tracking limits before starting')
+        if 'simulation_tracking' in data and (execution != 'simulation' or mode != 'gait'):
+            raise ValueError('Simulation tracking settings are only valid for simulation gait jobs')
+        if execution == 'simulation':
+            if self.state['simulation_state'] != 'connected' or self.simulation is None:
+                raise RuntimeError('Connect the simulation engine before starting')
+            if self.simulation_revision != self.get_map_revision():
+                raise RuntimeError('The joint map changed; disconnect and reconnect the simulation engine')
         if mode in ('read', 'jog', 'center', 'align') and execution != 'hardware':
             raise ValueError(f'{mode.capitalize()} requires hardware execution')
 
@@ -520,6 +604,12 @@ class Gen3Control:
             values = None
         elif mode == 'gait':
             config = runner.load_map(self.map_path, require_calibrated=execution == 'hardware')
+            if 'simulation_tracking' in data:
+                tracking = data['simulation_tracking']
+                if not isinstance(tracking, dict) or set(tracking) != {'tracking_error', 'tracking_timeout', 'verified'} or tracking['verified'] is not True:
+                    raise ValueError('Verify both simulation tracking settings before starting')
+                config['tracking_error'] = runner.number(tracking['tracking_error'], 'tracking_error', 1, 796)
+                config['tracking_timeout'] = runner.number(tracking['tracking_timeout'], 'tracking_timeout', .1, 2)
             fields = [('yaw', 5, 0, 90), ('pitch', 5, 0, 90), ('bias', 0, -90, 90),
                       ('frequency', .1, -.6, .6), ('lag', 90, -360, 360), ('offset', 90, -360, 360)]
             numbers = [runner.number(data.get(k, default), k, low, high) for k, default, low, high in fields]
@@ -567,6 +657,8 @@ class Gen3Control:
             settings_revision=1,
             transition_state='idle'
         )
+        if execution == 'simulation':
+            self.state['simulation_state'] = 'running'
         self.thread = threading.Thread(
             target=self._run,
             args=(mode, execution, port, config, values, duration, ramp, run_speed, sid, ticks),
@@ -637,7 +729,8 @@ class Gen3Control:
                 iface.disconnect()
 
     def _run(self, mode, execution, port, config, values, duration, ramp, run_speed, sid, ticks):
-        iface = None
+        iface = self.simulation if execution == 'simulation' else None
+        failed = False
         status = 'Completed; torque off'
         log = self.map_path.parent / 'runs' / f'{self.active_run_id}.csv'
         self.active_run_log = log
@@ -701,6 +794,7 @@ class Gen3Control:
                     mode=mode,
                     execution=execution,
                     joint_map=config,
+                    simulation_tracking=(dict(tracking_error=job_config['tracking_error'], tracking_timeout=job_config['tracking_timeout']) if execution == 'simulation' else None),
                     values=values,
                     duration=duration,
                     ramp=ramp,
@@ -727,13 +821,12 @@ class Gen3Control:
                     status = 'Preview complete; no hardware connected'
                 else:
                     if execution == 'simulation':
-                        from simulation import SimulationInterface
-                        iface = SimulationInterface(config, .1, .25, 2, True)
+                        iface = self.simulation
                     else:
                         iface = self.hardware_factory(port=port)
-                    ok, message = iface.connect()
-                    if not ok:
-                        raise RuntimeError(message)
+                        ok, message = iface.connect()
+                        if not ok:
+                            raise RuntimeError(message)
                     if self.cancel.is_set():
                         raise InterruptedError('Stop requested')
                     with self.lock:
@@ -769,6 +862,7 @@ class Gen3Control:
                             center=mode == 'center'
                         )
         except Exception as exc:
+            failed = not isinstance(exc, InterruptedError)
             status = f'Stopped: {exc}'
             if log.exists():
                 try:
@@ -777,19 +871,39 @@ class Gen3Control:
                 except Exception:
                     pass
         finally:
-            if iface is not None:
-                try:
-                    iface.disconnect()
-                except Exception as exc:
-                    status += f'; torque-off acknowledgement failed: {exc}. Disconnect robot power.'
-            with self.lock:
-                self.state.update(
-                    busy=False,
-                    elapsed_seconds=max(0, time.monotonic() - self.job_started),
-                    status=status,
-                    pending_settings=None,
-                    transition_state='idle'
-                )
+            if execution == 'simulation':
+                with self.lock:
+                    try:
+                        if iface is not None:
+                            if not failed and not self.simulation_disconnect_requested:
+                                iface.stop()
+                            else:
+                                iface.disconnect()
+                    except Exception as exc:
+                        failed = True
+                        status += f'; simulation cleanup failed: {exc}'
+                        try:
+                            if iface is not None: iface.disconnect()
+                        except Exception as cleanup_exc:
+                            status += f'; disconnect failed: {cleanup_exc}'
+                    if failed or self.simulation_disconnect_requested:
+                        self.state['simulation_links'] = None
+                        self.simulation = None
+                        self.simulation_revision = None
+                    self.state['simulation_state'] = 'error' if failed else 'disconnected' if self.simulation_disconnect_requested else 'connected'
+                    self.state['simulation_error'] = status if failed else None
+                    self.simulation_disconnect_requested = False
+                    self.state.update(busy=False, elapsed_seconds=max(0, time.monotonic() - self.job_started),
+                                      status=status, pending_settings=None, transition_state='idle')
+            else:
+                if iface is not None:
+                    try:
+                        iface.disconnect()
+                    except Exception as exc:
+                        status += f'; torque-off acknowledgement failed: {exc}. Disconnect robot power.'
+                with self.lock:
+                    self.state.update(busy=False, elapsed_seconds=max(0, time.monotonic() - self.job_started),
+                                      status=status, pending_settings=None, transition_state='idle')
 
     @locked
     def get_presets(self):
@@ -802,7 +916,7 @@ class Gen3Control:
         return DEFAULT_PRESETS
 
     @locked
-    def save_preset(self, preset):
+    def save_preset(self, preset, expected=...):
         if not isinstance(preset, dict) or not preset.get('name'):
             raise ValueError("Preset must have a valid name")
         if not isinstance(preset['name'], str) or not 1 <= len(preset['name'].strip()) <= 80:
@@ -816,6 +930,9 @@ class Gen3Control:
         config = runner.load_map(self.map_path)
         validate_gait(config, *(math.radians(preset[k]) for k in ('yaw', 'pitch', 'bias')), preset['frequency'], math.radians(preset['lag']), math.radians(preset['offset']), preset['duration'], preset['ramp'], speed=preset['speed'])
         presets = self.get_presets()
+        existing_preset = next((p for p in presets if p['name'] == preset['name']), None)
+        if expected is not ... and expected != existing_preset:
+            raise RuntimeError('Preset changed; reload the presets before saving')
         # Replace if name exists, else append
         existing = [p for p in presets if p['name'] != preset['name']]
         existing.append(preset)
@@ -878,5 +995,13 @@ class Gen3Control:
 
     def close(self):
         self.cancel.set()
+        self.simulation_disconnect_requested = True
+        if self.simulation_thread:
+            self.simulation_thread.join(timeout=5)
         if self.thread:
             self.thread.join(timeout=5)
+        with self.lock:
+            if self.simulation is not None and not self.state['busy']:
+                self.simulation.disconnect()
+                self.simulation = None
+                self.state['simulation_state'] = 'disconnected'

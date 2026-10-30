@@ -16,13 +16,18 @@ class ControlRuntime:
         self.path = PathEngine()
         self.state = {
             "is_running": False, "is_paused": True, "engine": "SIM", "status": "Disconnected",
-            "target_path": [], "actual_path": [], "telemetry": {}, "segments": [],
+            "target_path": [], "actual_path": [], "path_progress": 0., "telemetry": {}, "segments": [],
             "robot_pose": {"x": 0., "y": 0., "yaw": 0.}, "pose_valid": False,
             "params": {"fric": 20., "amp": .8, "freq": 2., "phase": 1., "force": 2., "speed": 1., "low_power": False},
             "controller": {"active": False, "x": 0., "y": 0., "trigger_rt": 0., "raw_buttons": {}},
             "is_reversed": False, "sim_time": 0., "sensors": {}, "sensor_age_s": None,
         }
         self.controller_time = None
+        self.sessions = None
+        self.owner_session = None
+        self.report_errors = []
+        self.path_revision = 0
+        self.path_stalled_time = 0.
         self.thread = None
         self.shutdown = threading.Event()
 
@@ -32,12 +37,16 @@ class ControlRuntime:
         self.disconnect()
         self.iface = SimulationInterface() if engine == "SIM" else ST3215Interface(port=port)
         ok, msg = self.iface.connect(headless=headless) if engine == "SIM" else self.iface.connect()
-        self.state.update(engine=engine, is_running=ok, is_paused=True, status=msg, actual_path=[],
+        self.state.update(engine=engine, is_running=ok, is_paused=True, status=msg, actual_path=[], path_progress=0.,
                           target_path=[], sim_time=0., telemetry={}, segments=[], pose_valid=engine == "SIM" and ok,
                           robot_pose={"x": 0., "y": 0., "yaw": 0.}, sensors={}, sensor_age_s=None)
         self.state["controller"]["active"] = False
         if not ok:
             self.iface = None
+        self.path.reset()
+        self.report_errors.clear()
+        self.path_revision += 1
+        self.path_stalled_time = 0.
         return ok, msg
 
     def pause(self, reason="Stopped; torque off"):
@@ -50,7 +59,11 @@ class ControlRuntime:
         if not self.iface or not self.state["is_running"]:
             raise ValueError("Connect an engine first")
         if self.state.get("status") == "Path Complete":
-            self.path.reset()
+            self.path.set_path(self.state['target_path'])
+            self.report_errors.clear()
+            self.path_revision += 1
+            self.state.update(actual_path=[], path_progress=0.)
+        self.path_stalled_time = 0.
         self.iface.start()
         self.state.update(is_paused=False, status="Running")
 
@@ -87,12 +100,19 @@ class ControlRuntime:
             if not all(math.isfinite(v) and abs(v) <= 100 for v in (x, y)):
                 raise ValueError("Waypoints must be finite and within 100 m")
             path.append([x, y])
-        self.state.update(target_path=path, actual_path=[])
-        self.path.reset()
+        self.path.set_path(path)
+        self.report_errors.clear()
+        self.path_revision += 1
+        self.path_stalled_time = 0.
+        if path and self.state['is_running'] and not self.state['is_paused']:
+            self.pause('Path ready; stopped')
+        self.state.update(target_path=path, actual_path=[], path_progress=0.)
         if self.iface:
             self.iface.draw_target_path(path)
         if not path:
             self.pause("Path cleared; stopped")
+            self.state.update(sim_time=0., telemetry={}, controller={"active": False, "x": 0., "y": 0., "trigger_rt": 0., "raw_buttons": {}}, is_reversed=False)
+            self.controller_time = None
             if self.state["engine"] == "SIM" and hasattr(self.iface, "reset_pose"):
                 self.iface.reset_pose()
                 x, y, yaw = self.iface.get_robot_pose()
@@ -124,31 +144,34 @@ class ControlRuntime:
 
     def is_path_complete(self, x, y, target):
         """Path is complete only when the snake has moved along the whole path to the final waypoint."""
-        if not target or len(target) < 2:
-            return False
-        if len(target) <= 2:
-            return math.hypot(x - target[-1][0], y - target[-1][1]) < .15
-        progress = getattr(self.path, "progress_idx", 0)
-        has_traversed = (progress >= len(target) - 2) or ((progress / max(1, len(target) - 1)) >= 0.95)
-        dist_to_end = math.hypot(x - target[-1][0], y - target[-1][1])
-        has_moved = len(self.state.get("actual_path", [])) >= 2
-        return has_traversed and dist_to_end < 0.35 and has_moved
+        return len(target) > 1 and self.path.complete() and math.hypot(x - target[-1][0], y - target[-1][1]) <= .1
 
     def tick(self, dt, now=None):
         now = time.monotonic() if now is None else now
         s = self.state
         if not s["is_running"] or not self.iface:
             return
+        if not s['is_paused'] and self.sessions and not self.sessions.is_operator(self.owner_session):
+            self.pause('Operator lease expired; stopped')
+            s['controller']['active'] = False
+            return
         dt = max(0, min(.1, dt))
         c = s["controller"]
         if c["active"] and self.controller_time is not None and now - self.controller_time > .75:
             c["active"] = False
             self.pause("Controller link lost; stopped")
+        sampled = False
         if s["engine"] == "SIM":
             x, y, yaw = self.iface.get_robot_pose()
+            if not all(math.isfinite(v) for v in (x, y, yaw)):
+                self.pause("Simulation pose unavailable; stopped")
+                s["pose_valid"] = False
+                return
+            s["pose_valid"] = True
             s["robot_pose"] = {"x": x, "y": y, "yaw": yaw}
             s["segments"] = self.iface.get_all_segment_positions()
-            if not s["actual_path"] or math.hypot(s["actual_path"][-1][0] - x, s["actual_path"][-1][1] - y) > .02:
+            if not s['is_paused'] and (not s["actual_path"] or math.hypot(s["actual_path"][-1][0] - x, s["actual_path"][-1][1] - y) > .02):
+                sampled = True
                 s["actual_path"].append([x, y])
                 s["actual_path"] = s["actual_path"][-10000:]
         if not s["is_paused"]:
@@ -160,9 +183,20 @@ class ControlRuntime:
                 turn = -.8 * c["x"]
                 speed *= min(1, math.hypot(c["x"], c["y"]))
             elif s["engine"] == "SIM" and target:
+                previous = self.path.passed
+                accepted = self.path.observe(x, y)
+                s['path_progress'] = self.path.progress()
+                self.path_stalled_time = 0. if self.path.passed > previous else self.path_stalled_time + dt
+                if accepted and sampled:
+                    error = self.path.deviation(x, y)
+                    if error is not None:
+                        self.report_errors.append(error)
+                        self.report_errors = self.report_errors[-10000:]
                 turn = self.path.calculate_pure_pursuit(x, y, yaw, target)
-                if len(target) > 1 and not c["active"] and self.is_path_complete(x, y, target):
+                if self.is_path_complete(x, y, target):
                     self.pause("Path Complete")
+                elif len(target) > 1 and self.path_stalled_time >= 30.:
+                    self.pause("Path stalled; ordered progress not verified")
             if not s["is_paused"]:
                 s["sim_time"] += dt * speed * (-1 if s["is_reversed"] else 1)
                 self.gait.amplitude = params["amp"]

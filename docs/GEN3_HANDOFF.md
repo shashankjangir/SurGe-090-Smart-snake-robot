@@ -359,3 +359,46 @@ conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_d
 - Unified Slush/Playdate visual language is established across both `/` and `/gen3`, featuring shared distorted-glass header, interactive generation switcher with hover cards, task tabs, and persistent floating emergency Stop dock.
 - Verified test suite: 30/30 Node component suites (`node --test gen3-experimental-3d/tests/*.cjs`) and 39 Python unit tests (`python -m unittest gen3-experimental-3d/tests/test_console.py gen3-experimental-3d/tests/test_console_hardening.py`) pass. Headless Chrome viewport audits verify 0 console errors and 0px horizontal overflow from 320px mobile to 1440px desktop.
 
+
+## Gen 2.1 ordered-path report limitations (29 October 2026)
+
+Progress counts the cumulative distance between verified ordered checkpoints; checkpoints
+are placed every 0.2 m of path arc length and require a sample within 0.1 m.
+Accepted checkpoints require 0.05 m movement, or half the interval for a shorter final segment. Pose jumps above 0.25 m per observation are rejected.
+A path pauses as stalled after 30 seconds of active simulation without advancing a
+checkpoint. This is a conservative timeout, not proof the path is unreachable; slow
+gaits or paths the controller cannot track can stall. Resuming restarts the timer.
+
+The interim simulation report requires 20% verified arc length and at least two
+accepted trace samples. Each sampled pose is compared with its current ordered
+checkpoint interval of the original polyline, not the nearest segment anywhere on a crossing path. It reports
+the retained sample count and verified progress. The visualization score is
+max(0, 100 × (1 − average deviation / 0.5 m)); it is not physical accuracy.
+Trace samples and deviation samples are each capped at 10,000; rejected jumps and
+manual-control samples are omitted from the metric. Path replacement clears the report.
+A 1 m headless line reproduced endpoint circling with only 20% verified progress;
+it now stalls rather than claiming completion. A 0.5 m line completed in the same
+headless setup. Neither trial validates physical behavior or every curve.
+
+Follow-up headless trials: a 1 m sine-shaped curve completed in 9.68 simulated
+seconds after spacing checkpoints by arc length instead of input waypoint density.
+A closed circle stalled at approximately 8% and a figure-eight crossing at 16%;
+the controller did not establish ordered completion for either. These outcomes
+do not validate the controller on those shapes. The report and persistent Stop were
+checked with mocked simulation data at 320, 768, 1024 and 1440 px; moving Close
+to the top of the report resolved an overlap with Stop at 320 px.
+
+## Gen 3 simulation connection and tracking settings (29 October 2026)
+
+The web console has a separate operator-controlled headless simulation connection.
+It reports connecting, connected, running, disconnecting, disconnected and error
+states; it never opens a physical interface. Stop remains public. Disconnect during
+a simulation run requests cancellation and releases the simulation after cleanup.
+A map revision change requires disconnecting and reconnecting the simulation.
+
+Simulation tracking error (1–796 counts) and timeout (0.1–2 seconds) initially
+come from the current map but must be explicitly verified for each edited set of
+values. They are passed only with simulation jobs, validated on the server, and
+recorded in the run manifest as effective simulation tracking settings. They do not
+write the physical map. Physical calibration verification, limits and map revision
+checks remain in place. The simulator remains illustrative, not a calibrated twin.

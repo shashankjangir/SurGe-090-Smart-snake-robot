@@ -27,7 +27,9 @@
 .gen2 .hero-section .hero-ribbon-bg,
 .hero-section .hero-ribbon-bg {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  opacity: 0.25;
   z-index: 2;
   mix-blend-mode: multiply;
   pointer-events: none;

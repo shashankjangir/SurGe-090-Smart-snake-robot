@@ -90,7 +90,6 @@
   );
   backdrop-filter: blur(10px) url(#distorted-glass-filter);
   -webkit-backdrop-filter: blur(10px) url(#distorted-glass-filter);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
   pointer-events: none;
   z-index: 2;
 }

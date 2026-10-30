@@ -681,6 +681,38 @@
   min-height: 40px;
   background: #ffffff;
 }
+/* Header controls use their own component styles, not the console form defaults. */
+.gen3 .operator-login-form { flex-wrap: wrap; max-width: 100%; }
+.gen3 .marquee-toggle-btn {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-pills);
+  border-color: #fff;
+  background: #000;
+  color: #fff;
+}
+.gen3 .morphing-password-input {
+  min-height: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #18181b;
+}
+@media (prefers-color-scheme: dark) {
+  .gen3 .morphing-password-input { color: #fefefe; }
+}
+.gen3 .morphing-password-input:focus-visible {
+  outline: 2px solid var(--color-sunburst);
+  outline-offset: -2px;
+}
+.gen3 .morphing-eye-btn {
+  min-height: 28px;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+}
+
 .gen3 input[type=number] {
   font-variant-numeric: tabular-nums;
 }
@@ -1142,4 +1174,48 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
 @media (prefers-reduced-motion: reduce) {
   #sim-hub .telem-box, #btn-gen3-sim-start, #btn-gen3-sim-stop, #btn-gen3-sim-reset { transition: none; }
   #sim-hub .telem-box:hover { transform: none; }
+}
+
+/* The simulation tuning card shares the planar dashboard's controls. */
+#sim-3d-physics-card input[type="range"] {
+  min-height: 40px;
+  height: 40px;
+  padding: 16px 0;
+  border: 0;
+  background: var(--color-carbon);
+  background-clip: content-box;
+  border-radius: var(--radius-pills);
+}
+#sim-3d-physics-card input[type="range"]:focus-visible {
+  outline: 2px solid var(--color-voltage-violet);
+  outline-offset: 2px;
+}
+.gen3 .save-preset-card .gait-preset-details {
+  padding: 8px 10px;
+  border: 1px solid var(--color-carbon);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.gen3 .save-preset-card .preset-save-help,
+.gen3 .save-preset-card #preset-save-status { margin: 0; font-size: 13px; }
+@media (min-width: 1201px) {
+  #sim-hub { grid-template-columns: 320px minmax(0, 1fr) 400px; }
+}
+
+@media (max-width: 600px) {
+  .gen3 .card { padding: 16px; }
+  .gen3 .save-preset-card { padding: 12px; }
+}
+
+.diagnostics-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.diagnostics-layout > .card { margin: 0; }
+.diagnostics-layout > [aria-labelledby="cal-map-heading"] { grid-column: 1 / -1; }
+#map-form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr); gap: 20px; align-items: start; }
+.map-settings { min-width: 0; border: 1px solid var(--color-carbon); border-radius: 10px; padding: 16px; }
+.map-settings .controls-grid { grid-template-columns: 1fr; }
+.simulation-tracking-settings { border: 1px solid var(--color-carbon); border-radius: 10px; padding: 12px; margin: 12px 0; min-width: 0; }
+.simulation-tracking-settings legend { padding: 0 4px; font-weight: 700; }
+@media (max-width: 800px) {
+  .diagnostics-layout, #map-form { grid-template-columns: minmax(0, 1fr); }
+  .diagnostics-layout > [aria-labelledby="cal-map-heading"] { grid-column: auto; }
 }

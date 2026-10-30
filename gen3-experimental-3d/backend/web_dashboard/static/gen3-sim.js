@@ -62,6 +62,8 @@
     }
   };
 
+  window.SurgeSimulationPresets = PRESETS;
+
   const DEFAULT_PARAMS = {
     fric: 20.0,
     yaw: 5,
@@ -76,6 +78,11 @@
 
   // State
   let simRunning = false;
+  let simulationState = 'unknown';
+  let simulationBusy = false;
+  let simOperator = false;
+  let connectionPending = false;
+  let simulationSettingsDirty = false;
   let simulationLinks = null;
   let ownedRun = null;
   let snapshotAvailable = false;
@@ -130,8 +137,20 @@
       const joints = (data.config || data).joints;
       if (!Array.isArray(joints) || joints.length !== 10) return;
       joints.forEach((joint, i) => Object.assign(JOINT_SPECS[i], joint));
+      const config = data.config || data;
+      $('sim-tracking-error').value = config.tracking_error;
+      $('sim-tracking-timeout').value = config.tracking_timeout;
+      for (const id of ['sim-tracking-error', 'sim-tracking-timeout', 'sim-tracking-verified']) $(id).disabled = false;
+      $('sim-tracking-status').textContent = 'Review and verify the simulation limits before starting.';
       initTelemetryGrid();
-    }).catch(() => { $('hud-sim-state').textContent = 'Could not load joint map'; });
+    }).catch(() => { $('hud-sim-state').textContent = 'Could not load joint map'; $('sim-tracking-status').textContent = 'Could not load map settings; reload before starting.'; });
+    for (const id of ['sim-tracking-error', 'sim-tracking-timeout']) {
+      $(id).addEventListener('input', () => { $('sim-tracking-verified').checked = false; });
+    }
+    window.addEventListener('surge-session', event => {
+      simOperator = Boolean(event.detail.is_current_operator);
+      updateSimulationControls();
+    });
     initSliders();
     initPresets();
     initActionButtons();
@@ -197,15 +216,13 @@
 
       slider.addEventListener('input', () => {
         valSpan.textContent = binding.format(slider.value);
-        activeParams[binding.key] = Number(slider.value);
+        simulationSettingsDirty = true;
       });
     });
 
     const lowpower = $('sim-param-lowpower');
     if (lowpower) {
-      lowpower.addEventListener('change', () => {
-        activeParams.lowpower = lowpower.checked;
-      });
+      lowpower.addEventListener('change', () => { simulationSettingsDirty = true; });
     }
 
     const btnApply = $('btn-sim-apply-physics');
@@ -237,6 +254,7 @@
           if (s) activeParams[b.key] = Number(s.value);
         });
         if (lowpower) activeParams.lowpower = lowpower.checked;
+        simulationSettingsDirty = false;
 
         const pill = $('sim-physics-applied-pill');
         if (pill) {
@@ -250,12 +268,12 @@
     const btnReset = $('btn-sim-reset-physics');
     if (btnReset) {
       btnReset.addEventListener('click', () => {
-        activeParams = { ...DEFAULT_PARAMS };
-        syncUIWithParams();
+        syncUIWithParams(DEFAULT_PARAMS);
+        simulationSettingsDirty = true;
 
         const pill = $('sim-physics-applied-pill');
         if (pill) {
-          pill.textContent = '✓ Settings reset for next run';
+          pill.textContent = 'Defaults loaded; confirm settings before starting';
           pill.style.display = 'block';
           clearTimeout(pill._timer);
           pill._timer = setTimeout(() => {
@@ -267,16 +285,16 @@
     }
   }
 
-  function syncUIWithParams() {
+  function syncUIWithParams(params = activeParams) {
     const map = {
-      'sim-param-fric': [activeParams.fric, 'val-sim-fric', v => Number(v).toFixed(1)],
-      'sim-param-yaw-amp': [activeParams.yaw, 'val-sim-yaw-amp', v => Math.round(v)],
-      'sim-param-pitch-amp': [activeParams.pitch, 'val-sim-pitch-amp', v => Math.round(v)],
-      'sim-param-freq': [activeParams.freq, 'val-sim-freq', v => Number(v).toFixed(2)],
-      'sim-param-lag': [activeParams.lag, 'val-sim-lag', v => Math.round(v)],
-      'sim-param-offset': [activeParams.offset, 'val-sim-offset', v => Math.round(v)],
-      'sim-param-bias': [activeParams.bias, 'val-sim-bias', v => Math.round(v)],
-      'sim-param-torque': [activeParams.torque, 'val-sim-torque', v => Number(v).toFixed(2)]
+      'sim-param-fric': [params.fric, 'val-sim-fric', v => Number(v).toFixed(1)],
+      'sim-param-yaw-amp': [params.yaw, 'val-sim-yaw-amp', v => Math.round(v)],
+      'sim-param-pitch-amp': [params.pitch, 'val-sim-pitch-amp', v => Math.round(v)],
+      'sim-param-freq': [params.freq, 'val-sim-freq', v => Number(v).toFixed(2)],
+      'sim-param-lag': [params.lag, 'val-sim-lag', v => Math.round(v)],
+      'sim-param-offset': [params.offset, 'val-sim-offset', v => Math.round(v)],
+      'sim-param-bias': [params.bias, 'val-sim-bias', v => Math.round(v)],
+      'sim-param-torque': [params.torque, 'val-sim-torque', v => Number(v).toFixed(2)]
     };
 
     Object.entries(map).forEach(([sliderId, [val, spanId, format]]) => {
@@ -287,7 +305,7 @@
     });
 
     const lowpower = $('sim-param-lowpower');
-    if (lowpower) lowpower.checked = Boolean(activeParams.lowpower);
+    if (lowpower) lowpower.checked = Boolean(params.lowpower);
   }
 
   // 3. Preset Selector
@@ -313,19 +331,12 @@
       btn.addEventListener('click', () => {
         const p = PRESETS[sel.value];
         if (p && sel.value !== 'custom') {
-          activeParams.yaw = p.yaw;
-          activeParams.pitch = p.pitch;
-          activeParams.freq = p.freq;
-          activeParams.lag = p.lag;
-          activeParams.offset = p.offset;
-          activeParams.bias = p.bias;
-          activeParams.fric = p.fric;
-          activeParams.torque = p.torque;
-          syncUIWithParams();
+          syncUIWithParams({...activeParams, ...p});
+          simulationSettingsDirty = true;
 
           const pill = $('sim-physics-applied-pill');
           if (pill) {
-            pill.textContent = `✓ Loaded ${p.name}`;
+            pill.textContent = `Loaded ${p.name}; confirm settings before starting`;
             pill.style.display = 'block';
             clearTimeout(pill._timer);
             pill._timer = setTimeout(() => {
@@ -337,8 +348,41 @@
       });
     }
 
+    const saveSelect = $('save-preset-pattern');
+    const saveDetails = $('save-preset-pattern-details');
+    if (saveSelect && saveDetails) {
+      for (const [key, preset] of Object.entries(PRESETS)) {
+        if (key !== 'custom') saveSelect.add(new Option(preset.name, key));
+      }
+      saveSelect.addEventListener('change', () => {
+        const preset = PRESETS[saveSelect.value];
+        saveDetails.textContent = saveSelect.value === 'custom'
+          ? 'Uses the current Operate draft.' : `${preset.summary} · ${preset.desc}`;
+      });
+    }
+
     updatePresetInfo(sel.value || 'sidewinding');
   }
+
+  function updateSimulationControls() {
+    const connect = $('btn-gen3-sim-connect');
+    const start = $('btn-gen3-sim-start');
+    if (!connect || !start) return;
+    connect.textContent = simulationState === 'connected' || simulationState === 'running'
+      ? 'Disconnect simulation engine' : simulationState === 'connecting' ? 'Connecting…'
+      : simulationState === 'disconnecting' ? 'Disconnecting…' : 'Connect simulation engine';
+    connect.disabled = !simOperator || connectionPending || simulationState === 'unknown' ||
+      simulationState === 'connecting' || simulationState === 'disconnecting' || (simulationBusy && simulationState !== 'running');
+    start.disabled = !simOperator || connectionPending || simulationBusy || simulationState !== 'connected';
+  }
+
+  window.getSimulationTracking = () => {
+    const error = $('sim-tracking-error'), timeout = $('sim-tracking-timeout');
+    if (!error || error.disabled || !error.checkValidity() || !timeout.checkValidity() || !$('sim-tracking-verified').checked) {
+      throw new Error('Review and verify simulation tracking limits on the 3D Simulation tab first');
+    }
+    return {tracking_error: error.valueAsNumber, tracking_timeout: timeout.valueAsNumber, verified: true};
+  };
 
   // Start only a finite simulation; hardware remains in the commissioning controls.
   function initActionButtons() {
@@ -351,11 +395,30 @@
       if (!response.ok) throw new Error(data.error || 'Request failed');
       return data;
     }
+    $('btn-gen3-sim-connect').addEventListener('click', async () => {
+      connectionPending = true;
+      updateSimulationControls();
+      try {
+        const disconnect = simulationState === 'connected' || simulationState === 'running';
+        const result = await command(`simulation/${disconnect ? 'disconnect' : 'connect'}`, {});
+        simulationState = result.state;
+        $('sim-connection-status').textContent = `Simulation ${simulationState}`;
+      } catch (error) {
+        $('sim-connection-status').textContent = `Simulation connection: ${error.message}`;
+      } finally {
+        connectionPending = false;
+        updateSimulationControls();
+      }
+    });
     $('btn-gen3-sim-start').addEventListener('click', async () => {
       const button = $('btn-gen3-sim-start');
       button.disabled = true;
       try {
+        if (simulationSettingsDirty) throw new Error('Confirm gait settings before starting');
+        const tracking = window.getSimulationTracking();
+        $('sim-tracking-status').textContent = 'Simulation tracking limits verified for this run.';
         await command('start', { request_id: crypto.randomUUID(), mode: 'gait', execution: 'simulation',
+          simulation_tracking: tracking,
           yaw: activeParams.yaw, pitch: activeParams.pitch, frequency: activeParams.freq,
           lag: activeParams.lag, offset: activeParams.offset, bias: activeParams.bias,
           duration: 30, ramp: 2, speed: 500 });
@@ -366,20 +429,8 @@
         state.textContent = 'Starting PyBullet simulation';
       } catch (error) {
         state.textContent = `Start failed: ${error.message}`;
-      } finally { button.disabled = false; }
-    });
-    $('btn-gen3-sim-stop').addEventListener('click', async () => {
-      try {
-        const response = await fetch('/api/gen3/status');
-        if (!response.ok) throw new Error('Could not read simulation status');
-        const status = await response.json();
-        if (!ownedRun || status.run_id !== ownedRun || status.execution !== 'simulation') {
-          state.textContent = 'No simulation started here to stop';
-          return;
-        }
-        await command('stop', { run_id: ownedRun });
-        state.textContent = 'Simulation stop requested';
-      } catch (error) { state.textContent = `Stop failed: ${error.message}`; }
+        $('sim-tracking-status').textContent = `Start failed: ${error.message}`;
+      } finally { updateSimulationControls(); }
     });
     $('btn-gen3-sim-reset').addEventListener('click', () => {
       camera.yaw = 45 * Math.PI / 180;
@@ -405,7 +456,12 @@
         const status = await response.json();
         if (generation !== simPollGeneration) return;
         isResumingSimulation = false;
-        if (status.execution === 'simulation' && (status.busy || status.run_id === ownedRun)) {
+        simulationState = status.simulation_state || 'unknown';
+        simulationBusy = Boolean(status.busy);
+        $('sim-connection-status').textContent = status.simulation_error
+          ? `Simulation connection failed: ${status.simulation_error}` : `Simulation ${simulationState}`;
+        updateSimulationControls();
+        if (status.execution === 'simulation' && ['connected', 'running'].includes(simulationState) && (status.busy || status.run_id === ownedRun)) {
           simRunning = status.busy;
           if (status.simulation_links) simulationLinks = status.simulation_links;
           state.textContent = status.status;
@@ -422,19 +478,23 @@
           }
         } else {
           simRunning = false;
+          simulationLinks = null;
           snapshotAvailable = false;
           if (state) state.textContent = 'No active simulation';
         }
         if (typeof MotionState !== 'undefined') {
-          MotionState.render(['btn-gen3-sim-start', 'btn-gen3-sim-stop'], MotionState.classify(status.status, Boolean(status.busy)));
+          MotionState.render(['btn-gen3-sim-start'], MotionState.classify(status.status, Boolean(status.busy)));
         }
       } catch (_) {
         if (generation !== simPollGeneration) return;
         isResumingSimulation = false;
+        simulationState = 'unknown';
+        updateSimulationControls();
+        $('sim-connection-status').textContent = 'Simulation status unavailable';
         snapshotAvailable = false;
         if (state) state.textContent = 'Simulation status unavailable';
         if (typeof MotionState !== 'undefined') {
-          MotionState.render(['btn-gen3-sim-start', 'btn-gen3-sim-stop'], 'unknown');
+          MotionState.render(['btn-gen3-sim-start'], 'unknown');
         }
       }
       if (generation !== simPollGeneration) return;
