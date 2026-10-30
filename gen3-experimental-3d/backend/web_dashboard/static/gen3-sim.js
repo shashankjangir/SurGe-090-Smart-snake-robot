@@ -175,19 +175,19 @@
       const headerColor = '#000000';
 
       card.innerHTML = `
-        <div class="motor-header" style="background-color: ${headerBg}; color: ${headerColor}; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
-          <span>ID ${joint.id} · ${joint.axis.toUpperCase()}</span>
-          <span style="font-size: 10px; opacity: 0.9;">Sign: ${joint.sign > 0 ? '+1' : '-1'}</span>
+        <div class="motor-header" style="background-color: ${headerBg}; color: ${headerColor}; font-weight: 700; display: flex; justify-content: space-between; align-items: center; min-width: 0; overflow: hidden;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ID ${joint.id} · ${joint.axis.toUpperCase()}</span>
+          <span style="font-size: 10px; opacity: 0.9; flex-shrink: 0;">Sign: ${joint.sign > 0 ? '+1' : '-1'}</span>
         </div>
         <div class="data-row">
           <span>Simulated angle</span>
-          <span id="sim-ang-${joint.id}" style="font-weight: 700;">Neutral (not measured)</span>
+          <span id="sim-ang-${joint.id}" style="font-weight: 700;" title="Simulated angle">Neutral (not measured)</span>
         </div>
         <div class="data-row">
           <span>Simulated counts</span>
-          <span id="sim-cnt-${joint.id}">-- (unsampled)</span>
+          <span id="sim-cnt-${joint.id}" title="Simulated counts">-- (unsampled)</span>
         </div>
-        <div class="data-row" id="sim-sample-${joint.id}">Not sampled</div>
+        <div class="data-row" id="sim-sample-${joint.id}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Not sampled</div>
         <div style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 4px;">
           <div id="sim-bar-${joint.id}" style="width: 50%; height: 100%; background: ${isPitch ? '#10b981' : '#06b6d4'}; transition: width 0.05s linear;"></div>
         </div>

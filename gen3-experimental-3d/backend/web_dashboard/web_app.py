@@ -12,6 +12,19 @@ from surge_control.runtime import ControlRuntime
 from surge_control.gen3 import Gen3Control, runner
 
 
+import os
+
+TRUSTED_PROXIES = set(filter(None, [p.strip() for p in os.environ.get('SURGE_TRUSTED_PROXIES', '127.0.0.1,::1').split(',')]))
+
+def is_request_secure():
+    if request.is_secure:
+        return True
+    if request.remote_addr in TRUSTED_PROXIES:
+        proto = request.headers.get('X-Forwarded-Proto', '').strip().lower()
+        if proto == 'https':
+            return True
+    return False
+
 def create_app(runtime=None):
     app = Flask(__name__, root_path=str(Path(__file__).resolve().parent))
     control = runtime or ControlRuntime()
@@ -31,7 +44,8 @@ def create_app(runtime=None):
     def set_session_cookie(response):
         session = getattr(g, 'current_session', None)
         if session and request.cookies.get('surge_gen3_session') != session['session_id']:
-            response.set_cookie('surge_gen3_session', session['session_id'], path='/', samesite='Lax', httponly=True)
+            is_secure = is_request_secure()
+            response.set_cookie('surge_gen3_session', session['session_id'], path='/', samesite='Lax', httponly=True, secure=is_secure)
         return response
 
     @app.before_request
@@ -109,6 +123,10 @@ def create_app(runtime=None):
 
     @app.post('/api/gen3/session/login')
     def gen3_session_login():
+        is_loopback = request.remote_addr in ('127.0.0.1', '::1', 'localhost', None)
+        is_secure = is_request_secure()
+        if not is_loopback and not is_secure:
+            return jsonify(error='Operator credentials must not be transmitted over remote plaintext HTTP. Use HTTPS or connect locally.'), 403
         data = request.get_json(silent=True) or {}
         name = data.get('name')
         password = data.get('password')
@@ -351,6 +369,9 @@ def create_app(runtime=None):
         with control.lock:
             if gen3.state['busy']:
                 raise RuntimeError('Stop the Gen 3 job first')
+            session = get_current_session(create_if_missing=True)
+            if not session or not gen3.sessions.is_operator(session['session_id']):
+                return jsonify(error='Operator mode required'), 403
             if control.state["is_running"]:
                 control.disconnect()
                 return jsonify(success=True, status="Disconnected")
@@ -391,6 +412,9 @@ def create_app(runtime=None):
                     and control.state['status'] == 'Stopped; torque off'
                     and control.state['path_progress'] > .2):
                 report = report_data()
+            elif not new_path and data.get("include_report") and control.state['engine'] == 'SIM' and data.get("snapshot"):
+                # Explicit snapshot requested on Clear Canvas
+                report = report_data(force=True)
             control.set_path(new_path)
             revision = control.path_revision
         return jsonify(success=True, report=report, path_revision=revision)
@@ -427,17 +451,47 @@ def create_app(runtime=None):
             cpu, ram = 0., 0.
         return jsonify(cpu=cpu, ram=ram, temp="N/A")
 
-    def report_data():
+    report_cache = {}
+
+    def report_data(force=False):
+        progress, revision = control.state["path_progress"], control.path_revision
+        actual_len = len(control.state["actual_path"])
+        target_len = len(control.state["target_path"])
+        cache_key = (revision, target_len, actual_len, progress, force)
+        if cache_key in report_cache:
+            return report_cache[cache_key]
+
         target, actual = copy.deepcopy((control.state["target_path"], control.state["actual_path"]))
         errors = list(control.report_errors)
-        progress, revision = control.state["path_progress"], control.path_revision
         if len(target) < 2 or progress < .2 - 1e-9 or len(errors) < 2:
-            return None
-        error = sum(errors) / len(errors)
-        return dict(avg_error=error, accuracy_percent=max(0, 100*(1-error/.5)),
-                    metric="Simulation visualization score = max(0, 100 × (1 − average deviation / 0.5 m)); not physical accuracy",
-                    sample_count=len(errors), trace_sample_count=len(actual), path_progress=progress, path_revision=revision,
-                    target_path=target, actual_path=actual)
+            if not force:
+                return None
+            outcome = "cleared while running" if (control.state['is_running'] and not control.state['is_paused']) else (
+                "completed" if control.state.get("status") == "Path Complete" else (
+                    "failed" if "stalled" in (control.state.get("status") or "").lower() else "stopped"
+                )
+            )
+            return dict(outcome=outcome, avg_error=0.0, accuracy_percent=0.0,
+                        sample_count=len(errors), trace_sample_count=len(actual),
+                        path_progress=progress, path_revision=revision,
+                        target_path=target, actual_path=actual,
+                        duration_s=round(control.state.get("sim_time", 0.0), 2),
+                        metric="Snapshot at clear")
+        # Enforce hard computation budget: cap error samples to 10,000 max
+        bounded_errors = errors[-10000:]
+        error = sum(bounded_errors) / len(bounded_errors)
+        outcome = "completed" if control.state.get("status") == "Path Complete" else (
+            "failed" if "stalled" in (control.state.get("status") or "").lower() else "stopped"
+        )
+        res = dict(outcome=outcome, avg_error=error, accuracy_percent=max(0, 100*(1-error/.5)),
+                   metric="Simulation visualization score = max(0, 100 × (1 − average deviation / 0.5 m)); not physical accuracy",
+                   sample_count=len(bounded_errors), trace_sample_count=len(actual), path_progress=progress, path_revision=revision,
+                   target_path=target, actual_path=actual,
+                   duration_s=round(control.state.get("sim_time", 0.0), 2))
+        if len(report_cache) > 20:
+            report_cache.clear()
+        report_cache[cache_key] = res
+        return res
 
     @app.get("/api/report")
     def report():

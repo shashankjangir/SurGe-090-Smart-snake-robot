@@ -51,6 +51,10 @@ static const uint8_t INST_SYNC_WRITE = 0x83;
 static const uint8_t BROADCAST_ID = 0xFE;
 
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t kAuthorizedControllerMac[6] = SURGE_AUTHORIZED_CONTROLLER_MAC;
+static const uint8_t kAuthKey[] = SURGE_PROVISIONED_AUTH_KEY;
+static uint32_t g_last_cmd_seq = 0;
+static uint32_t g_last_cmd_epoch = 0;
 
 static bool g_run = false;
 static volatile int8_t pendingRun = -1;
@@ -241,15 +245,48 @@ static void applyCommand(const RobotCommand *cmd) {
 
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
 void onRecv(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-  (void)info;
+  const uint8_t *src_mac = info ? info->src_addr : nullptr;
 #else
 void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
-  (void)mac;
+  const uint8_t *src_mac = mac;
 #endif
+  if (!data || len <= 0) return;
+
+  // Authenticated command packet (CR-10 remediation)
+  if (len == (int)sizeof(AuthRobotCommand)) {
+    AuthRobotCommand cmd;
+    memcpy(&cmd, data, sizeof(cmd));
+
+    // Emergency STOP is always honored if magic matches
+    if (cmd.magic == SURGE_CMD_MAGIC && cmd.opcode == SURGE_OP_STOP) {
+      queueRun(false);
+      return;
+    }
+
+    // Check authorized sender MAC allowlist
+    if (src_mac && !surge_is_mac_authorized(src_mac, kAuthorizedControllerMac)) {
+      return;
+    }
+
+    // Verify cryptographic HMAC-SHA256 tag and replay protection
+    if (surge_verify_auth_command(cmd, kAuthKey, sizeof(kAuthKey),
+                                  g_last_cmd_seq, g_last_cmd_epoch)) {
+      if (cmd.opcode == SURGE_OP_RUN) {
+        queueRun(true);
+      } else if (cmd.opcode == SURGE_OP_STOP) {
+        queueRun(false);
+      }
+    }
+    return;
+  }
+
+  // Legacy commands: only emergency STOP is honored; unauthenticated RUN is rejected
   if (len == (int)sizeof(RobotCommand)) {
     RobotCommand cmd;
     memcpy(&cmd, data, sizeof(cmd));
-    queueRun(cmd.run);
+    if (cmd.run == 0) {
+      queueRun(false);
+    }
   }
 }
 

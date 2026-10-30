@@ -1,4 +1,6 @@
 #include "../common/serial_line.h"
+#include "../common/surge_auth.h"
+#include "../common/surge_credentials.h"
 #include <WiFi.h>
 #include <esp_now.h>
 #include <esp_wifi.h>
@@ -9,6 +11,7 @@ esp_now_peer_info_t peerInfo;
 struct RadioReply { char text[250]; };
 QueueHandle_t replies;
 bool radioReady = false;
+static uint32_t g_tx_seq = 0;
 volatile bool sendPending = false, deliveryFailed = false;
 portMUX_TYPE sendMux = portMUX_INITIALIZER_UNLOCKED;
 void OnDataSent(const uint8_t *, esp_now_send_status_t status) {
@@ -26,8 +29,26 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
   const uint8_t *mac = info->src_addr;
   #endif
-  // Only the receiver may supply control replies; sensor broadcasts remain separate.
-  if (memcmp(mac, receiverAddress, 6) != 0 && !(len >= 2 && data[0] == 'T' && data[1] == ':')) return;
+  // CR-04: Reject any packet with embedded CR, LF, NUL, or non-printable ASCII characters
+  for (int i = 0; i < len; ++i) {
+    if (data[i] == '\r' || data[i] == '\n' || data[i] == '\0' || data[i] < 32 || data[i] > 126) {
+      return;
+    }
+  }
+
+  // Sender filtering and strict sensor schema validation
+  bool is_receiver = (memcmp(mac, receiverAddress, 6) == 0);
+  if (!is_receiver) {
+    // Sensor broadcast: must strictly be "T:<numeric>" and not mimic receiver control codes
+    if (len < 3 || data[0] != 'T' || data[1] != ':') return;
+    for (int i = 2; i < len; ++i) {
+      char c = (char)data[i];
+      if (!((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+')) {
+        return; // Reject any packet containing commas, letters, or fake replies
+      }
+    }
+  }
+
   RadioReply reply = {};
   memcpy(reply.text, data, len);
   if (xQueueSend(replies, &reply, 0) != pdTRUE) {
@@ -78,7 +99,20 @@ void loop() {
       ledState = !ledState;
       digitalWrite(2, ledState ? HIGH : LOW);
       portENTER_CRITICAL(&sendMux); sendPending = true; portEXIT_CRITICAL(&sendMux);
-      if (esp_now_send(receiverAddress, (uint8_t *)req.c_str(), req.length()) != ESP_OK) {
+      char txBuf[250];
+      size_t txLen = 0;
+      if (req == "STOP") {
+        strncpy(txBuf, "STOP", sizeof(txBuf));
+        txLen = 4;
+      } else if (req.startsWith("AUTH,")) {
+        strncpy(txBuf, req.c_str(), sizeof(txBuf));
+        txLen = req.length();
+      } else {
+        txLen = surge_sign_text_command(++g_tx_seq, req.c_str(),
+                                       kSurgeAuthKey, sizeof(kSurgeAuthKey),
+                                       txBuf, sizeof(txBuf));
+      }
+      if (txLen == 0 || esp_now_send(receiverAddress, (uint8_t *)txBuf, txLen) != ESP_OK) {
         portENTER_CRITICAL(&sendMux); sendPending = false; portEXIT_CRITICAL(&sendMux);
         Serial.println("ERR,RADIO,SEND");
       }

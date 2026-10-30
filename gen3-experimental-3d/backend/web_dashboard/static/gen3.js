@@ -988,15 +988,14 @@ function renderPresets() {
   presets.forEach(p => {
     select.add(new Option(p.name, p.name));
     const card = document.createElement('div');
-    card.className = 'preset-card';
+    card.className = 'preset-card compact-preset-card';
     card.innerHTML = `
       <label class="preset-choice">
         <input type="radio" name="gait-preset-choice">
         <span class="preset-choice-content">
-          <strong>${escapeHTML(p.name)}</strong>
+          <strong class="preset-name">${escapeHTML(p.name)}</strong>
+          <span class="preset-specs-compact">Yaw ${escapeHTML(p.yaw)}° · Pitch ${escapeHTML(p.pitch)}° · ${escapeHTML(p.frequency)} Hz · ${escapeHTML(p.speed)} cnt/s</span>
           <span class="preset-description">${escapeHTML(p.description || '')}</span>
-          <span class="preset-specs">Yaw ${escapeHTML(p.yaw)}° · Pitch ${escapeHTML(p.pitch)}° · ${escapeHTML(p.frequency)} Hz</span>
-          <span class="preset-specs">${escapeHTML(p.speed)} counts/s · Ramp ${escapeHTML(p.ramp)} s · Duration ${escapeHTML(p.duration)} s</span>
         </span>
       </label>
       <div class="preset-actions">
@@ -1019,7 +1018,52 @@ function renderPresets() {
     list.append(card);
   });
   initAnimatedBackground(list, { itemSelector: '.preset-card', enableHover: true });
+  wireRunsSimulationGaitControls();
   updatePresetSelection();
+}
+
+function wireRunsSimulationGaitControls() {
+  const runsYaw = $('runs-sim-yaw');
+  const runsPitch = $('runs-sim-pitch');
+  const runsFreq = $('runs-sim-freq');
+  const runsLag = $('runs-sim-lag');
+  const simYaw = $('sim-param-yaw-amp');
+  const simPitch = $('sim-param-pitch-amp');
+  const simFreq = $('sim-param-freq');
+  const simLag = $('sim-param-lag');
+
+  if (runsYaw && simYaw && !runsYaw._wired) {
+    runsYaw._wired = true;
+    const syncFromSim = () => {
+      runsYaw.value = simYaw.value;
+      if (runsPitch && simPitch) runsPitch.value = simPitch.value;
+      if (runsFreq && simFreq) runsFreq.value = simFreq.value;
+      if (runsLag && simLag) runsLag.value = simLag.value;
+    };
+    simYaw.addEventListener('input', syncFromSim);
+    if (simPitch) simPitch.addEventListener('input', syncFromSim);
+    if (simFreq) simFreq.addEventListener('input', syncFromSim);
+    if (simLag) simLag.addEventListener('input', syncFromSim);
+    syncFromSim();
+
+    $('btn-runs-apply-sim')?.addEventListener('click', () => {
+      simYaw.value = runsYaw.value;
+      if (simPitch && runsPitch) simPitch.value = runsPitch.value;
+      if (simFreq && runsFreq) simFreq.value = runsFreq.value;
+      if (simLag && runsLag) simLag.value = runsLag.value;
+      $('btn-sim-apply-physics')?.click();
+      const pill = $('runs-sim-applied-pill');
+      if (pill) {
+        pill.style.display = 'block';
+        setTimeout(() => { pill.style.display = 'none'; }, 2000);
+      }
+    });
+
+    $('btn-runs-reset-sim')?.addEventListener('click', () => {
+      $('btn-sim-reset-physics')?.click();
+      syncFromSim();
+    });
+  }
 }
 
 function updatePresetSelection() {
@@ -1417,10 +1461,12 @@ async function pollSystemStats() {
     updateSpeedDemand();
     if (tabNavAnimated) tabNavAnimated.sync();
     if (modeTogglesAnimated) modeTogglesAnimated.sync();
+    window.SurgeGenerationTransition?.ready();
     await poll();
     await pollSystemStats();
   } catch (err) {
     showError(err);
+    window.SurgeGenerationTransition?.fail();
   }
   async function updateLoop() {
     await poll();

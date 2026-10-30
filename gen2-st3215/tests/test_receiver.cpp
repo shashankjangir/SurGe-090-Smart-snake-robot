@@ -55,6 +55,17 @@ int main() {
   assert(lastRadioReply == "ERR,STOP,TORQUE_OFF_UNCONFIRMED");
   st.failedReadID = st.lostWriteAckID = st.lostTorqueAckID = 0;
   processCommand("STOP");
+  // CR-06: Repeated RUN must NOT refresh position watchdog without position target
+  processCommand("RUN");
+  assert(armed);
+  fakeTime += 500;
+  processCommand("RUN");
+  assert(lastRadioReply == "OK,RUN,ALREADY_ARMED");
+  fakeTime += 300; // total 800 ms since arming > WATCHDOG_MS (750 ms)
+  loop();
+  assert(!armed);
+  assert(lastRadioReply == "STOP,WATCHDOG");
+
   processCommand("RUN");
   fakeTime += WATCHDOG_MS + 1;
   loop();
@@ -72,7 +83,33 @@ int main() {
   processCommand("D");
   assert(lastRadioReply == "ERR,DIAGNOSTIC,STOP_FIRST");
   processCommand("STOP");
+  // CR-02: Test maintenance gate on I, (EEPROM write protection)
+  processCommand("I,5");
+  assert(lastRadioReply == "ERR,MAINTENANCE_LOCKED");
+  processCommand("MAINT,UNLOCK,CONFIRM");
+  assert(lastRadioReply == "OK,MAINTENANCE_UNLOCKED");
+  processCommand("I,5");
+  assert(lastRadioReply == "ID_SET_OK");
+  // Auto-relocks after write:
+  processCommand("I,6");
+  assert(lastRadioReply == "ERR,MAINTENANCE_LOCKED");
+
   uint8_t transmitter[6] = {0x68,0x09,0x47,0x5c,0x10,0xec};
+  memcpy(authorizedTransmitter, transmitter, 6);
+  // CR-02: Unknown MAC cannot send RUN or HELLO
+  uint8_t rogue[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+  const uint8_t run_cmd[] = "RUN";
+  OnDataRecv(rogue, run_cmd, 3);
+  loop();
+  assert(!armed);
+  // Emergency STOP is accepted from anyone
+  processCommand("RUN");
+  assert(armed);
+  const uint8_t rogue_stop[] = "STOP";
+  OnDataRecv(rogue, rogue_stop, 4);
+  loop();
+  assert(!armed);
+
   const uint8_t hello[] = "HELLO";
   OnDataRecv(transmitter, hello, 5);
   loop();

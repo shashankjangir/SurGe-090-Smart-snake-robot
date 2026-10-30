@@ -11,6 +11,13 @@ dashboard restoration with math presets and simulation physics commit, interacti
 and full test verification (79 Gen 3 tests, 31 Gen 2 tests, 12 Node test suites). Hardware calibration
 and owner observations remain unchanged.
 
+Simulation UX & Controls Update, 30 October 2026: read `SURGE_090_SIMULATION_UX_FIX_PLAN.md` and
+`GEN3_PROGRESS.md` (Section 8) for the completed simulation improvements: full path traversal without
+premature stopping, nearest-point acquisition and cross-track PID steering, physics parameter descriptions
+and compact Gen 3 grouped accordion, Clear Canvas result snapshot with 60s history, compact Runs gait
+cards with live sim sync, separated Joint Map Calibration and Safety Limits cards, and zero numeric
+telemetry overflow on all viewports. Hardware remained completely untouched.
+
 ## Start here in a new chat
 
 1. Read this file, `gen3-experimental-3d/joint_map.json`, and the working tree status.
@@ -402,3 +409,30 @@ values. They are passed only with simulation jobs, validated on the server, and
 recorded in the run manifest as effective simulation tracking settings. They do not
 write the physical map. Physical calibration verification, limits and map revision
 checks remain in place. The simulator remains illustrative, not a calibrated twin.
+
+
+## Security Architecture & Protocol V3 Update (30 October 2026)
+
+Following an independent revalidation audit of CodeRabbit findings CR-01 through CR-10:
+1. **Radio Cryptographic MAC:** Replaced keyed FNV-1a with RFC 2104 HMAC-SHA256 across all ESP-NOW control and telemetry channels (`surge_auth.h` and `surge_protocol.h`).
+2. **Key Provisioning:** Private credentials are excluded from version control via `.gitignore` and provisioned locally in `gen2-st3215/firmware/common/surge_credentials.h` (template in `surge_credentials.h.example`).
+3. **Privileged Command Gate:** Radio commands to `receiver_gen2_1` require signed text format `AUTH,<seq>,<tag_hex_16>,<cmd>` and advancing sequence numbers. EEPROM servo ID writes (`I,<id>`) are gated behind `MAINT,UNLOCK,CONFIRM` with a 15-second expiration and single-use auto-relock.
+4. **Emergency Stop:** Immediate unauthenticated `STOP` execution is preserved fail-safe without cryptographic prerequisites.
+5. **Backend Proxy Hardening:** `web_app.py` enforces a `TRUSTED_PROXIES` allowlist (default `127.0.0.1,::1`), preventing remote clients on plaintext HTTP from spoofing HTTPS via `X-Forwarded-Proto`.
+6. **Report Caching:** Dynamic cache key `(revision, actual_len, target_len, progress, error_count)` eliminates stale simulation report anomalies.
+7. **Audit Record:** Full details, tests, and hardware validation checklist are documented in `docs/audits/SURGE_090_SECURITY_REVALIDATION.md` and `docs/audits/SURGE_090_CODERABBIT_REMEDIATION_REPORT.md`.
+
+## 3D Robotic-Snake Generation Transition Update (30 October 2026)
+
+The cross-dashboard navigation between Gen 2.1 (`/`) and Gen 3 (`/gen3`) features a bespoke 3D robotic-snake loading transition:
+1. **Design & Behavior:**
+   - 3.0s paced sequence: outgoing dashboard fade (0–0.4s), distant snake emergence (0.4–1.1s), camera approach with natural serpentine wave (1.1–2.4s), UI readiness gate hold at 2.4s, and destination reveal wipe (2.4–3.0s).
+   - Three.js 3D model with 11 links and 10 joints: Gen 3 transitions use spatial alternating pitch/yaw articulation (mint/blue links); Gen 2.1 transitions use planar yaw articulation.
+   - Ground shadow grid, soft lighting, and Playdate/Slush palette matching the rest of the interface.
+2. **Readiness Gate & Error Fallback:**
+   - The transition holds at 2.4s until the incoming dashboard signals `window.SurgeGenerationTransition.ready()`, avoiding white flashes or partially mounted controls.
+   - Automatically degrades to a static SVG serpentine track if WebGL is unavailable or when `prefers-reduced-motion` is active.
+   - 10-second timeout on stalled initialization presents a recovery overlay with Retry / Go Back options and releases GPU memory.
+   - Embedded 3D viewer (`3d_viewer.html`) hardened with `try...catch` against WebGL absence, ensuring zero uncaught page errors.
+3. **Verification:**
+   - Verified across desktop (1440px), mobile (390px), keyboard tab/enter activation, history back/forward traversal, and rapid-click debouncing via `gen3-experimental-3d/tests/test_generation_transition_browser.py` (16/16 checks passing). Recorded in `.scratch/generation-switch/verification.md`.

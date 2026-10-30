@@ -104,6 +104,11 @@ static const uint8_t INST_SYNC_WRITE = 0x83;
 static const uint8_t BROADCAST_ID = 0xFE;
 
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t kAuthorizedControllerMac[6] = SURGE_AUTHORIZED_CONTROLLER_MAC;
+static const uint8_t kAuthKey[] = SURGE_PROVISIONED_AUTH_KEY;
+static uint32_t g_last_cmd_seq = 0;
+static uint32_t g_last_cmd_epoch = 0;
+static uint32_t g_telem_seq = 0;
 
 // ---------------------------------------------------------------- state
 enum Mode : uint8_t { MODE_IDLE, MODE_STARTING, MODE_CENTER, MODE_GAIT };
@@ -370,15 +375,48 @@ static void imuRead(int16_t acc_mg[3], int16_t gyro_dps_x10[3]) {
 // ================================================================ radio
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
 void onRecv(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-  (void)info;
+  const uint8_t *src_mac = info ? info->src_addr : nullptr;
 #else
 void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
-  (void)mac;
+  const uint8_t *src_mac = mac;
 #endif
+  if (!data || len <= 0) return;
+
+  // Authenticated command packet (CR-01 remediation)
+  if (len == (int)sizeof(AuthRobotCommand)) {
+    AuthRobotCommand cmd;
+    memcpy(&cmd, data, sizeof(cmd));
+
+    // Emergency STOP is always honored if magic matches
+    if (cmd.magic == SURGE_CMD_MAGIC && cmd.opcode == SURGE_OP_STOP) {
+      queueRun(false);
+      return;
+    }
+
+    // Check authorized sender MAC allowlist
+    if (src_mac && !surge_is_mac_authorized(src_mac, kAuthorizedControllerMac)) {
+      return;
+    }
+
+    // Verify cryptographic HMAC-SHA256 tag and replay protection
+    if (surge_verify_auth_command(cmd, kAuthKey, sizeof(kAuthKey),
+                                  g_last_cmd_seq, g_last_cmd_epoch)) {
+      if (cmd.opcode == SURGE_OP_RUN) {
+        queueRun(true);
+      } else if (cmd.opcode == SURGE_OP_STOP) {
+        queueRun(false);
+      }
+    }
+    return;
+  }
+
+  // Legacy commands: only emergency STOP is honored; unauthenticated RUN is rejected
   if (len == (int)sizeof(RobotCommand)) {
     RobotCommand cmd;
     memcpy(&cmd, data, sizeof(cmd));
-    if (cmd.run <= 1) queueRun(cmd.run);
+    if (cmd.run == 0) {
+      queueRun(false);
+    }
   }
 }
 
@@ -535,7 +573,13 @@ void loop() {
     memcpy(tel.acc_mg, acc, sizeof(acc));
     memcpy(tel.gyro_dps_x10, gyro, sizeof(gyro));
     tel.vin_deciV = vmin;
-    esp_now_send(kBroadcastMac, (uint8_t *)&tel, sizeof(tel));
+    AuthRobotTelemetry auth_tel = {};
+    auth_tel.magic = SURGE_TELEM_MAGIC;
+    auth_tel.version = SURGE_CRYPTO_VERSION;
+    auth_tel.seq = ++g_telem_seq;
+    auth_tel.data = tel;
+    surge_sign_auth_telemetry(auth_tel, kAuthKey, sizeof(kAuthKey));
+    esp_now_send(kBroadcastMac, (uint8_t *)&auth_tel, sizeof(auth_tel));
 
     int total = 0;
     for (int i = 0; i < NUM_JOINTS; i++) total += abs(cur[i]);

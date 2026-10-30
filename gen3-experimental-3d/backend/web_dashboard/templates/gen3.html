@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/gen3.css">
   <link rel="stylesheet" href="/static/generation-switch.css">
+  <link rel="stylesheet" href="/static/generation-transition.css">
+  <script src="/static/generation-transition.js"></script>
   <link rel="stylesheet" href="/static/team-footer.css">
   <link rel="stylesheet" href="/static/halo-select.css">
   <link rel="stylesheet" href="/static/hover-background.css">
@@ -384,52 +386,67 @@
             </div>
             <p class="physics-help">Confirm gait changes before starting a run. The model is illustrative and is not calibrated for predicting robot travel.</p>
             
-            <div class="input-group">
-              <label for="sim-param-yaw-amp">Yaw Amplitude (deg): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
-              <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="70" step="1" value="30" aria-describedby="help-sim-yaw">
-              <span class="physics-help" id="help-sim-yaw">Horizontal bending angle on IDs 2, 4, 6, 8, 10. Clamped to ±70°.</span>
-            </div>
+            <details class="sim-physics-group" open>
+              <summary class="sim-group-heading"><strong>Motion &amp; Kinematics</strong></summary>
+              <div class="sim-group-content">
+                <div class="input-group">
+                  <label for="sim-param-yaw-amp">Yaw Amplitude (deg): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
+                  <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="70" step="1" value="30" aria-describedby="help-sim-yaw">
+                  <span class="physics-help" id="help-sim-yaw">Horizontal bending angle on IDs 2, 4, 6, 8, 10. Clamped to ±70°.</span>
+                </div>
 
-            <div class="input-group">
-              <label for="sim-param-pitch-amp">Pitch Amplitude (deg): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
-              <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="70" step="1" value="25" aria-describedby="help-sim-pitch">
-              <span class="physics-help" id="help-sim-pitch">Vertical lifting angle on IDs 1, 3, 5, 7, 9. Clamped to ±70°.</span>
-            </div>
+                <div class="input-group">
+                  <label for="sim-param-pitch-amp">Pitch Amplitude (deg): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
+                  <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="70" step="1" value="25" aria-describedby="help-sim-pitch">
+                  <span class="physics-help" id="help-sim-pitch">Vertical lifting angle on IDs 1, 3, 5, 7, 9. Clamped to ±70°.</span>
+                </div>
 
-            <div class="input-group">
-              <label for="sim-param-freq">Wave Frequency (Hz): <span id="val-sim-freq" style="font-family: monospace;">0.50</span> Hz</label>
-              <input type="range" id="sim-param-freq" class="sim-param" min="0.05" max="0.6" step="0.05" value="0.10" aria-describedby="help-sim-freq">
-              <span class="physics-help" id="help-sim-freq">Temporal frequency of traveling wave cycle.</span>
-            </div>
+                <div class="input-group">
+                  <label for="sim-param-freq">Wave Frequency (Hz): <span id="val-sim-freq" style="font-family: monospace;">0.50</span> Hz</label>
+                  <input type="range" id="sim-param-freq" class="sim-param" min="0.05" max="0.6" step="0.05" value="0.10" aria-describedby="help-sim-freq">
+                  <span class="physics-help" id="help-sim-freq">Temporal frequency of traveling wave cycle (0.05–0.60 Hz).</span>
+                </div>
+              </div>
+            </details>
 
-            <div class="input-group">
-              <label for="sim-param-lag">Inter-segment Phase Lag (deg): <span id="val-sim-lag" style="font-family: monospace;">90</span>°</label>
-              <input type="range" id="sim-param-lag" class="sim-param" min="10" max="180" step="5" value="90" aria-describedby="help-sim-lag">
-              <span class="physics-help" id="help-sim-lag">Phase shift between successive joints of the same axis.</span>
-            </div>
+            <details class="sim-physics-group" open>
+              <summary class="sim-group-heading"><strong>Wave Coordination &amp; Steering</strong></summary>
+              <div class="sim-group-content">
+                <div class="input-group">
+                  <label for="sim-param-lag">Inter-segment Phase Lag (deg): <span id="val-sim-lag" style="font-family: monospace;">90</span>°</label>
+                  <input type="range" id="sim-param-lag" class="sim-param" min="10" max="180" step="5" value="90" aria-describedby="help-sim-lag">
+                  <span class="physics-help" id="help-sim-lag">Phase shift between successive joints of the same axis (10°–180°).</span>
+                </div>
 
-            <div class="input-group">
-              <label for="sim-param-offset">Pitch-to-Yaw Wave Offset (deg): <span id="val-sim-offset" style="font-family: monospace;">90</span>°</label>
-              <input type="range" id="sim-param-offset" class="sim-param" min="-180" max="180" step="5" value="90" aria-describedby="help-sim-offset">
-              <span class="physics-help" id="help-sim-offset">Phase difference between pitch and yaw waves (90° = sidewinding helix).</span>
-            </div>
+                <div class="input-group">
+                  <label for="sim-param-offset">Pitch-to-Yaw Wave Offset (deg): <span id="val-sim-offset" style="font-family: monospace;">90</span>°</label>
+                  <input type="range" id="sim-param-offset" class="sim-param" min="-180" max="180" step="5" value="90" aria-describedby="help-sim-offset">
+                  <span class="physics-help" id="help-sim-offset">Phase difference between pitch and yaw waves (-180°–+180°; 90° = sidewinding helix).</span>
+                </div>
 
-            <div class="input-group">
-              <label for="sim-param-bias">Yaw Steering Bias (deg): <span id="val-sim-bias" style="font-family: monospace;">0</span>°</label>
-              <input type="range" id="sim-param-bias" class="sim-param" min="-30" max="30" step="1" value="0" aria-describedby="help-sim-bias">
-              <span class="physics-help" id="help-sim-bias">Constant yaw angle offset for curved steering.</span>
-            </div>
+                <div class="input-group">
+                  <label for="sim-param-bias">Yaw Steering Bias (deg): <span id="val-sim-bias" style="font-family: monospace;">0</span>°</label>
+                  <input type="range" id="sim-param-bias" class="sim-param" min="-30" max="30" step="1" value="0" aria-describedby="help-sim-bias">
+                  <span class="physics-help" id="help-sim-bias">Constant yaw angle offset for curved steering (-30°–+30°).</span>
+                </div>
+              </div>
+            </details>
 
-            <fieldset class="simulation-tracking-settings">
-              <legend>Simulation tracking limits</legend>
-              <p>These values apply only to this simulation run; the saved physical map is unchanged.</p>
-              <div class="input-group"><label for="sim-tracking-error">Tracking error threshold (counts)</label>
-                <input id="sim-tracking-error" type="number" min="1" max="796" step="any" disabled required></div>
-              <div class="input-group"><label for="sim-tracking-timeout">Tracking timeout (seconds)</label>
-                <input id="sim-tracking-timeout" type="number" min="0.1" max="2" step="any" disabled required></div>
-              <label class="check"><input id="sim-tracking-verified" type="checkbox" disabled> I verified these simulation limits.</label>
-              <p id="sim-tracking-status" role="status">Loading saved map settings…</p>
-            </fieldset>
+            <details class="sim-physics-group">
+              <summary class="sim-group-heading"><strong>Tracking &amp; Safety Limits</strong></summary>
+              <div class="sim-group-content">
+                <fieldset class="simulation-tracking-settings">
+                  <legend>Simulation tracking limits</legend>
+                  <p>These values apply only to this simulation run; the saved physical map is unchanged.</p>
+                  <div class="input-group"><label for="sim-tracking-error">Tracking error threshold (counts)</label>
+                    <input id="sim-tracking-error" type="number" min="1" max="796" step="any" disabled required></div>
+                  <div class="input-group"><label for="sim-tracking-timeout">Tracking timeout (seconds)</label>
+                    <input id="sim-tracking-timeout" type="number" min="0.1" max="2" step="any" disabled required></div>
+                  <label class="check"><input id="sim-tracking-verified" type="checkbox" disabled> I verified these simulation limits.</label>
+                  <p id="sim-tracking-status" role="status">Loading saved map settings…</p>
+                </fieldset>
+              </div>
+            </details>
             <div class="sim-settings-actions">
               <button type="button" id="btn-sim-apply-physics" class="btn btn-primary">Confirm settings</button>
               <button type="button" id="btn-sim-reset-physics" class="btn btn-secondary">Set to Default</button>
@@ -661,12 +678,39 @@
           <div class="preset-picker">
             <fieldset class="preset-options">
               <legend>Choose a gait for your next draft</legend>
-              <div id="presets-list" class="presets-grid"></div>
+              <div id="presets-list" class="presets-grid compact-preset-grid"></div>
             </fieldset>
             <div class="preset-footer">
               <p id="preset-selection-status" role="status" aria-live="polite">Select a preset to compare its settings.</p>
               <button id="load-selected-preset" type="button" class="btn-primary" disabled>Load selected preset</button>
             </div>
+          </div>
+          <div class="runs-sim-gait-card">
+            <h3>Simulation Gait Settings</h3>
+            <p class="preset-save-help">Synchronized live with the 3D Simulation engine parameters.</p>
+            <div class="controls-grid" style="grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div class="control-group">
+                <label for="runs-sim-yaw">Yaw Amp (°)</label>
+                <input id="runs-sim-yaw" type="number" min="0" max="70" step="1" value="30">
+              </div>
+              <div class="control-group">
+                <label for="runs-sim-pitch">Pitch Amp (°)</label>
+                <input id="runs-sim-pitch" type="number" min="0" max="70" step="1" value="25">
+              </div>
+              <div class="control-group">
+                <label for="runs-sim-freq">Freq (Hz)</label>
+                <input id="runs-sim-freq" type="number" min="0.05" max="0.6" step="0.05" value="0.10">
+              </div>
+              <div class="control-group">
+                <label for="runs-sim-lag">Lag (°)</label>
+                <input id="runs-sim-lag" type="number" min="10" max="180" step="5" value="90">
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button type="button" id="btn-runs-apply-sim" class="btn btn-primary btn-sm" style="flex: 1;">Apply to Sim</button>
+              <button type="button" id="btn-runs-reset-sim" class="btn btn-secondary btn-sm">Reset</button>
+            </div>
+            <div id="runs-sim-applied-pill" style="display: none; font-size: 11px; font-weight: 700; color: var(--color-btn-start, #15803d); text-align: center; margin-top: 4px;">✓ Simulation Gait Applied</div>
           </div>
           <form id="save-preset-form" class="save-preset-card">
             <h3>Save Current Draft as Preset</h3>
@@ -777,55 +821,58 @@
         </div>
       </section>
 
-      <div class="diagnostics-layout">
-      <section class="card" aria-labelledby="cal-map-heading">
-        <h2 id="cal-map-heading">Joint Map Calibration (Physical Order)</h2>
-        <p id="calibration-state"></p>
-        <p class="concurrency-note">Optimistic concurrency active: revision token <code id="map-revision-token">—</code>. Concurrent saves from other tabs will be detected and rejected.</p>
-
+      <div class="diagnostics-layout calibration-split-layout">
         <form id="map-form">
-          <div class="table-scroll" role="region" tabindex="0" aria-label="Joint calibration table">
-            <table>
-              <caption class="sr-only">Joint calibration map</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Order</th>
-                  <th scope="col">ID</th>
-                  <th scope="col">Axis</th>
-                  <th scope="col">Sign</th>
-                  <th scope="col">Straight Zero</th>
-                  <th scope="col">Minimum</th>
-                  <th scope="col">Maximum</th>
-                </tr>
-              </thead>
-              <tbody id="joint-map-body"></tbody>
-            </table>
-          </div>
-          <div class="map-settings">
-          <h3>Saved map safety settings</h3>
-          <div class="controls-grid">
-            <div class="control-group">
-              <label for="cal-speed">Default Map Speed (counts/s)</label>
-              <input id="cal-speed" type="number" min="1" max="1500" required>
+          <section class="card calibration-map-card" aria-labelledby="cal-map-heading">
+            <h2 id="cal-map-heading">Joint Map Calibration (Physical Order)</h2>
+            <p id="calibration-state"></p>
+            <p class="concurrency-note">Optimistic concurrency active: revision token <code id="map-revision-token">—</code>. Concurrent saves from other tabs will be detected and rejected.</p>
+
+            <div class="table-scroll" role="region" tabindex="0" aria-label="Joint calibration table">
+              <table>
+                <caption class="sr-only">Joint calibration map</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Order</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Axis</th>
+                    <th scope="col">Sign</th>
+                    <th scope="col">Straight Zero</th>
+                    <th scope="col">Minimum</th>
+                    <th scope="col">Maximum</th>
+                  </tr>
+                </thead>
+                <tbody id="joint-map-body"></tbody>
+              </table>
             </div>
-            <div class="control-group">
-              <label for="tracking-error">Tracking Error Threshold (counts)</label>
-              <input id="tracking-error" type="number" min="1" max="796" required>
+          </section>
+
+          <section class="card safety-limits-card" aria-labelledby="safety-limits-heading">
+            <h2 id="safety-limits-heading">Saved Map Safety Limits</h2>
+            <div class="map-settings">
+              <div class="controls-grid">
+                <div class="control-group">
+                  <label for="cal-speed">Default Map Speed (counts/s)</label>
+                  <input id="cal-speed" type="number" min="1" max="1500" required>
+                </div>
+                <div class="control-group">
+                  <label for="tracking-error">Tracking Error Threshold (counts)</label>
+                  <input id="tracking-error" type="number" min="1" max="796" required>
+                </div>
+                <div class="control-group">
+                  <label for="tracking-timeout">Error Timeout (seconds)</label>
+                  <input id="tracking-timeout" type="number" min="0.1" max="2" step="0.1" required>
+                </div>
+              </div>
+              <label class="check">
+                <input id="calibrated-checkbox" type="checkbox">
+                I have measured and physically verified the order, alternating axes, signs, zeros, limits, and tracking thresholds for all ten joints.
+              </label>
+              <p class="text-muted">Modifying any field clears this confirmation. Every save writes a timestamped backup in <code>runs/</code>.</p>
+              <button type="submit" id="btn-save-map" class="job">Save Calibration</button>
             </div>
-            <div class="control-group">
-              <label for="tracking-timeout">Error Timeout (seconds)</label>
-              <input id="tracking-timeout" type="number" min="0.1" max="2" step="0.1" required>
-            </div>
-          </div>
-          <label class="check">
-            <input id="calibrated-checkbox" type="checkbox">
-            I have measured and physically verified the order, alternating axes, signs, zeros, limits, and tracking thresholds for all ten joints.
-          </label>
-          <p class="text-muted">Modifying any field clears this confirmation. Every save writes a timestamped backup in <code>runs/</code>.</p>
-          <button type="submit" id="btn-save-map" class="job">Save Calibration</button>
-          </div>
+          </section>
         </form>
-      </section>
 
       <section class="card maintenance-card" aria-labelledby="maint-heading">
         <h2 id="maint-heading">Free-Shaft Centering Maintenance (Exclusive Action)</h2>

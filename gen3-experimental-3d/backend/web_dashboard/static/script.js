@@ -53,9 +53,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let lastRunResult = null;
+    let resultExpiryTimestamp = null;
+    let resultTimerInterval = null;
+
+    function clearSavedResult() {
+        lastRunResult = null;
+        resultExpiryTimestamp = null;
+        if (resultTimerInterval) {
+            clearInterval(resultTimerInterval);
+            resultTimerInterval = null;
+        }
+        const reopenBtn = document.getElementById('btn-reopen-result');
+        if (reopenBtn) reopenBtn.style.display = 'none';
+    }
+
+    function storeSavedResult(report) {
+        lastRunResult = report;
+        resultExpiryTimestamp = Date.now() + 60000;
+        const reopenBtn = document.getElementById('btn-reopen-result');
+        const timerSpan = document.getElementById('reopen-result-timer');
+        if (reopenBtn) reopenBtn.style.display = 'inline-block';
+        if (timerSpan) timerSpan.textContent = '60';
+
+        if (resultTimerInterval) clearInterval(resultTimerInterval);
+        resultTimerInterval = setInterval(() => {
+            const remaining = Math.max(0, Math.ceil((resultExpiryTimestamp - Date.now()) / 1000));
+            if (timerSpan) timerSpan.textContent = remaining;
+            if (remaining <= 0) {
+                clearSavedResult();
+            }
+        }, 1000);
+    }
+
+    document.getElementById('btn-reopen-result')?.addEventListener('click', () => {
+        if (lastRunResult) {
+            showReport(lastRunResult);
+        }
+    });
+
     async function sendMotion(endpoint) {
         const stopping = endpoint === '/api/stop';
         if (!stopping) {
+            clearSavedResult();
             reportRequest++;
             const report = document.getElementById('accuracy-modal');
             if (report) report.style.display = 'none';
@@ -271,10 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const box = document.createElement('div');
                     box.className = valid ? 'telem-box' : 'telem-box telem-invalid';
                     box.innerHTML = `
-                        <div class="motor-header">MOTOR ${id}</div>
-                        <div class="data-row"><span>Angle</span> <span>${deg}${valid ? '°' : ''}</span></div>
-                        <div class="data-row"><span>Speed</span> <span>${speed}</span></div>
-                        <div class="data-row"><span>Load</span> <span>${torque}</span></div>
+                        <div class="motor-header" title="MOTOR ${id}">MOTOR ${id}</div>
+                        <div class="data-row"><span>Angle</span> <span title="${deg}${valid ? '°' : ''}">${deg}${valid ? '°' : ''}</span></div>
+                        <div class="data-row"><span>Speed</span> <span title="${speed}">${speed}</span></div>
+                        <div class="data-row"><span>Load</span> <span title="${torque}">${torque}</span></div>
                     `;
                     grid.appendChild(box);
                 }
@@ -344,14 +384,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (report) report.style.display = 'none';
                 const request = ++reportRequest;
                 statusEpoch++;
-                const result = await post('/api/set_path', {path: [], include_report: true});
+                const result = await post('/api/set_path', {path: [], include_report: true, snapshot: true});
                 currentPathRevision = result.path_revision;
                 targetPath = [];
                 actualPath = [];
                 robotPose = { x: 0, y: 0, yaw: 0 };
                 document.getElementById('tracker-3d')?.contentWindow?.postMessage({type: 'reset-view'}, location.origin);
                 await updateStatus();
-                if (result.report && request === reportRequest) showReport(result.report);
+                if (result.report && request === reportRequest) {
+                    storeSavedResult(result.report);
+                    showReport(result.report);
+                }
             } catch (e) { alert(e.message); }
         });
     }
@@ -478,17 +521,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showReport(data) {
-            document.getElementById('report-coverage').textContent = `${data.metric} · ${data.sample_count} of ${data.trace_sample_count} retained trace samples · ${(data.path_progress * 100).toFixed(1)}% verified path`;
+            const outcomeBadge = document.getElementById('report-outcome-badge');
+            if (outcomeBadge) {
+                const outcome = (data.outcome || 'completed').toUpperCase();
+                outcomeBadge.textContent = `Outcome: ${outcome}`;
+                outcomeBadge.style.background = outcome === 'COMPLETED' ? 'var(--color-mint-pop)' : (outcome.includes('STOP') ? 'var(--color-sunburst)' : 'var(--color-ember)');
+            }
+            const durStr = data.duration_s != null ? ` · ${data.duration_s}s elapsed` : '';
+            document.getElementById('report-coverage').textContent = `${data.metric} · ${data.sample_count} of ${data.trace_sample_count} retained trace samples · ${(data.path_progress * 100).toFixed(1)}% verified path${durStr}`;
 
             const accuracyEl = document.getElementById('report-accuracy');
             if (accuracyEl) {
-                accuracyEl.textContent = `${data.accuracy_percent.toFixed(1)}%`;
+                accuracyEl.textContent = `${(data.accuracy_percent || 0).toFixed(1)}%`;
                 accuracyEl.className = data.accuracy_percent > 80 ? 'value good' : 'value bad';
             }
 
             const deviationEl = document.getElementById('report-deviation');
             if (deviationEl) {
-                deviationEl.textContent = `${data.avg_error.toFixed(4)} m`;
+                deviationEl.textContent = `${(data.avg_error || 0).toFixed(4)} m`;
             }
 
             const rCanvas = document.getElementById('reportCanvas');
@@ -953,4 +1003,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     initMarqueeToggle();
+    window.SurgeGenerationTransition?.ready();
 });

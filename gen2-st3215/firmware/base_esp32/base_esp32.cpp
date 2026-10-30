@@ -14,6 +14,11 @@
 static QueueHandle_t telemetryQueue;
 
 static uint8_t kBroadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t kAuthorizedRobotMac[6] = SURGE_AUTHORIZED_ROBOT_MAC;
+static const uint8_t kAuthKey[] = SURGE_PROVISIONED_AUTH_KEY;
+static uint32_t g_last_telem_seq = 0;
+static uint32_t g_cmd_seq = 0;
+static uint32_t g_cmd_epoch = 1;
 
 static void printTelemetry(const RobotTelemetry &t) {
   Serial.printf("TELEMETRY,%lu,%u,%d", (unsigned long)t.t_ms, (unsigned)t.state, (int)t.turn_dir);
@@ -27,15 +32,25 @@ static void printTelemetry(const RobotTelemetry &t) {
 
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
 void onRecv(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-  (void)info;
+  const uint8_t *src_mac = info ? info->src_addr : nullptr;
 #else
 void onRecv(const uint8_t *mac, const uint8_t *data, int len) {
-  (void)mac;
+  const uint8_t *src_mac = mac;
 #endif
-  if (len == (int)sizeof(RobotTelemetry)) {
-    RobotTelemetry t;
-    memcpy(&t, data, sizeof(t));
-    if (telemetryQueue) xQueueSend(telemetryQueue, &t, 0);
+  if (!data || len <= 0) return;
+
+  // CR-05: Authenticated telemetry packet with HMAC-SHA256
+  if (len == (int)sizeof(AuthRobotTelemetry)) {
+    if (src_mac && memcmp(src_mac, kAuthorizedRobotMac, 6) != 0) {
+      return;
+    }
+    AuthRobotTelemetry auth_tel;
+    memcpy(&auth_tel, data, sizeof(auth_tel));
+    if (!surge_verify_auth_telemetry(auth_tel, kAuthKey, sizeof(kAuthKey), g_last_telem_seq)) {
+      return; // Cryptographic verification failed or replay detected
+    }
+    if (telemetryQueue) xQueueSend(telemetryQueue, &auth_tel.data, 0);
+    return;
   }
 }
 
@@ -65,11 +80,30 @@ void loop() {
   if (readCommand(Serial, s)) {
     s.trim();
     s.toUpperCase();
-    RobotCommand cmd;
-    if (s == "STOP") cmd.run = 0;
-    else if (s == "RUN") cmd.run = 1;
-    else return;
-    esp_err_t result = esp_now_send(kBroadcastMac, (uint8_t *)&cmd, sizeof(cmd));
-    Serial.printf("%s %s\n", result == ESP_OK ? "Queued" : "Failed", s.c_str());
+    if (s == "RUN") {
+      AuthRobotCommand auth_cmd = {};
+      auth_cmd.magic = SURGE_CMD_MAGIC;
+      auth_cmd.version = SURGE_CRYPTO_VERSION;
+      auth_cmd.opcode = SURGE_OP_RUN;
+      auth_cmd.seq = ++g_cmd_seq;
+      auth_cmd.epoch = g_cmd_epoch;
+      surge_sign_auth_command(auth_cmd, kAuthKey, sizeof(kAuthKey));
+      esp_err_t result = esp_now_send(kBroadcastMac, (uint8_t *)&auth_cmd, sizeof(auth_cmd));
+      Serial.printf("%s %s\n", result == ESP_OK ? "Queued" : "Failed", s.c_str());
+    } else if (s == "STOP") {
+      AuthRobotCommand auth_cmd = {};
+      auth_cmd.magic = SURGE_CMD_MAGIC;
+      auth_cmd.version = SURGE_CRYPTO_VERSION;
+      auth_cmd.opcode = SURGE_OP_STOP;
+      auth_cmd.seq = ++g_cmd_seq;
+      auth_cmd.epoch = g_cmd_epoch;
+      surge_sign_auth_command(auth_cmd, kAuthKey, sizeof(kAuthKey));
+      esp_now_send(kBroadcastMac, (uint8_t *)&auth_cmd, sizeof(auth_cmd));
+
+      // Also send legacy 1-byte STOP for emergency fallback compatibility
+      RobotCommand legacy_cmd = { 0 };
+      esp_err_t result = esp_now_send(kBroadcastMac, (uint8_t *)&legacy_cmd, sizeof(legacy_cmd));
+      Serial.printf("%s %s\n", result == ESP_OK ? "Queued" : "Failed", s.c_str());
+    } else return;
   }
 }

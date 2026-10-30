@@ -1,4 +1,6 @@
 #include "../common/serial_line.h"
+#include "../common/surge_auth.h"
+#include "../common/surge_credentials.h"
 /*
  * Gen 2.1 planar receiver — text protocol matched to shared/surge_control/hardware.py
  *
@@ -49,8 +51,14 @@ ConnectionState currentState = STATE_INIT;
 unsigned long lastUsbTime = 0;
 unsigned long lastEspNowTime = 0;
 unsigned long holdMessageUntil = 0;
-unsigned long lastTargetTime = 0;
+unsigned long lastArmTime = 0;
+unsigned long lastAcceptedPositionTime = 0;
 bool armed = false;
+bool maintenanceUnlocked = false;
+unsigned long maintenanceUnlockTime = 0;
+const unsigned long MAINTENANCE_TIMEOUT_MS = 15000;
+static uint32_t lastReceivedSeq = 0;
+uint8_t authorizedTransmitter[6] = {0x28, 0x05, 0xA5, 0x4E, 0x01, 0x38};
 
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
 void OnDataRecv(const esp_now_recv_info *info, const uint8_t *data, int len) {
@@ -64,13 +72,33 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   const uint8_t *mac = info->src_addr;
   #endif
   if (mac) memcpy(cmd.sender, mac, 6);
-  // Sensor broadcasts and telemetry are not motor commands.
+  // CR-02: STOP is always accepted immediately from any source (emergency stop safety policy)
   if (strcmp(cmd.text, "STOP") == 0) {
     portENTER_CRITICAL(&stopMux);
     memcpy(stopSender, cmd.sender, 6); stopRequested = true;
     portEXIT_CRITICAL(&stopMux);
-  } else if (strcmp(cmd.text, "HELLO") == 0 || strcmp(cmd.text, "RUN") == 0 ||
-             strcmp(cmd.text, "T") == 0 || strcmp(cmd.text, "D") == 0 || strncmp(cmd.text, "P,", 2) == 0 || strncmp(cmd.text, "I,", 2) == 0) {
+    return;
+  }
+
+  // All privileged commands (RUN, P, I, D, HELLO, T) require authorized transmitter
+  if (mac && memcmp(mac, authorizedTransmitter, 6) != 0) {
+    return;
+  }
+
+  // CR-01 & CR-02: Cryptographic HMAC-SHA256 authentication & anti-replay verification
+  char verifiedCmd[128] = {};
+  if (!surge_verify_text_command(cmd.text, kSurgeAuthKey, sizeof(kSurgeAuthKey),
+                                lastReceivedSeq, verifiedCmd, sizeof(verifiedCmd))) {
+    // Drop unauthenticated or tampered packet silently
+    return;
+  }
+  strncpy(cmd.text, verifiedCmd, sizeof(cmd.text) - 1);
+  cmd.text[sizeof(cmd.text) - 1] = '\0';
+
+  if (strcmp(cmd.text, "HELLO") == 0 || strcmp(cmd.text, "RUN") == 0 ||
+      strcmp(cmd.text, "T") == 0 || strcmp(cmd.text, "D") == 0 ||
+      strncmp(cmd.text, "P,", 2) == 0 || strncmp(cmd.text, "I,", 2) == 0 ||
+      strncmp(cmd.text, "MAINT,", 6) == 0) {
     if (commandQueue && xQueueSend(commandQueue, &cmd, 0) != pdTRUE) {
       portENTER_CRITICAL(&stopMux);
       memcpy(stopSender, cmd.sender, 6); stopRequested = true;
@@ -125,6 +153,8 @@ static bool torqueAll(bool on) {
 
 static bool enterStop() {
   armed = false;
+  lastArmTime = 0;
+  lastAcceptedPositionTime = 0;
   return torqueAll(false);
 }
 
@@ -268,9 +298,14 @@ void processCommand(String req) {
   }
 
   if (req == "RUN") {
-    armed = true;
-    lastTargetTime = millis();
-    reply("OK,RUN");
+    if (!armed) {
+      armed = true;
+      lastArmTime = millis();
+      lastAcceptedPositionTime = 0;
+      reply("OK,RUN");
+    } else {
+      reply("OK,RUN,ALREADY_ARMED");
+    }
     return;
   }
 
@@ -336,8 +371,19 @@ void processCommand(String req) {
       }
       torqueOn[id - 1] = true;
     }
-    lastTargetTime = millis();
+    lastAcceptedPositionTime = millis();
+  } else if (req == "MAINT,UNLOCK,CONFIRM") {
+    if (armed) { reply("ERR,MAINTENANCE,STOP_FIRST"); return; }
+    maintenanceUnlocked = true;
+    maintenanceUnlockTime = millis();
+    reply("OK,MAINTENANCE_UNLOCKED");
+    return;
   } else if (req.startsWith("I,")) {
+    if (!maintenanceUnlocked || ((millis() - maintenanceUnlockTime) > MAINTENANCE_TIMEOUT_MS)) {
+      maintenanceUnlocked = false;
+      reply("ERR,MAINTENANCE_LOCKED");
+      return;
+    }
     int newId = 0, consumed = 0;
     int fields = sscanf(req.c_str(), "I,%d%n", &newId, &consumed);
     if (armed || fields != 1 || consumed != (int)req.length() || newId < 1 || newId > 253) { reply("ERR,ID"); return; }
@@ -345,6 +391,7 @@ void processCommand(String req) {
     st.unLockEprom(254);
     st.writeByte(254, 5, newId);
     st.LockEprom(254);
+    maintenanceUnlocked = false; // Auto-relock immediately after programming
     if (st.Ping(newId) != newId || st.Error != 0 || st.readByte(newId, 55) != 1 || st.Error != 0) { reply("ERR,ID"); return; }
     if (displayReady) {
     display.clearDisplay();
@@ -438,9 +485,17 @@ void loop() {
   }
   // Re-read time AFTER commands: using loop-entry time here underflows on RUN/P.
   now = millis();
-  if (armed && (uint32_t)(now - lastTargetTime) > WATCHDOG_MS) {
-    enterStop();
-    reply("STOP,WATCHDOG");
+  if (armed) {
+    bool timeout = false;
+    if (lastAcceptedPositionTime == 0) {
+      if ((uint32_t)(now - lastArmTime) > WATCHDOG_MS) timeout = true;
+    } else {
+      if ((uint32_t)(now - lastAcceptedPositionTime) > WATCHDOG_MS) timeout = true;
+    }
+    if (timeout) {
+      enterStop();
+      reply("STOP,WATCHDOG");
+    }
   }
 
   bool currentUsb = (lastUsbTime != 0) && (now - lastUsbTime < 1000);

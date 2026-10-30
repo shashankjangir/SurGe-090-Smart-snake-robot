@@ -978,13 +978,36 @@
 .gen3 .preset-picker { min-width: 0; }
 .gen3 .preset-options { border: 0; padding: 0; margin: 0; }
 .gen3 .preset-options legend { font-weight: 600; margin-bottom: 12px; }
-.gen3 .preset-card {
+.compact-preset-card {
+  padding: 8px 12px;
+}
+.compact-preset-card .preset-choice {
+  min-height: 36px;
+  gap: 8px;
+}
+.compact-preset-card .preset-name {
+  font-size: 13px;
+}
+.compact-preset-card .preset-specs-compact {
+  font-size: 11px;
+  color: var(--color-text-muted, #526176);
+  font-variant-numeric: tabular-nums;
+}
+.compact-preset-card .preset-description {
+  font-size: 12px;
+}
+.runs-sim-gait-card {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 14px;
-  background: #fafafa;
-  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  background: #ffffff;
+  margin-top: 12px;
 }
+.runs-sim-gait-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+}
+
 .gen3 .preset-card:has(input:checked) { border-color: var(--color-brand-blue); background: #eff6ff; }
 .gen3 .preset-card:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .gen3 .preset-choice { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0; min-height: 44px; }
@@ -1156,7 +1179,38 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
 #sim-hub .sim-settings-actions button { flex: 1 1 auto; }
 #sim-hub .telemetry-title-block { flex-wrap: wrap; }
 #sim-hub .telemetry-title-block h2 { margin: 0; }
-#sim-hub .telemetry-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+#sim-hub .telemetry-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  min-width: 0;
+  gap: 12px;
+}
+#sim-hub .telem-box {
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+#sim-hub .telem-box .data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  gap: 4px;
+}
+#sim-hub .telem-box .data-row span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  text-align: right;
+}
+#sim-hub .telem-box .motor-header {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 #sim-hub .motor-header { gap: 6px; text-align: left; }
 #sim-hub .data-row { gap: 8px; font-variant-numeric: tabular-nums; }
 #sim-hub .data-row span:last-child { white-space: nowrap; }
@@ -1207,10 +1261,63 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
   .gen3 .save-preset-card { padding: 12px; }
 }
 
-.diagnostics-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.sim-physics-group {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #fbfcfe;
+  overflow: hidden;
+}
+.sim-group-heading {
+  padding: 8px 12px;
+  background: var(--color-bg-subtle, #f0f4f8);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid transparent;
+  user-select: none;
+}
+.sim-physics-group[open] .sim-group-heading {
+  border-bottom-color: var(--color-border);
+}
+.sim-group-content {
+  padding: 10px 12px;
+}
+.sim-group-content .input-group {
+  margin-bottom: 10px;
+}
+.sim-group-content .input-group:last-child {
+  margin-bottom: 0;
+}
+
 .diagnostics-layout > .card { margin: 0; }
 .diagnostics-layout > [aria-labelledby="cal-map-heading"] { grid-column: 1 / -1; }
-#map-form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr); gap: 20px; align-items: start; }
+.calibration-split-layout {
+  grid-template-columns: 1fr;
+}
+#map-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+.calibration-map-card {
+  margin: 0;
+  min-width: 0;
+}
+.safety-limits-card {
+  margin: 0;
+  min-width: 0;
+}
+.safety-limits-card .map-settings {
+  border: 0;
+  padding: 0;
+}
+@media (max-width: 992px) {
+  #map-form {
+    grid-template-columns: 1fr;
+  }
+}
+
 .map-settings { min-width: 0; border: 1px solid var(--color-carbon); border-radius: 10px; padding: 16px; }
 .map-settings .controls-grid { grid-template-columns: 1fr; }
 .simulation-tracking-settings { border: 1px solid var(--color-carbon); border-radius: 10px; padding: 12px; margin: 12px 0; min-width: 0; }

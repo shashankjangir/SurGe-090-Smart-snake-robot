@@ -46,7 +46,9 @@ returns to neutral and releases torque. This command moves hardware; it is not
 a preview. Do not raise amplitude and frequency together or disable fault checks.
 
 The Gen 3 web page is `/gen3`; `/` and `/3d` are still the planar dashboard and
-viewer. A live Gen 3 3D web viewer, realistic battery-free assembly model and
+viewer. Navigating between Gen 2.1 (`/`) and Gen 3 (`/gen3`) features a bespoke 3D
+robotic-snake loading transition that previews each generation's articulation (planar vs.
+spatial 3D) before revealing the initialized destination dashboard. A live Gen 3 3D web viewer, realistic battery-free assembly model and
 training system have **not** been implemented. Do not use the planar gait as the
 Gen 3 hardware controller. See the handoff for the Python 3.11 conda launch path.
 
@@ -211,3 +213,11 @@ conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_d
 - **Gen 3 3D Console**: [`http://127.0.0.1:5001/gen3`](http://127.0.0.1:5001/gen3) — 10-joint spatial commissioning, finite pitch/yaw trials, physical-order calibration map, operator authentication, disarmed diagnostics, and firmware build/upload.
 - **3D Visualization**: [`http://127.0.0.1:5001/3d`](http://127.0.0.1:5001/3d) — WebGL 3D spatial body rendering.
 
+
+
+### Security Revalidation & Protocol V3 (October 2026)
+- **RFC 2104 HMAC-SHA256 Radio Security**: Keyed FNV-1a has been replaced with standard HMAC-SHA256 authentication and monotonic sequence freshness across binary (`AuthRobotCommand`, `AuthRobotTelemetry`) and text (`AUTH,<seq>,<tag_hex_16>,<cmd>`) frames.
+- **Fail-Safe Emergency Stop**: Emergency `STOP` is accepted unconditionally from any RF source to guarantee instantaneous torque cutoff without cryptographic failure modes.
+- **EEPROM Protection**: Servo ID reassignment is protected behind a 15-second single-use `MAINT,UNLOCK,CONFIRM` authorization token.
+- **Network & Proxy Hardening**: Operator credentials strictly fail closed without configuration; untrusted `X-Forwarded-Proto` header spoofing is blocked via `TRUSTED_PROXIES` allowlist.
+- **Audit Reference**: See [`docs/audits/SURGE_090_SECURITY_REVALIDATION.md`](docs/audits/SURGE_090_SECURITY_REVALIDATION.md).

@@ -64,6 +64,9 @@ class ControlRuntime:
             self.path_revision += 1
             self.state.update(actual_path=[], path_progress=0.)
         self.path_stalled_time = 0.
+        if self.state["engine"] == "SIM" and self.state.get("target_path"):
+            pose = self.state.get("robot_pose", {})
+            self.path.start_acquisition(pose.get("x", 0.0), pose.get("y", 0.0), self.state["target_path"])
         self.iface.start()
         self.state.update(is_paused=False, status="Running")
 
@@ -192,7 +195,7 @@ class ControlRuntime:
                     if error is not None:
                         self.report_errors.append(error)
                         self.report_errors = self.report_errors[-10000:]
-                turn = self.path.calculate_pure_pursuit(x, y, yaw, target)
+                turn = self.path.calculate_steering(x, y, yaw, target, dt=dt)
                 if self.is_path_complete(x, y, target):
                     self.pause("Path Complete")
                 elif len(target) > 1 and self.path_stalled_time >= 30.:

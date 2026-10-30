@@ -23,5 +23,12 @@ int main() {
   assert(replies->items.size() == 1);
   OnDataRecv(receiverAddress, control, sizeof(control)-1);
   assert(replies->items.size() == 2);
-  std::puts("Transmitter send serialization, delivery failures and reply-source filtering passed");
+  // CR-04 adversarial tests: reject embedded newlines and non-numeric spoofing
+  const uint8_t injected_nl[] = "T:25\nOK,STOP";
+  OnDataRecv(other, injected_nl, sizeof(injected_nl)-1);
+  assert(replies->items.size() == 2);
+  const uint8_t fake_ctrl[] = "T:OK,STOP";
+  OnDataRecv(other, fake_ctrl, sizeof(fake_ctrl)-1);
+  assert(replies->items.size() == 2);
+  std::puts("Transmitter send serialization, delivery failures, reply-source filtering and CR-04 sanitization passed");
 }

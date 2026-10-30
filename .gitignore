@@ -41,6 +41,7 @@ previous backups/
 **/.build-v3/
 node_modules/
 gen3-experimental-3d/operators.json
+gen2-st3215/firmware/common/surge_credentials.h
 
 # Local scratch and graphify transient caches
 .scratch/

@@ -172,3 +172,32 @@ control, keeping its command protocol separate from the onboard telemetry struct
 
 See the [power-design history](../../docs/hardware/README.md) and
 [Gen 2 overview](../README.md) for the wider hardware context.
+
+
+---
+
+## Security Architecture & Protocol V3 (October 2026)
+
+Following an independent security audit across Gen 2 and Gen 2.1 firmware targets:
+
+### 1. Cryptographic Authentication (HMAC-SHA256)
+- **Binary Commands (`robot_esp32_v2`, `base_esp32`, `robot_esp32`):** Command packets use `AuthRobotCommand` (28 bytes) featuring a 128-bit truncated HMAC-SHA256 tag over `(magic=0x5352, ver=3, opcode, seq, epoch)`. Unauthenticated or replayed `RUN` packets cannot enable torque or initiate motion.
+- **Binary Telemetry (`AuthRobotTelemetry`):** Telemetry packets (82 bytes) include 128-bit HMAC-SHA256 protecting timestamps, sequence numbers, and all 10 servo state records.
+- **Text Commands (`receiver_gen2_1`, `transmitter_gen2_1`):** Over-the-air commands are framed as `AUTH,<seq>,<tag_hex_16>,<raw_command>`, where `<tag_hex_16>` is an 8-byte HMAC-SHA256 over `<seq>:<raw_command>`.
+
+### 2. Emergency Stop Fail-Safe Policy
+In compliance with industrial robotics safety directives (ISO 13849 / IEC 61508), remote emergency `STOP` commands are accepted and executed immediately from any RF source to ensure immediate torque cutoff without risk of cryptographic locking.
+
+### 3. Privileged Command & EEPROM Maintenance Gating
+- All non-emergency radio commands require cryptographic signature verification and advancing sequence numbers.
+- Persistent servo ID reprogramming (`I,<new_id>`) is locked behind `MAINT,UNLOCK,CONFIRM`.
+- The maintenance window automatically expires after 15 seconds (`MAINTENANCE_TIMEOUT_MS = 15000`) and auto-relocks immediately upon single-use completion.
+
+### 4. Key Provisioning
+- The production radio authentication key is isolated in `common/surge_credentials.h` (gitignored).
+- Copy `common/surge_credentials.h.example` to `common/surge_credentials.h` to configure private site keys:
+  ```c
+  #define SURGE_PROVISIONED_AUTH_KEY \
+    {0x53, 0x75, 0x72, 0x47, 0x65, 0x30, 0x39, 0x30, ...}
+  ```
+- All targets compile cleanly with PlatformIO: `pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e robot_esp32_v2 -e base_esp32 -e robot_esp32`.

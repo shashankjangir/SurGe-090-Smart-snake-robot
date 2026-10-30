@@ -12,6 +12,7 @@ Operator lease is renewed via heartbeats (1.0s interval, 3.0s timeout). Expiry c
 import copy
 import hmac
 import json
+import os
 from pathlib import Path
 import time
 import uuid
@@ -24,19 +25,22 @@ DEFAULT_CONFIG_PATH = (_p2 if _p2.name == 'gen3-experimental-3d' else _p2 / 'gen
 
 def load_operators_config(config_path=None):
     path = Path(config_path or DEFAULT_CONFIG_PATH)
+    env_pw = os.environ.get('SURGE_OPERATOR_PASSWORD', '').strip()
     if path.is_file():
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 names = data.get('operators', ALLOWED_OPERATORS)
-                password = data.get('password')
+                password = data.get('password') or env_pw
                 if (isinstance(names, (list, tuple)) and names
                         and all(n in ALLOWED_OPERATORS for n in names)
                         and isinstance(password, str) and password):
-                    return {'operators': tuple(names), 'password': password}
+                    return {'operators': tuple(names), 'password': password, 'configured': True}
         except Exception:
             pass
-    return {'operators': ALLOWED_OPERATORS, 'password': ''}
+    if env_pw:
+        return {'operators': ALLOWED_OPERATORS, 'password': env_pw, 'configured': True}
+    return {'operators': ALLOWED_OPERATORS, 'password': '', 'configured': False}
 
 
 class SessionManager:
@@ -216,6 +220,7 @@ class SessionManager:
             'heartbeat_interval': self.heartbeat_interval,
             'lease_timeout': self.lease_timeout,
             'allowed_operators': list(self.allowed_operators),
+            'credentials_configured': bool(self._config.get('configured', bool(self._config.get('password')))),
             'current_user': {
                 'session_id': current_session['session_id'],
                 'name': current_session['name'],

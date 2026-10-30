@@ -1244,8 +1244,9 @@ canvas#pathCanvas {
 
 .telemetry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
   gap: var(--spacing-12);
+  min-width: 0;
 }
 
 .telem-box {
@@ -1256,6 +1257,9 @@ canvas#pathCanvas {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   transition: transform 0.15s ease;
 }
 
@@ -1289,6 +1293,10 @@ canvas#pathCanvas {
   text-align: center;
   text-transform: uppercase;
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* Color rotation for 10 motors */
@@ -1305,6 +1313,9 @@ canvas#pathCanvas {
   align-items: center;
   font-size: 11px;
   font-family: monospace;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  gap: 4px;
 }
 
 .data-row span:first-child {
@@ -1314,10 +1325,18 @@ canvas#pathCanvas {
   letter-spacing: 0.032em;
   text-transform: uppercase;
   opacity: 0.7;
+  flex-shrink: 0;
 }
 
 .data-row span:last-child {
   font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 /* ==========================================================================

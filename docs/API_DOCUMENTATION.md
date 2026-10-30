@@ -87,3 +87,26 @@ The Gen 3 console exposes dedicated JSON endpoints on /api/gen3/:
 | /api/gen3/runs/<id>/annotate | POST | Operator | Record manual trial annotations (displacement in cm, surface, notes) |
 | /api/gen3/firmware/build | POST | Operator | Trigger allowlisted PlatformIO compilation |
 | /api/gen3/firmware/upload | POST | Operator | Triple-confirmed firmware upload (executes in safe mock mode) |
+
+
+---
+
+## Protocol V3 Security Architecture & Authentication (October 2026)
+
+### Authenticated Radio Text Framing
+For wireless communication over ESP-NOW, privileged commands are signed by `transmitter_gen2_1` using RFC 2104 HMAC-SHA256:
+```
+AUTH,<seq>,<tag_hex_16>,<raw_command>
+```
+- `<seq>`: Monotonically increasing sequence number.
+- `<tag_hex_16>`: 16-character hex string representing the first 8 bytes of `HMAC-SHA256(key, "<seq>:<raw_command>")`.
+- `<raw_command>`: The underlying command (`HELLO`, `RUN`, `P,...`, `T`, `D`, `MAINT,UNLOCK,CONFIRM`, `I,...`).
+- `STOP`: Can be sent in raw unauthenticated format for immediate fail-safe emergency torque cutoff.
+
+### Maintenance Authorization Gating
+- `I,<new_id>` (EEPROM servo ID assignment) returns `ERR,MAINTENANCE_LOCKED` unless preceded by `MAINT,UNLOCK,CONFIRM`.
+- The maintenance window expires after **15 seconds** and re-locks immediately upon successful servo ID assignment (single-use).
+
+### Watchdog Separation
+- Repeated `RUN` commands return `OK,RUN,ALREADY_ARMED` and do not reset the position watchdog.
+- Only accepted and applied `P,` target frames refresh the 750 ms position freshness timer.
