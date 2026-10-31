@@ -1,5 +1,13 @@
 # Gen 3 working handoff
 
+31 October 2026 simulation continuation: see `docs/GEN3_SIMULATION.md` for the implemented
+ID 1 head frame, simulation-only ordered route steering, target/trail overlays, camera modes,
+fullscreen Stop and locally derived CAD appearance. This supersedes the older absence-of-viewer
+notes below. The current joint map remains unchanged (speed 1500, tracking error 100, timeout 0.5).
+Box physics, assembly spacing and contact remain illustrative. Companion connector STEP revision
+is unverified against the supplied SLDPRT. Straight/gentle-S headless trials passed; tighter curves
+and other gaits can stall. No hardware was opened or actuated during this work.
+
 Last updated: 28 October 2026, Asia/Calcutta. This is the continuation record for
 the owner/assistant commissioning conversation, not a claim of autonomous locomotion.
 
@@ -18,6 +26,8 @@ and compact Gen 3 grouped accordion, Clear Canvas result snapshot with 60s histo
 cards with live sim sync, separated Joint Map Calibration and Safety Limits cards, and zero numeric
 telemetry overflow on all viewports. Hardware remained completely untouched.
 
+Dashboard Layout, Path Continuity & Console Alignment, 31 October 2026: see Section below for the completed Gen 2.1 5-box layout restructuring strictly matching operator schematic (Math Path, Gamepad State/Node, center 520px Live Trajectory, full-height Simulation Physics, 2x5 Telemetry grid), continuous whole-path traversal in `path_engine.py` using segment projection (preventing undulation stalls at 20%), conditional manual stop accuracy report (>20% coverage threshold), compact serial port dropdown width (195px), and Gen 3 operator login styling alignment with Gen 2.1 paper aesthetic.
+
 ## Start here in a new chat
 
 1. Read this file, `gen3-experimental-3d/joint_map.json`, and the working tree status.
@@ -34,6 +44,8 @@ telemetry overflow on all viewports. Hardware remained completely untouched.
 ## Hardware and reference frame
 
 - Ten Waveshare/Feetech ST3215 bus servos, with alternating joint planes.
+- Owner clarified on 31 October 2026: **eleven connectors**. The ID 10 end carries
+  the Waveshare bus servo driver with ESP32. Keep that count distinct from ten motors.
 - Physical order used by the map: ID 1 → 2 → … → 10. ID 1 is designated head;
   ID 10 is the Waveshare bus-servo-driver-with-ESP32 end. In the latest photo,
   driver/ID 10 is at the top and ID 1 at the bottom.
@@ -436,3 +448,38 @@ The cross-dashboard navigation between Gen 2.1 (`/`) and Gen 3 (`/gen3`) feature
    - Embedded 3D viewer (`3d_viewer.html`) hardened with `try...catch` against WebGL absence, ensuring zero uncaught page errors.
 3. **Verification:**
    - Verified across desktop (1440px), mobile (390px), keyboard tab/enter activation, history back/forward traversal, and rapid-click debouncing via `gen3-experimental-3d/tests/test_generation_transition_browser.py` (16/16 checks passing). Recorded in `.scratch/generation-switch/verification.md`.
+
+
+## Gen 2.1 Dashboard Restructuring, Continuous Simulation & Console Alignment (31 October 2026)
+
+This update records the visual and algorithmic improvements completed on 31 October 2026:
+
+1. **Continuous Whole-Path Simulation Traversal (`path_engine.py`)**:
+   - Resolved the issue where the planar snake simulation ceased progress after approximately 20% of the trajectory.
+   - Enhanced waypoint advancement criteria: in addition to strict 0.10 m point proximity, the engine evaluates segment projection progress (t >= 0.85 with cross-track error <= 0.25 m). This allows continuous serpentine undulation along the path axis without getting trapped when the snake's head oscillates around a checkpoint.
+   - Preserves ordered checkpoint visitation and endpoint arrival detection.
+
+2. **Conditional Manual Stop Accuracy Report**:
+   - Updated `/api/stop` in `web_app.py` and `script.js` to inspect cumulative path progress upon operator stop.
+   - If manual stop occurs after >20% path coverage, the simulation accuracy run report modal is presented with metrics and deviation visualization.
+   - If manual stop occurs before 20% coverage, the simulation stops cleanly and silently without popping the report modal.
+   - If the robot completes the full path, the accuracy report is presented automatically upon arrival.
+
+3. **Gen 2.1 Layout Restructuring Matching Operator Schematic**:
+   - Restructured the dashboard into a strict 5-box grid:
+     - **Top-Left**: Mathematical Path Card (`#math-path-card`) with formula presets and generators.
+     - **Bottom-Left**: Gamepad State Card (`#gamepad-card`) with live stick/trigger/button feeds and `controller_node.py --gen 2.1` launch instructions.
+     - **Center**: Live Trajectory Tracking (`#canvas-hub`) kept at unscaled native 520px height.
+     - **Right**: Full-height Simulation Physics Card (`#sim-controls-card`) with 6 sliders, low-power mode, Apply and Set-to-Default buttons.
+     - **Bottom**: 10-Joint Actuator Telemetry (`#telemetry-hub`) with a 2x5 grid spanning columns 1 & 2 directly underneath the left and center columns.
+   - Removed intermediate visual boxes ("Connection Engine" and "Sensor Node") between the hero section and team footer, while preserving hidden inputs and telemetry elements.
+
+4. **Header and Console UI Refinements**:
+   - Shortened `#serial-port` selection dropdown to a snug 195px width so it cleanly fits "Select serial port" without horizontal stretching.
+   - Hidden redundant bottom floating motion dock bar (`OPERATOR COMMAND: START MOTION IDLE`) via `.motion-dock { display: none !important; }`, preserving primary controls on the tracking toolbar and gamepad controller.
+   - In Gen 3 (`/gen3`), resolved CSS inheritance conflicts where global `.gen3 select` and `.gen3 button` bloated the operator dropdown and morphing password button. Realigned `.operator-select` to 32px pill height, restored `#18181b` text contrast, scoped dark theme media queries to explicit theme activation, and positioned `Connect simulation engine` to the right of `Serial port`.
+
+5. **Verification**:
+   - 33/33 Node tests passing (`gen3-experimental-3d/tests/*.cjs`).
+   - 44/44 Python Gen 2.1 unit tests passing (`tests/test_gen2_1.py`).
+   - 103/103 Python Gen 3 unit tests passing (`gen3-experimental-3d/tests`).

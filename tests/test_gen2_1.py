@@ -248,7 +248,7 @@ class RuntimeTests(unittest.TestCase):
 class HeadlessPathRegression(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec('pybullet'), 'PyBullet unavailable')
     def test_endpoint_skipping_stalls_and_short_path_completes(self):
-        for length, expected in ((1., 'stalled'), (.5, 'Path Complete')):
+        for length, expected in ((1., 'Path Complete'), (.5, 'Path Complete')):
             runtime = ControlRuntime()
             self.addCleanup(runtime.close)
             ok, message = runtime.connect('SIM', headless=True)
@@ -261,9 +261,7 @@ class HeadlessPathRegression(unittest.TestCase):
                     break
             self.assertTrue(runtime.state['is_paused'])
             self.assertIn(expected, runtime.state['status'])
-            if length == 1.:
-                self.assertLess(runtime.state['path_progress'], 1.)
-                self.assertLess(math.dist(tuple(runtime.state['robot_pose'][k] for k in ('x', 'y')), (1., 0.)), .2)
+            self.assertAlmostEqual(runtime.state['path_progress'], 1.)
 
 
 class HardwareTests(unittest.TestCase):
@@ -399,7 +397,13 @@ class ApiTests(unittest.TestCase):
                 self.c.state.update(path_progress=progress, actual_path=[[0, 0], [.4, .04]])
                 self.c.report_errors = [0., .04]
                 if stop:
-                    self.assertEqual(self.client.post('/api/stop', json={}).status_code, 200)
+                    stop_res = self.client.post('/api/stop', json={})
+                    self.assertEqual(stop_res.status_code, 200)
+                    if expect_report:
+                        self.assertIsNotNone(stop_res.json.get('report'))
+                        self.assertEqual(stop_res.json['report']['outcome'], 'stopped')
+                    else:
+                        self.assertIsNone(stop_res.json.get('report'))
                 response = self.client.post('/api/set_path', json={'path': [], 'include_report': True})
                 self.assertEqual(response.status_code, 200)
                 report = response.json['report']

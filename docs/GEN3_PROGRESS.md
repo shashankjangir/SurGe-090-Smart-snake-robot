@@ -192,3 +192,20 @@ A custom cross-generation loading transition between Gen 2.1 (`/`) and Gen 3 (`/
 
 
 
+
+
+## 10. Gen 2.1 Dashboard Restructuring, Continuous Path Simulation & UI Polishing (31 October 2026)
+
+All updates completed and verified without physical hardware actuation:
+1. **Continuous Whole-Path Traversal**: Fixed waypoint advancement in `path_engine.py` to evaluate segment projection ($t \ge 0.85$, cross-track error $\le 0.25$ m) alongside proximity ($0.10$ m). Fixes undulation stall at 20% progress.
+2. **Conditional Manual Stop Accuracy Report**: Updated `/api/stop` in `web_app.py` and `script.js` to inspect path progress: manual stops $>20\%$ coverage trigger the accuracy modal; manual stops $<20\%$ halt silently; full-path completion triggers report display upon arrival.
+3. **5-Box Dashboard Layout (Schematic Architecture)**: Restructured Gen 2.1 dashboard (`index.html` & `style.css`) to match operator drawing:
+   - Box 1 (Top-Left): Mathematical Path Generator.
+   - Box 2 (Bottom-Left): Gamepad State Live Feed & Node Instructions.
+   - Box 3 (Center): Live Trajectory Tracking (native unscaled 520px canvas).
+   - Box 4 (Right): Full-height Simulation Physics (6 sliders, low power mode, Apply / Set Default).
+   - Box 5 (Bottom): 10-Joint Actuator Telemetry (2x5 grid spanning columns 1 & 2 directly beneath controls and tracking).
+   - Removed intermediate visual boxes ("Connection Engine" and "Sensor Node") between hero and footer.
+4. **Header Control Tuning**: Shortened `#serial-port` dropdown to 195px snug width; hid redundant bottom motion dock bar (`.motion-dock { display: none !important; }`).
+5. **Gen 3 Console Aesthetic Alignment**: Fixed CSS overrides in `gen3.css` and `morphing-button.css` to restore 32px pill dimensions, dark high-contrast `#18181b` typography, and moved `Connect simulation engine` button to the right of `Serial port`.
+6. **Test Verification**: 33/33 Node tests passing, 44/44 Python Gen 2.1 tests passing, 103/103 Python Gen 3 tests passing.

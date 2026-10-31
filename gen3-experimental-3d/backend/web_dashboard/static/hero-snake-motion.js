@@ -76,6 +76,8 @@
       this.animId = null;
       this.isRunning = false;
       this.mouseTarget = null;  // Optional gentle cursor tracking {x, y}
+      this.fluidTrail = null;
+      this.fluidCanvas = null;
 
       // Event handlers / observers for clean teardown
       this._resizeObserver = null;
@@ -106,6 +108,23 @@
       this.ctx = this.canvas.getContext('2d');
       this.updateDimensions();
       this.resetKinematics();
+      if (this.container && typeof window.createHeroFluidTrail === 'function') {
+        this.fluidCanvas = document.createElement('canvas');
+        this.fluidCanvas.className = 'hero-fluid-canvas';
+        this.fluidCanvas.setAttribute('aria-hidden', 'true');
+        this.container.insertBefore(this.fluidCanvas, this.canvas);
+        this._fluidMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this._fluidMotionHandler = () => {
+          if (this.fluidTrail) this.fluidTrail.destroy();
+          this.fluidTrail = null;
+          this.fluidCanvas.style.display = this._fluidMotionQuery.matches ? 'none' : 'block';
+          if (!this._fluidMotionQuery.matches) {
+            this.fluidTrail = window.createHeroFluidTrail(this.fluidCanvas);
+          }
+        };
+        this._fluidMotionQuery.addEventListener('change', this._fluidMotionHandler);
+        this._fluidMotionHandler();
+      }
 
       // Setup ResizeObserver for responsive boundary adaptation
       if (typeof ResizeObserver !== 'undefined' && this.container) {
@@ -196,6 +215,7 @@
       this.linkLength = Math.max(16, Math.min(24, Math.round(h * 0.095)));
       this.padding = Math.max(28, Math.min(48, Math.round(h * 0.16)));
       this.turnThreshold = Math.max(60, Math.min(100, Math.round(h * 0.38)));
+      if (this.fluidTrail) this.fluidTrail.clear();
     }
 
     resetKinematics() {
@@ -261,6 +281,9 @@
       if (dt <= 0) dt = 0.016;
 
       this.update(dt);
+      if (this.fluidTrail) {
+        this.fluidTrail.advance(this.segments[NUM_SEGMENTS - 1], this.width, this.height, dt, this.waveTime);
+      }
       this.render();
 
       if (this.isRunning && typeof requestAnimationFrame !== 'undefined') {
@@ -639,6 +662,13 @@
 
     destroy() {
       this.stop();
+      if (this._fluidMotionQuery) {
+        this._fluidMotionQuery.removeEventListener('change', this._fluidMotionHandler);
+      }
+      if (this.fluidTrail) this.fluidTrail.destroy();
+      if (this.fluidCanvas) this.fluidCanvas.remove();
+      this.fluidTrail = null;
+      this.fluidCanvas = null;
       if (this._resizeObserver) {
         this._resizeObserver.disconnect();
         this._resizeObserver = null;

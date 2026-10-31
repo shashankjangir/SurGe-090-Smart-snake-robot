@@ -26,6 +26,8 @@ instance/
 
 # Claude / AI tools
 .claude/
+.gemini/
+skills-lock.json
 
 # Raw historical checkout metadata (history is also in the preserved .bundle).
 removed/baselines/control-checkout-git/

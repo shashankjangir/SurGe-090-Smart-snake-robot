@@ -681,8 +681,128 @@
   min-height: 40px;
   background: #ffffff;
 }
-/* Header controls use their own component styles, not the console form defaults. */
-.gen3 .operator-login-form { flex-wrap: wrap; max-width: 100%; }
+/* Header controls use their own component styles, matching Gen 2.1 paper aesthetic */
+.gen3 .operator-login-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.gen3 .operator-select,
+.gen3 select.operator-select,
+.gen3 #login-name {
+  min-height: 32px !important;
+  height: 32px !important;
+  max-height: 32px !important;
+  padding: 4px 24px 4px 10px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background-color: var(--color-paper-light, #ffffff) !important;
+  border: 1.1px solid rgba(0, 0, 0, 0.18) !important;
+  color: var(--color-carbon, #18181b) !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
+}
+
+.gen3 .operator-select:hover,
+.gen3 select.operator-select:hover,
+.gen3 #login-name:hover {
+  border-color: rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+}
+
+.gen3 .morphing-button-wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.gen3 .morphing-button-container {
+  height: 32px !important;
+  min-height: 32px !important;
+  box-sizing: border-box !important;
+  background-color: #f4f4f4 !important;
+  border: 1.1px solid rgba(0, 0, 0, 0.18) !important;
+  border-radius: 32px !important;
+  padding: 2px !important;
+  overflow: hidden !important;
+  transition: max-width 0.38s cubic-bezier(0.34, 1.35, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.gen3 .morphing-button-container.is-expanded {
+  border-color: rgba(0, 0, 0, 0.28) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.gen3 .morphing-action-btn,
+.gen3 button.morphing-action-btn,
+.gen3 #btn-login {
+  height: 26px !important;
+  min-height: 26px !important;
+  max-height: 26px !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  background-color: #f4f4f4 !important;
+  color: #18181b !important;
+  padding: 2px 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease !important;
+}
+
+.gen3 .morphing-action-btn:hover,
+.gen3 button.morphing-action-btn:hover,
+.gen3 #btn-login:hover {
+  background-color: #eaeaea !important;
+  color: #000000 !important;
+}
+
+.gen3 .morphing-button-container.is-expanded .morphing-action-btn,
+.gen3 .morphing-button-container.is-expanded #btn-login {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18) !important;
+}
+
+.gen3 .morphing-button-container.is-expanded .morphing-action-btn:hover,
+.gen3 .morphing-button-container.is-expanded #btn-login:hover {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+}
+
+.gen3 .morphing-icon-slot {
+  display: inline-flex !important;
+  align-items: center !important;
+  color: inherit !important;
+}
+
+.gen3 .morphing-icon {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: currentColor !important;
+}
+
+.gen3 .morphing-label {
+  color: inherit !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
 .gen3 .marquee-toggle-btn {
   min-height: 28px;
   height: 28px;
@@ -692,25 +812,34 @@
   background: #000;
   color: #fff;
 }
+
 .gen3 .morphing-password-input {
-  min-height: 0;
-  padding: 4px 0;
-  border: 0;
-  background: transparent;
-  color: #18181b;
+  min-height: 0 !important;
+  height: 26px !important;
+  padding: 2px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #18181b !important;
+  font-size: 12px !important;
 }
-@media (prefers-color-scheme: dark) {
-  .gen3 .morphing-password-input { color: #fefefe; }
-}
+
 .gen3 .morphing-password-input:focus-visible {
   outline: 2px solid var(--color-sunburst);
   outline-offset: -2px;
 }
+
 .gen3 .morphing-eye-btn {
-  min-height: 28px;
-  padding: 3px;
-  border: 0;
-  background: transparent;
+  min-height: 26px !important;
+  height: 26px !important;
+  width: 26px !important;
+  padding: 2px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #71717a !important;
+}
+
+.gen3 .morphing-eye-btn:hover {
+  color: #18181b !important;
 }
 
 .gen3 input[type=number] {
@@ -967,41 +1096,51 @@
 /* Presets & Runs styling */
 .gen3 .presets-container {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
 .gen3 .presets-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 6px;
 }
 .gen3 .preset-picker { min-width: 0; }
 .gen3 .preset-options { border: 0; padding: 0; margin: 0; }
-.gen3 .preset-options legend { font-weight: 600; margin-bottom: 12px; }
-.compact-preset-card {
+.gen3 .preset-options legend { font-weight: 600; margin-bottom: 8px; }
+.gen3 .compact-preset-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px;
 }
-.compact-preset-card .preset-choice {
-  min-height: 36px;
+.gen3 .compact-preset-card .preset-choice {
+  min-height: 40px;
   gap: 8px;
 }
+.gen3 .compact-preset-card .preset-choice-content { gap: 2px; }
+.gen3 .compact-preset-card .preset-actions { margin: 0; }
+.gen3 .compact-preset-card .preset-actions button { min-height: 40px; padding: 6px 8px; }
+.gen3 .compact-preset-card .preset-description:empty { display: none; }
 .compact-preset-card .preset-name {
   font-size: 13px;
 }
 .compact-preset-card .preset-specs-compact {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted, #526176);
   font-variant-numeric: tabular-nums;
 }
-.compact-preset-card .preset-description {
+.gen3 .compact-preset-card .preset-description {
   font-size: 12px;
+  line-height: 1.35;
 }
 .runs-sim-gait-card {
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 14px;
+  padding: 12px;
   background: #ffffff;
-  margin-top: 12px;
+  margin-top: 0;
 }
 .runs-sim-gait-card h3 {
   margin: 0 0 6px 0;
@@ -1015,7 +1154,7 @@
 .gen3 .preset-choice-content { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
 .gen3 .preset-description { font-size: 13px; font-weight: 400; color: #526176; }
 .gen3 .preset-choice .preset-specs { margin: 0; color: #526176; font-weight: 400; }
-.gen3 .preset-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.gen3 .preset-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .gen3 .preset-footer p { flex: 1 1 180px; margin: 0; font-size: 13px; color: #526176; overflow-wrap: anywhere; }
 .gen3 .preset-footer button { min-height: 44px; }
 .gen3 .preset-actions { justify-content: flex-end; margin-top: 8px; }
@@ -1033,11 +1172,16 @@
 .gen3 .save-preset-card {
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 16px;
+  padding: 12px;
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+}
+
+@media (min-width: 801px) and (max-width: 1100px) {
+  .gen3 .presets-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gen3 .preset-picker { grid-column: 1 / -1; }
 }
 
 /* Terminal output for firmware */
@@ -1165,85 +1309,115 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
   .gen3 .stop { flex: 1 0 100%; width: 100%; }
 }
 
-/* Simulation panel follows the shared Gen 2.1 dashboard layout and motion. */
-#sim-hub > .control-panel .card { margin-bottom: 0; }
-#sim-hub > .control-panel .card-lavender { background: var(--color-lavender); }
-#sim-hub .card-header-row { gap: 8px; flex-wrap: wrap; }
-#sim-hub .card-header-row h2 { margin: 0; }
-#sim-hub #sim-canvas-hub { padding: var(--spacing-24); margin: 0; }
-#sim-hub .sim-3d-canvas-wrapper { height: 420px; }
-#sim-hub .canvas-controls-footer { align-items: flex-start; }
+/* Simulation workspace: compact support, generous viewport, full-width feedback. */
+#sim-hub {
+  grid-template-columns: 248px minmax(0, 1fr) 300px;
+  grid-template-areas: "support viewport settings" "feedback feedback settings";
+  gap: 12px;
+  align-items: start;
+}
+#sim-hub > .sim-support { grid-area: support; gap: 12px; }
+#sim-hub > #sim-canvas-hub { grid-area: viewport; }
+#sim-hub > .sim-settings { grid-area: settings; gap: 0; }
+#sim-hub > #sim-telemetry-hub { grid-area: feedback; margin: 0; }
+#sim-hub .card, #sim-hub #sim-canvas-hub, #sim-hub #sim-telemetry-hub {
+  margin: 0;
+  padding: 16px;
+}
+#sim-hub h2 { font-size: 18px; line-height: 1.25; margin: 0; text-wrap: balance; }
+#sim-hub p { margin: 8px 0; font-size: 12px; line-height: 1.45; text-wrap: pretty; }
+#sim-hub #sim-gait-card { background: var(--color-lavender); }
+#sim-hub .card-header-row { gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+#sim-hub .input-group { margin-bottom: 8px; gap: 4px; }
+#sim-hub .input-group label {
+  font-size: 12px;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+#sim-hub input:not([type="checkbox"]), #sim-hub select, #sim-hub button {
+  min-height: 40px;
+}
+#sim-hub input[type="number"] { padding: 8px; font-variant-numeric: tabular-nums; }
+#sim-hub select { font-size: 12px; }
+#sim-hub button { font-size: 12px; white-space: normal; }
+#sim-hub .check { font-size: 12px; line-height: 1.4; min-height: 40px; margin: 4px 0; }
+#sim-hub .check input { flex-shrink: 0; }
+#sim-hub .sim-map-details { border-top: 1px solid var(--color-border); }
+#sim-hub .sim-map-details summary { cursor: pointer; padding: 10px 0; font-size: 12px; font-weight: 600; }
+#sim-hub .sim-map-details p { overflow-wrap: anywhere; }
+#sim-hub .sim-map-details + .input-group { margin-top: 8px; }
+#sim-hub .canvas-toolbar { gap: 8px; margin-bottom: 12px; }
+#sim-hub .canvas-badges { gap: 6px; }
+#sim-hub .badge-pill { font-size: 10px; padding: 4px 8px; }
+#sim-hub .sim-3d-canvas-wrapper { height: clamp(520px, 58vh, 680px); }
+#gen3SimCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+#gen3SimCanvas { position: relative; z-index: 1; touch-action: none; }
+#sim-hub .sim-cad-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#sim-hub #sim-3d-hud, #sim-hub .sim-3d-canvas-wrapper > div { z-index: 2; }
+#sim-hub .sim-view-toolbar, #sim-hub .sim-route-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+#sim-hub .sim-view-toolbar label { font-size: 12px; }
+#sim-hub .sim-view-toolbar select { width: auto; flex: 1 1 180px; }
+#sim-hub .sim-view-toolbar button { margin-left: auto; }
+#sim-hub .sim-route-toolbar button { flex: 1 1 120px; padding: 8px; }
+#sim-hub #sim-route-draw[aria-pressed="true"] { background: var(--color-sunburst); color: var(--color-carbon); }
+#sim-hub #sim-route-status { font-weight: 600; font-variant-numeric: tabular-nums; }
+#sim-hub #sim-route-points { width: 100%; box-sizing: border-box; font: 13px/1.5 monospace; padding: 8px; margin: 8px 0; resize: vertical; }
+#sim-hub .sim-map-details > label { display: block; font-size: 12px; line-height: 1.4; }
+#sim-canvas-hub:fullscreen { background: var(--color-paper-white); overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+#sim-canvas-hub:fullscreen .sim-3d-canvas-wrapper { flex: 1 0 50vh; min-height: 320px; }
+#sim-hub #sim-fullscreen-stop { display: none; }
+#sim-canvas-hub:fullscreen #sim-fullscreen-stop { display: inline-flex; background: #b91c1c; color: #fff; }
+#sim-hub #sim-3d-hud { max-width: calc(100% - 28px); box-sizing: border-box; overflow-wrap: anywhere; }
+#sim-hub .canvas-controls-footer { align-items: flex-start; gap: 8px; margin-top: 12px; }
 #sim-hub .canvas-controls-footer p { margin: 0; }
 #sim-hub .canvas-actions-row, #sim-hub .sim-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 #sim-hub .sim-settings-actions { margin-top: 12px; }
-#sim-hub .sim-settings-actions button { flex: 1 1 auto; }
-#sim-hub .telemetry-title-block { flex-wrap: wrap; }
-#sim-hub .telemetry-title-block h2 { margin: 0; }
-#sim-hub .telemetry-grid {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  min-width: 0;
-  gap: 12px;
-}
-#sim-hub .telem-box {
-  min-width: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-#sim-hub .telem-box .data-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-variant-numeric: tabular-nums;
-  min-width: 0;
-  gap: 4px;
-}
-#sim-hub .telem-box .data-row span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  min-width: 0;
-  text-align: right;
-}
-#sim-hub .telem-box .motor-header {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#sim-hub .motor-header { gap: 6px; text-align: left; }
-#sim-hub .data-row { gap: 8px; font-variant-numeric: tabular-nums; }
-#sim-hub .data-row span:last-child { white-space: nowrap; }
-#btn-gen3-sim-start, #btn-gen3-sim-stop, #btn-gen3-sim-reset {
-  transition: background-color 120ms ease-out, color 120ms ease-out, box-shadow 120ms ease-out;
-}
-@media (min-width: 1201px) {
-  #sim-hub > .control-panel:first-child { grid-row: auto; }
-  #sim-hub > .control-panel:nth-of-type(2) { grid-column: 3; grid-row: 1 / 3; }
-  #sim-hub > .telemetry-section { grid-column: 1 / 3; margin-top: 0; }
-}
-@media (max-width: 1200px) {
-  #sim-hub > .telemetry-section { order: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  #sim-hub .telem-box, #btn-gen3-sim-start, #btn-gen3-sim-stop, #btn-gen3-sim-reset { transition: none; }
-  #sim-hub .telem-box:hover { transform: none; }
-}
-
-/* The simulation tuning card shares the planar dashboard's controls. */
+#sim-hub .sim-settings-actions button { flex: 1 1 auto; padding: 8px; }
+#sim-hub .physics-help { font-size: 12px; line-height: 1.4; color: var(--color-text-main); }
+#sim-hub .sim-physics-group { background: transparent; border: 0; border-top: 1px solid var(--color-border); border-radius: 0; margin: 8px 0 0; }
+#sim-hub .sim-group-heading { background: transparent; padding: 12px 0; min-height: 40px; box-sizing: border-box; }
+#sim-hub .sim-group-content { padding: 0 0 4px; }
+#sim-hub .sim-group-content .input-group { margin-bottom: 12px; }
+#sim-hub .sim-group-content .input-group:last-child { margin-bottom: 0; }
 #sim-3d-physics-card input[type="range"] {
   min-height: 40px;
   height: 40px;
   padding: 16px 0;
+  margin: 0;
   border: 0;
   background: var(--color-carbon);
   background-clip: content-box;
   border-radius: var(--radius-pills);
 }
-#sim-3d-physics-card input[type="range"]:focus-visible {
+#sim-hub :is(input, select, button, summary):focus-visible {
   outline: 2px solid var(--color-voltage-violet);
   outline-offset: 2px;
 }
+#sim-hub .telemetry-section-header { gap: 8px; margin-bottom: 12px; }
+#sim-hub .telemetry-title-block { flex-wrap: wrap; gap: 8px; }
+#sim-hub .telemetry-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); min-width: 0; gap: 8px; }
+#sim-hub .telem-box { min-width: 0; padding: 12px; overflow: visible; transition: none; }
+#sim-hub .telem-box:hover { animation: none; transform: none; }
+#sim-hub .telem-box .data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+#sim-hub .telem-box .data-row span:last-child {
+  white-space: normal;
+  overflow: visible;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+#sim-hub .motor-header { gap: 4px; text-align: left; }
+#sim-hub .telem-box .data-row[id^="sim-sample-"] { white-space: normal; overflow: visible; }
 .gen3 .save-preset-card .gait-preset-details {
   padding: 8px 10px;
   border: 1px solid var(--color-carbon);
@@ -1252,8 +1426,16 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
 }
 .gen3 .save-preset-card .preset-save-help,
 .gen3 .save-preset-card #preset-save-status { margin: 0; font-size: 13px; }
-@media (min-width: 1201px) {
-  #sim-hub { grid-template-columns: 320px minmax(0, 1fr) 400px; }
+@media (max-width: 1200px) {
+  #sim-hub { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "viewport viewport" "support settings" "feedback feedback"; }
+  #sim-hub .telemetry-grid { grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); }
+}
+@media (max-width: 768px) {
+  #sim-hub { grid-template-columns: minmax(0, 1fr); grid-template-areas: "support" "viewport" "settings" "feedback"; }
+  #sim-hub .sim-3d-canvas-wrapper { height: 360px; }
+  #sim-hub .telem-box { min-width: 0; }
+  #sim-hub input:not([type="checkbox"]), #sim-hub select, #sim-hub button, #sim-hub summary { min-height: 44px; }
+  #sim-hub .telemetry-grid { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
 }
 
 @media (max-width: 600px) {
@@ -1290,19 +1472,55 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
 }
 
 .diagnostics-layout > .card { margin: 0; }
+.gen3 .calibration-split-layout .card { margin: 0; }
 .diagnostics-layout > [aria-labelledby="cal-map-heading"] { grid-column: 1 / -1; }
-.calibration-split-layout {
-  grid-template-columns: 1fr;
-}
-#map-form {
+#panel-calibration.active {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
-  gap: 20px;
+  gap: 16px;
   align-items: start;
+}
+.gen3 #panel-calibration > .card {
+  grid-column: 1;
+  margin: 0;
+  padding: 16px;
+}
+.calibration-split-layout {
+  display: contents;
+}
+#map-form {
+  display: contents;
 }
 .calibration-map-card {
   margin: 0;
   min-width: 0;
+  grid-column: 1;
+  grid-row: 2 / span 3;
+  align-self: start;
+}
+.calibration-split-layout > .card,
+.calibration-split-layout .safety-limits-card {
+  grid-column: 2;
+  min-width: 0;
+}
+.calibration-split-layout .safety-limits-card { grid-row: 1 / span 2; }
+.calibration-split-layout > .maintenance-card { grid-row: 3; }
+.calibration-split-layout > [aria-labelledby="jog-sec-heading"] { grid-row: 4; }
+.gen3 .calibration-split-layout .card { padding: 16px; }
+.gen3 .calibration-split-layout .card h2 { margin-bottom: 8px; }
+.gen3 .calibration-split-layout .card p { margin-top: 0; margin-bottom: 8px; }
+.gen3 .calibration-split-layout .controls { gap: 8px; }
+.gen3 .calibration-map-card th,
+.gen3 .calibration-map-card td { padding: 6px; }
+.calibration-split-layout > .card .controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.calibration-split-layout .controls > label:not(.check) {
+  min-width: 0;
+}
+.calibration-split-layout .controls > button {
+  white-space: normal;
 }
 .safety-limits-card {
   margin: 0;
@@ -1313,8 +1531,14 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
   padding: 0;
 }
 @media (max-width: 992px) {
-  #map-form {
-    grid-template-columns: 1fr;
+  #panel-calibration.active {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calibration-split-layout .calibration-map-card,
+  .calibration-split-layout .safety-limits-card,
+  .calibration-split-layout > .card {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
 

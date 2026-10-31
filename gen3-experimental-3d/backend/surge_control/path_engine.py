@@ -123,17 +123,34 @@ class PathEngine:
         if self.state == "acquiring":
             target_pt = self.checkpoints[0] if self.checkpoints else (0, 0)
             target = self.entry_point if self.entry_point else target_pt
-            if math.hypot(x - target[0], y - target[1]) <= 0.15 or math.hypot(x - target_pt[0], y - target_pt[1]) <= 0.15:
+            if math.hypot(x - target[0], y - target[1]) <= 0.20 or math.hypot(x - target_pt[0], y - target_pt[1]) <= 0.20:
                 self.state = "tracking"
                 self.acquired = True
 
-        if self.passed < len(self.checkpoints) and math.hypot(
-                x - self.checkpoints[self.passed][0], y - self.checkpoints[self.passed][1]) <= 0.1 and (
-                self.last_checkpoint_pose is None or math.dist((x, y), self.last_checkpoint_pose) >= min(0.05, (self.distances[self.passed] - self.distances[self.passed - 1]) / 2)):
-            self.passed += 1
-            self.last_checkpoint_pose = (x, y)
-            if self.passed == len(self.checkpoints):
-                self.state = "completed"
+        if self.passed < len(self.checkpoints):
+            curr_chk = self.checkpoints[self.passed]
+            min_step = 0.05 if self.passed == 0 else min(0.05, (self.distances[self.passed] - self.distances[self.passed - 1]) / 2)
+            has_moved = self.last_checkpoint_pose is None or math.dist((x, y), self.last_checkpoint_pose) >= min_step
+
+            # 1. Close to checkpoint (exact 0.1m tolerance)
+            if math.hypot(x - curr_chk[0], y - curr_chk[1]) <= 0.1 and has_moved:
+                self.passed += 1
+                self.last_checkpoint_pose = (x, y)
+            # 2. Progressed along the trajectory segment past checkpoint (accommodates lateral snake undulation)
+            elif self.passed > 0 and has_moved:
+                prev_chk = self.checkpoints[self.passed - 1]
+                dx = curr_chk[0] - prev_chk[0]
+                dy = curr_chk[1] - prev_chk[1]
+                seg_sq = dx * dx + dy * dy
+                if seg_sq > 1e-6:
+                    t = ((x - prev_chk[0]) * dx + (y - prev_chk[1]) * dy) / seg_sq
+                    cross = abs((x - prev_chk[0]) * dy - (y - prev_chk[1]) * dx) / math.sqrt(seg_sq)
+                    if t >= 0.85 and cross <= 0.25:
+                        self.passed += 1
+                        self.last_checkpoint_pose = (x, y)
+
+        if self.passed == len(self.checkpoints):
+            self.state = "completed"
         return True
 
     def progress(self):

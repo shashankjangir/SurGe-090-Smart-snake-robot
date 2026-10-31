@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="/static/rolling-number.css">
     <link rel="stylesheet" href="/static/distorted-glass.css">
     <link rel="stylesheet" href="/static/shader-lens-blur.css">
-    <link rel="stylesheet" href="/static/canvas-fractal-grid.css">
+    <link rel="stylesheet" href="/static/liquid-grid.css">
     <link rel="stylesheet" href="/static/grid-beam.css">
     <link rel="stylesheet" href="/static/pixel-snake-heading.css">
     <link rel="stylesheet" href="/static/hero-snake-motion.css">
@@ -29,17 +29,18 @@
     <script src="/static/rolling-number.js" defer></script>
     <script src="/static/morphing-button.js" defer></script>
     <script src="/static/shader-lens-blur.js" defer></script>
-    <script src="/static/canvas-fractal-grid.js" defer></script>
+    <script src="/static/liquid-grid.js" defer></script>
     <script src="/static/grid-beam.js" defer></script>
     <script src="/static/pixel-snake-heading.js" defer></script>
+    <script src="/static/hero-fluid-trail.js" defer></script>
     <script src="/static/hero-snake-motion.js" defer></script>
     <script src="/static/hover-background.js" defer></script>
     <script src="/static/distorted-glass.js" defer></script>
 </head>
 <body>
-    <!-- Canvas Fractal Grid - Animated Snake Dot Grid Background -->
-    <div id="canvas-fractal-grid-bg" class="canvas-fractal-grid-bg" aria-hidden="true">
-        <canvas id="canvas-fractal-grid"></canvas>
+    <!-- Liquid Grid - Rippling dot-matrix background -->
+    <div id="liquid-grid-bg" class="liquid-grid-bg" aria-hidden="true">
+        <canvas id="liquid-grid"></canvas>
     </div>
 
     <!-- Full-bleed Marquee Scrolling Banner (Slush signature announcement strip) -->
@@ -221,7 +222,7 @@
                 <div class="hero-actions">
                     <div class="port-select-group" style="display: inline-flex; align-items: center; gap: 6px;">
                         <label for="serial-port" style="font-size: 12px; font-weight: 700; text-transform: uppercase;">Serial port</label>
-                        <select id="serial-port" class="form-select" style="min-width: 140px; height: 36px; padding: 4px 8px; border-radius: var(--radius-pills); border: 1px solid var(--color-carbon); font-family: monospace;">
+                        <select id="serial-port" class="form-select" style="width: 195px; max-width: 195px; height: 36px; padding: 4px 10px; border-radius: var(--radius-pills); border: 1px solid var(--color-carbon); font-family: monospace; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                             <option value="">Scanning ports...</option>
                         </select>
                         <button type="button" id="refresh-ports" class="btn btn-secondary btn-sm" title="Scan serial ports" aria-label="Refresh serial ports">🔄</button>
@@ -239,32 +240,13 @@
 
         <!-- Main Dashboard 3-Column Layout -->
         <div class="main-content" id="control-hub">
-            <!-- Left Column: Connection & Math Engine & Gamepad -->
-            <aside class="control-panel">
-                <!-- Connection Engine Card -->
-                <section class="card">
-                    <div class="card-header-row">
-                        <h2>Connection Engine</h2>
-                        <span class="card-tag">Gen 2.1</span>
-                    </div>
-                    <div class="engine-selector">
-                        <label class="pill-option">
-                            <input type="radio" name="engine" value="SIM" checked>
-                            <span>Simulation (PyBullet Planar)</span>
-                        </label>
-                        <label class="pill-option">
-                            <input type="radio" name="engine" value="ST3215">
-                            <span>Hardware (ST3215 + ESP32)</span>
-                        </label>
-                        <label class="pill-option" style="background-color: var(--color-soft-mist);">
-                            <input type="checkbox" id="sim-headless" checked>
-                            <span>Headless Sim (Safe Default)</span>
-                        </label>
-                    </div>
-                </section>
+            <!-- Left Column: Math Engine & Gamepad -->
+            <aside class="control-panel" id="left-controls">
+                <input type="hidden" name="engine" value="SIM" id="engine-sim">
+                <input type="hidden" id="sim-headless" value="true">
 
-                <!-- Mathematical Path Card -->
-                <section class="card card-lavender">
+                <!-- Box 1: Mathematical Path Card -->
+                <section class="card card-lavender" id="math-path-card">
                     <div class="card-header-row">
                         <h2>Mathematical Path</h2>
                         <span class="card-tag">Generator</span>
@@ -301,13 +283,15 @@
                         <label for="math-scale">Path scale (0–10)</label>
                         <input type="number" id="math-scale" min="0.01" max="10" step="0.1" value="1">
                     </div>
-                    <button id="btn-generate" class="btn btn-secondary" style="margin-top: 4px;">Preview Path</button>
-                    <button id="btn-use-generated" class="btn btn-primary" disabled>Use Generated Path</button>
-                    <button id="btn-cancel-generated" class="btn btn-secondary" disabled>Cancel Preview</button>
-                    <p>Preview appears in purple in the tracking view.</p>
+                    <div class="math-actions-row" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+                        <button id="btn-generate" class="btn btn-secondary btn-sm" style="flex: 1;">Preview</button>
+                        <button id="btn-use-generated" class="btn btn-primary btn-sm" style="flex: 1.2;" disabled>Use Path</button>
+                        <button id="btn-cancel-generated" class="btn btn-secondary btn-sm" disabled>Cancel</button>
+                    </div>
+                    <p style="font-size: 11px; margin-top: 6px; opacity: 0.85;">Preview appears in purple in tracking view.</p>
                 </section>
 
-                <!-- Gamepad State Card -->
+                <!-- Box 2: Gamepad Note Card (Gamepad State + Node Instructions) -->
                 <section class="card" id="gamepad-card">
                     <div class="card-header-row">
                         <h2>Gamepad State</h2>
@@ -335,28 +319,25 @@
                             </div>
                         </div>
                     </div>
+                    <div class="qr-card" style="margin-top: 12px; border: 1.2px solid var(--color-carbon); box-shadow: 0 2px 0 var(--color-carbon);">
+                        <div class="qr-panel">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
+                                <rect x="14" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
+                                <rect x="2" y="14" width="8" height="8" rx="2" fill="#000000"></rect>
+                                <circle cx="6" cy="6" r="1.5" fill="#ffffff"></circle>
+                                <circle cx="18" cy="6" r="1.5" fill="#ffffff"></circle>
+                                <circle cx="6" cy="18" r="1.5" fill="#ffffff"></circle>
+                                <rect x="14" y="14" width="4" height="4" fill="#000000"></rect>
+                                <rect x="18" y="18" width="4" height="4" fill="#000000"></rect>
+                            </svg>
+                        </div>
+                        <div class="qr-label-panel">
+                            <div class="qr-badge-title">GAMEPAD NODE</div>
+                            <div class="qr-badge-desc">Run <code>controller_node.py --gen 2.1</code>; stop and log out here before handing over control.</div>
+                        </div>
+                    </div>
                 </section>
-
-                <!-- Slush QR Download Card -->
-                <div class="qr-card">
-                    <div class="qr-panel">
-                        <!-- Stylized QR Code SVG icon with 1px black outline -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
-                            <rect x="14" y="2" width="8" height="8" rx="2" fill="#000000"></rect>
-                            <rect x="2" y="14" width="8" height="8" rx="2" fill="#000000"></rect>
-                            <circle cx="6" cy="6" r="1.5" fill="#ffffff"></circle>
-                            <circle cx="18" cy="6" r="1.5" fill="#ffffff"></circle>
-                            <circle cx="6" cy="18" r="1.5" fill="#ffffff"></circle>
-                            <rect x="14" y="14" width="4" height="4" fill="#000000"></rect>
-                            <rect x="18" y="18" width="4" height="4" fill="#000000"></rect>
-                        </svg>
-                    </div>
-                    <div class="qr-label-panel">
-                        <div class="qr-badge-title">GAMEPAD NODE</div>
-                        <div class="qr-badge-desc">Run controller_node.py --gen 2.1 --operator NAME; stop and log out here before handing over control.</div>
-                    </div>
-                </div>
             </aside>
 
             <!-- Center Column: Trajectory Tracking Canvas -->
@@ -481,11 +462,11 @@
 
         </div>
 
-        <!-- Bottom Motion Dock -->
-        <nav class="motion-dock" aria-label="Motion controls">
+        <!-- Bottom Motion Dock (Removed from display as requested) -->
+        <nav class="motion-dock" aria-label="Motion controls" style="display: none;" aria-hidden="true">
             <div class="motion-dock-content">
                 <span class="dock-label">OPERATOR COMMAND:</span>
-                <button id="btn-start" class="btn btn-primary">Start motion</button>
+                <button id="btn-start" class="btn btn-primary" type="button">Start motion</button>
             </div>
         </nav>
 
@@ -501,10 +482,7 @@
             </div>
         </div>
 
-        <section class="card">
-            <h2>Sensor node</h2>
-            <pre id="sensor-status">No sensor data</pre>
-        </section>
+        <span id="sensor-status" style="display: none;" aria-hidden="true">No sensor data</span>
     </div>
 
         <!-- Fixed quick actions -->

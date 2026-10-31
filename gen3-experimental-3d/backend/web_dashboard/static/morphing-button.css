@@ -162,37 +162,35 @@
   border-color: #ef4444;
 }
 
-/* Dark mode compatibility */
-@media (prefers-color-scheme: dark) {
-  .morphing-button-container {
-    background-color: #1C1C1E;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  .morphing-button-container.is-expanded {
-    background-color: #1C1C1E;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
-  .morphing-password-input {
-    color: #fefefe;
-  }
-  .morphing-password-input::placeholder {
-    color: #B2B2B2;
-  }
-  .morphing-action-btn {
-    background-color: #1C1C1E;
-    color: #fefefe;
-  }
-  .morphing-action-btn:hover {
-    background-color: #252529;
-  }
-  .morphing-button-container.is-expanded .morphing-action-btn {
-    background-color: #2C2C2E;
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  }
-  .morphing-button-container.is-expanded .morphing-action-btn:hover {
-    background-color: #3A3A3C;
-  }
+/* Explicit dark theme compatibility (only when dark theme is explicitly activated) */
+[data-theme="dark"] .morphing-button-container {
+  background-color: #1C1C1E;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .morphing-button-container.is-expanded {
+  background-color: #1C1C1E;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .morphing-password-input {
+  color: #fefefe;
+}
+[data-theme="dark"] .morphing-password-input::placeholder {
+  color: #B2B2B2;
+}
+[data-theme="dark"] .morphing-action-btn {
+  background-color: #1C1C1E;
+  color: #fefefe;
+}
+[data-theme="dark"] .morphing-action-btn:hover {
+  background-color: #252529;
+}
+[data-theme="dark"] .morphing-button-container.is-expanded .morphing-action-btn {
+  background-color: #2C2C2E;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .morphing-button-container.is-expanded .morphing-action-btn:hover {
+  background-color: #3A3A3C;
 }
 
 /* Reduced Motion */

@@ -9,6 +9,8 @@ design, servo control, embedded electronics and simulation.
 
 ## Continue the current Gen 3 robot work
 
+**Updated 31 October 2026:** The Gen 2.1 dashboard (`/`) has been restructured to match the operator schematic with a 5-box responsive layout (Mathematical Path generator, Gamepad State & Node instructions, centered 520px Live Trajectory Tracking, full-height Simulation Physics panel, and a 2x5 10-Joint Actuator Telemetry grid spanning columns 1 & 2). The path simulation engine (`path_engine.py`) now ensures continuous whole-path undulation without premature stalls at 20% progress via segment projection, and manual stops conditionally display the run accuracy report only when progress exceeds 20%. Gen 3 console controls (`/gen3`) have been unified with Gen 2.1 paper styling, fixing operator dropdown dimensions, high-contrast morphing password button rendering, and serial port action alignment.
+
 **Updated 26 October 2026:** the physical ten-motor Gen 3 robot now performs
 pitch-only waves over ESP-NOW. The owner successfully tested 2° and 5° pitch
 waves, a 30-second 5° run, and a 10° run with an 8-second startup/shutdown ramp.

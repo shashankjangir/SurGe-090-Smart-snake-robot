@@ -393,7 +393,10 @@ def create_app(runtime=None):
         with control.lock:
             gen3.stop()
             control.pause()
-        return jsonify(success=True)
+            report = None
+            if control.state["engine"] == "SIM" and control.state["path_progress"] > 0.2:
+                report = report_data()
+        return jsonify(success=True, report=report)
 
     @app.post("/api/params")
     def params():

@@ -17,9 +17,9 @@ function target() {
 const sim = read('static/gen3-sim.js');
 const canvas = target(), windowTarget = target(), button = target();
 button.dataset.camera = 'zoom-in';
-const elements = {gen3SimCanvas: canvas, 'hud-cam-angles': target(), 'sim-camera-summary': target()};
+const elements = {gen3SimCanvas: canvas, 'hud-cam-angles': target(), 'sim-camera-summary': target(), 'sim-camera-mode': target()};
 const camera = {yaw: 0, pitch: 0, distance: 2.2, target: {x: 0, y: 0, z: .1}};
-const context = {camera, $: id => elements[id], window: windowTarget, document: {querySelectorAll: () => [button]}};
+const context = {routeDrawing: false, cameraMode: 'follow', camera, $: id => elements[id], window: windowTarget, document: {querySelectorAll: () => [button]}};
 vm.createContext(context);
 vm.runInContext(sim.slice(sim.indexOf('  function resetCamera()'), sim.indexOf('  // 3D Math & Projection')), context);
 context.initCanvas();
@@ -30,12 +30,12 @@ canvas.fire('keydown', {key: 'ArrowUp', shiftKey: true});
 assert.equal(camera.yaw, yaw);
 assert.notEqual(camera.target.x, 0);
 button.fire('click'); assert(camera.distance < 2.2);
-canvas.fire('keydown', {key: 'Home'}); assert.equal(camera.distance, 2.2);
+canvas.fire('keydown', {key: 'Home'}); assert.equal(camera.distance, 1.6);
 const pointer = (id, x, y) => ({pointerId: id, clientX: x, clientY: y, button: 0, pointerType: 'touch'});
 canvas.fire('pointerdown', pointer(1, 0, 0));
 canvas.fire('pointerdown', pointer(2, 100, 0));
 canvas.fire('pointermove', pointer(2, 200, 0));
-assert.equal(camera.distance, 1.1, 'pinch zoom survives the migration');
+assert.equal(camera.distance, .8, 'pinch zoom survives the migration');
 canvas.fire('pointerup', pointer(2, 200, 0));
 assert.equal(camera.isDragging, true, 'remaining pointer can orbit');
 for (const ending of ['pointercancel', 'lostpointercapture', 'blur']) {

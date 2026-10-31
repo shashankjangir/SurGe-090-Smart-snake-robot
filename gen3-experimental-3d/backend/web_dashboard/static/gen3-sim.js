@@ -39,9 +39,9 @@
     },
     lateral_undulation: {
       name: 'Lateral Undulation (Planar Baseline)',
-      yaw: 35, pitch: 0, freq: 0.50, lag: 90, offset: 0, bias: 0, fric: 25.0, torque: 2.00,
-      summary: 'Yaw 35° · Pitch 0° · Offset 0° · Freq 0.50Hz · Lag 90°',
-      desc: 'Planar horizontal wave where only yaw joints oscillate, matching Gen 2.1 serpenoid baseline in 3D environment.'
+      yaw: 30, pitch: 0, freq: 0.30, lag: 90, offset: 0, bias: 0, fric: 25.0, torque: 2.00,
+      summary: 'Yaw 30° · Pitch 0° · Freq 0.30 Hz · Lag 90°',
+      desc: 'Flat-ground simulation route baseline. Only yaw joints oscillate; physical travel is unmeasured.'
     },
     sinus_lifting: {
       name: 'Sinus-Lifting Step (Ground Clearance)',
@@ -84,6 +84,15 @@
   let connectionPending = false;
   let simulationSettingsDirty = false;
   let simulationLinks = null;
+  let simulationPoses = null;
+  let simulationHead = null;
+  let routeDraft = [];
+  let routeSnapshot = null;
+  let routeDirty = false;
+  let routeDrawing = false;
+  let routeRun = null;
+  let cameraMode = 'follow';
+  let cadView = null;
   let ownedRun = null;
   let snapshotAvailable = false;
   let measuredSamples = Array(10).fill(null);
@@ -118,8 +127,8 @@
   const camera = {
     yaw: 45 * Math.PI / 180,       // radians around Z
     pitch: -25 * Math.PI / 180,    // radians down from horizontal
-    distance: 2.2,                 // distance from target (meters)
-    target: { x: 0.4, y: 0, z: 0.1 },
+    distance: 1.6,                 // distance from target (meters)
+    target: { x: -0.5, y: 0, z: 0.1 },
     pan: { x: 0, y: 0 },
     isDragging: false,
     dragButton: 0,
@@ -138,13 +147,15 @@
       if (!Array.isArray(joints) || joints.length !== 10) return;
       joints.forEach((joint, i) => Object.assign(JOINT_SPECS[i], joint));
       const config = data.config || data;
+      $('sim-speed-limit').value = config.speed;
+      $('sim-position-limits').textContent = joints.map(joint => `ID ${joint.id}: ${joint.min}–${joint.max}`).join(' · ');
       $('sim-tracking-error').value = config.tracking_error;
       $('sim-tracking-timeout').value = config.tracking_timeout;
-      for (const id of ['sim-tracking-error', 'sim-tracking-timeout', 'sim-tracking-verified']) $(id).disabled = false;
+      for (const id of ['sim-speed-limit', 'sim-tracking-error', 'sim-tracking-timeout', 'sim-tracking-verified']) $(id).disabled = false;
       $('sim-tracking-status').textContent = 'Review and verify the simulation limits before starting.';
       initTelemetryGrid();
     }).catch(() => { $('hud-sim-state').textContent = 'Could not load joint map'; $('sim-tracking-status').textContent = 'Could not load map settings; reload before starting.'; });
-    for (const id of ['sim-tracking-error', 'sim-tracking-timeout']) {
+    for (const id of ['sim-speed-limit', 'sim-tracking-error', 'sim-tracking-timeout']) {
       $(id).addEventListener('input', () => { $('sim-tracking-verified').checked = false; });
     }
     window.addEventListener('surge-session', event => {
@@ -155,6 +166,8 @@
     initPresets();
     initActionButtons();
     initCanvas();
+    initRouteControls();
+    loadCadVisuals();
     syncUIWithParams();
     syncSimulationActivity();
   }
@@ -180,14 +193,14 @@
           <span style="font-size: 10px; opacity: 0.9; flex-shrink: 0;">Sign: ${joint.sign > 0 ? '+1' : '-1'}</span>
         </div>
         <div class="data-row">
-          <span>Simulated angle</span>
+          <span>Angle</span>
           <span id="sim-ang-${joint.id}" style="font-weight: 700;" title="Simulated angle">Neutral (not measured)</span>
         </div>
         <div class="data-row">
-          <span>Simulated counts</span>
+          <span>Counts</span>
           <span id="sim-cnt-${joint.id}" title="Simulated counts">-- (unsampled)</span>
         </div>
-        <div class="data-row" id="sim-sample-${joint.id}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Not sampled</div>
+        <div class="data-row" id="sim-sample-${joint.id}">Not sampled</div>
         <div style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 4px;">
           <div id="sim-bar-${joint.id}" style="width: 50%; height: 100%; background: ${isPitch ? '#10b981' : '#06b6d4'}; transition: width 0.05s linear;"></div>
         </div>
@@ -374,7 +387,14 @@
     connect.disabled = !simOperator || connectionPending || simulationState === 'unknown' ||
       simulationState === 'connecting' || simulationState === 'disconnecting' || (simulationBusy && simulationState !== 'running');
     start.disabled = !simOperator || connectionPending || simulationBusy || simulationState !== 'connected';
+    for (const id of ['sim-route-line', 'sim-route-curve', 'sim-route-draw', 'sim-route-clear', 'sim-route-apply', 'sim-route-points']) if ($(id)) $(id).disabled = simulationBusy;
   }
+
+  window.getSimulationSpeed = () => {
+    const speed = $('sim-speed-limit');
+    if (!speed || speed.disabled || !speed.checkValidity()) throw new Error('Review the simulation speed limit before starting');
+    return speed.valueAsNumber;
+  };
 
   window.getSimulationTracking = () => {
     const error = $('sim-tracking-error'), timeout = $('sim-tracking-timeout');
@@ -415,17 +435,22 @@
       button.disabled = true;
       try {
         if (simulationSettingsDirty) throw new Error('Confirm gait settings before starting');
+        if (routeDraft.length === 1) throw new Error('Add a second route point or clear the route.');
         const tracking = window.getSimulationTracking();
         $('sim-tracking-status').textContent = 'Simulation tracking limits verified for this run.';
         await command('start', { request_id: crypto.randomUUID(), mode: 'gait', execution: 'simulation',
           simulation_tracking: tracking,
+          ...(routeDraft.length >= 2 ? { simulation_path: routeDraft } : {}),
           yaw: activeParams.yaw, pitch: activeParams.pitch, frequency: activeParams.freq,
           lag: activeParams.lag, offset: activeParams.offset, bias: activeParams.bias,
-          duration: 30, ramp: 2, speed: 500 });
+          duration: routeDraft.length >= 2 ? 120 : 30, ramp: 2, speed: window.getSimulationSpeed() });
         const response = await fetch('/api/gen3/status');
         if (!response.ok) throw new Error('Could not read simulation status');
         const status = await response.json();
         ownedRun = status.execution === 'simulation' ? status.run_id : null;
+        routeDirty = false;
+        routeDrawing = false;
+        $('sim-route-draw').setAttribute('aria-pressed', 'false');
         state.textContent = 'Starting PyBullet simulation';
       } catch (error) {
         state.textContent = `Start failed: ${error.message}`;
@@ -433,11 +458,7 @@
       } finally { updateSimulationControls(); }
     });
     $('btn-gen3-sim-reset').addEventListener('click', () => {
-      camera.yaw = 45 * Math.PI / 180;
-      camera.pitch = -25 * Math.PI / 180;
-      camera.distance = 2.2;
-      camera.target = { x: 0.4, y: 0, z: 0.1 };
-      updateCameraHUD();
+      resetCamera();
     });
   }
 
@@ -461,9 +482,12 @@
         $('sim-connection-status').textContent = status.simulation_error
           ? `Simulation connection failed: ${status.simulation_error}` : `Simulation ${simulationState}`;
         updateSimulationControls();
-        if (status.execution === 'simulation' && ['connected', 'running'].includes(simulationState) && (status.busy || status.run_id === ownedRun)) {
+        if (status.execution === 'simulation') syncRouteStatus(status);
+        if (status.execution === 'simulation' && ['connected', 'running'].includes(simulationState) && (status.busy || status.simulation_links)) {
           simRunning = status.busy;
           if (status.simulation_links) simulationLinks = status.simulation_links;
+          simulationPoses = status.simulation_poses || null;
+          simulationHead = status.simulation_head || null;
           state.textContent = status.status;
           if (status.telemetry) {
             snapshotAvailable = true;
@@ -479,8 +503,10 @@
         } else {
           simRunning = false;
           simulationLinks = null;
+          simulationPoses = null;
+          simulationHead = null;
           snapshotAvailable = false;
-          if (state) state.textContent = 'No active simulation';
+          if (state) state.textContent = simulationState === 'error' ? status.simulation_error || status.status : 'No active simulation';
         }
         if (typeof MotionState !== 'undefined') {
           MotionState.render(['btn-gen3-sim-start'], MotionState.classify(status.status, Boolean(status.busy)));
@@ -492,6 +518,7 @@
         updateSimulationControls();
         $('sim-connection-status').textContent = 'Simulation status unavailable';
         snapshotAvailable = false;
+        simulationLinks = null; simulationPoses = null; simulationHead = null;
         if (state) state.textContent = 'Simulation status unavailable';
         if (typeof MotionState !== 'undefined') {
           MotionState.render(['btn-gen3-sim-start'], 'unknown');
@@ -506,11 +533,215 @@
       }
     }
   function resetCamera() {
-    camera.yaw = 0;
-    camera.pitch = 0;
-    camera.distance = 2.2;
-    camera.target = { x: 0, y: 0, z: 0.1 };
+    camera.yaw = Math.PI / 4;
+    camera.pitch = -25 * Math.PI / 180;
+    camera.distance = 1.6;
+    camera.target = { x: -0.5, y: 0, z: 0.1 };
+    cameraMode = 'follow';
+    $('sim-camera-mode').value = cameraMode;
     updateCameraHUD();
+  }
+
+  function setRouteDraft(points) {
+    routeDraft = points; routeDirty = true; routeSnapshot = null;
+    $('sim-route-points').value = points.map(p => p.map(v => v.toFixed(3)).join(', ')).join('\n');
+    $('sim-route-status').textContent = points.length ? `Draft · ${points.length} points · simulation only` : 'No route · free gait run';
+  }
+
+  function overview() {
+    const points = [...routeDraft, ...(simulationLinks || [[-.05, 0], [-1.05, 0]])];
+    const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
+    camera.target = {x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2, z: 0};
+    camera.pitch = -1.4; camera.yaw = 0;
+    const canvas = $('gen3SimCanvas');
+    const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 2);
+    camera.distance = Math.min(150, Math.max(3, 1.4 * span * 480 / Math.max(160, Math.min(canvas.clientWidth, canvas.clientHeight))));
+    updateCameraHUD();
+  }
+
+  function initRouteControls() {
+    $('sim-camera-mode').addEventListener('change', e => {
+      cameraMode = e.target.value;
+      if (cameraMode === 'overview') overview();
+      updateCameraHUD();
+    });
+    $('sim-fullscreen-stop').addEventListener('click', () => $('floating-stop-btn').click());
+    $('sim-fullscreen').addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await $('sim-canvas-hub').requestFullscreen();
+      } catch (_) { $('sim-route-status').textContent = 'Fullscreen unavailable in this browser.'; }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      $('sim-fullscreen').textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+    });
+    for (const shape of ['line', 'curve']) {
+      $(`sim-route-${shape}`).addEventListener('click', () => {
+        if (simulationBusy) return;
+        const start = simulationHead?.position || [-.05, 0, .04], yaw = simulationHead?.yaw || 0;
+        setRouteDraft(Array.from({length: 41}, (_, i) => {
+          const x = i * .04, y = shape === 'curve' ? .1 * Math.sin(2 * Math.PI * i / 40) : 0;
+          return [start[0] + x * Math.cos(yaw) - y * Math.sin(yaw), start[1] + x * Math.sin(yaw) + y * Math.cos(yaw)];
+        }));
+        overview();
+      });
+    }
+    $('sim-route-clear').addEventListener('click', () => { if (!simulationBusy) setRouteDraft([]); });
+    $('sim-route-draw').addEventListener('click', () => {
+      if (simulationBusy) return;
+      routeDrawing = !routeDrawing;
+      $('sim-route-draw').setAttribute('aria-pressed', String(routeDrawing));
+      if (routeDrawing) {
+        setRouteDraft([]); overview();
+        cameraMode = 'free'; $('sim-camera-mode').value = cameraMode; updateCameraHUD();
+        $('sim-route-status').textContent = 'Draw: click points or drag on the ground. Select Draw route again to finish.';
+      }
+    });
+    $('sim-route-apply').addEventListener('click', () => {
+      if (simulationBusy) return;
+      try {
+        const points = $('sim-route-points').value.trim().split(/\n/).filter(line => line.trim()).map(line => {
+          const fields = line.trim().split(/[,\s]+/);
+          if (fields.length !== 2 || fields.some(v => !Number.isFinite(Number(v)) || Math.abs(Number(v)) > 50)) throw new Error('Use x, y pairs within ±50 m.');
+          return fields.map(Number);
+        });
+        if (points.length < 2 || points.length > 500) throw new Error('Enter 2–500 points.');
+        setRouteDraft(points); overview();
+      } catch (error) { $('sim-route-status').textContent = error.message; }
+    });
+  }
+
+  function groundPoint(event, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = (event.clientX - rect.left - rect.width / 2) / 480;
+    const sy = -(event.clientY - rect.top - rect.height / 2) / 480;
+    const cp = Math.cos(-camera.pitch), sp = Math.sin(-camera.pitch);
+    const depth = (-camera.target.z - sp * camera.distance) / (-sp + cp * sy);
+    if (!Number.isFinite(depth) || depth < .1) return null;
+    const x = sx * depth, y = cp * (depth - camera.distance) + sp * sy * depth;
+    const point = [camera.target.x + x * Math.cos(camera.yaw) - y * Math.sin(camera.yaw), camera.target.y + x * Math.sin(camera.yaw) + y * Math.cos(camera.yaw)];
+    return point.every(v => Number.isFinite(v) && Math.abs(v) <= 50) ? point : null;
+  }
+
+  function syncRouteStatus(status) {
+    if (routeRun !== status.run_id && !status.simulation_route && status.busy) {
+      routeSnapshot = null; routeDraft = []; routeRun = status.run_id; routeDirty = false;
+      $('sim-route-status').textContent = 'No route · free gait run';
+    }
+    for (const id of ['sim-route-line', 'sim-route-curve', 'sim-route-draw', 'sim-route-clear', 'sim-route-apply', 'sim-route-points']) $(id).disabled = Boolean(status.busy);
+    if (status.simulation_route && (!routeDirty || status.busy)) {
+      routeSnapshot = status.simulation_route;
+      if (routeRun !== status.run_id) {
+        routeRun = status.run_id; routeDirty = false; routeDraft = routeSnapshot.target_path;
+        $('sim-route-points').value = routeDraft.map(p => p.join(', ')).join('\n');
+      }
+      const rejected = routeSnapshot.rejected_samples ? ` · ${routeSnapshot.rejected_samples} pose jumps rejected` : '';
+      const gap = Number.isFinite(routeSnapshot.error_m) ? ` · deviation ${routeSnapshot.error_m.toFixed(2)} m` : '';
+      $('sim-route-status').textContent = `${routeSnapshot.state} · ${(routeSnapshot.progress * 100).toFixed(0)}% ordered progress${gap}${rejected}`;
+    }
+  }
+
+  function drawRouteOverlay(ctx, width, height) {
+    function line(points, color, dashed) {
+      ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.setLineDash(dashed ? [8, 5] : []);
+      ctx.beginPath(); let previous = false;
+      for (const point of points) {
+        const p = project3D(point[0], point[1], point[2] ?? .008, width, height);
+        if (p) { if (previous) ctx.lineTo(p.u, p.v); else ctx.moveTo(p.u, p.v); }
+        previous = Boolean(p);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    line(routeDraft, '#4da2ff', true);
+    if (routeSnapshot) line(routeSnapshot.actual_path, '#fb4903', false);
+    for (const [point, color] of [[routeDraft.at(-1), '#4da2ff'], [routeSnapshot?.target, '#ffd731']]) {
+      if (!point) continue;
+      const p = project3D(point[0], point[1], .015, width, height);
+      if (p) { ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.arc(p.u, p.v, 7, 0, Math.PI * 2); ctx.stroke(); }
+    }
+  }
+
+  async function loadCadVisuals() {
+    try {
+      if (!window.THREE) throw new Error('3D library unavailable');
+      const response = await fetch('/static/models/gen3-cad.json');
+      if (!response.ok) throw new Error('CAD asset unavailable');
+      const model = await response.json(), T = window.THREE;
+      const renderer = new T.WebGLRenderer({antialias: true});
+      renderer.setClearColor(0x0f172a);
+      renderer.domElement.className = 'sim-cad-layer';
+      renderer.domElement.setAttribute('aria-hidden', 'true');
+      $('gen3SimCanvas').before(renderer.domElement);
+      const scene = new T.Scene();
+      const grid = new T.GridHelper(10, 20, 0x50647e, 0x334155);
+      grid.rotation.x = Math.PI / 2; scene.add(grid);
+      scene.add(new T.HemisphereLight(0xffffff, 0x36465b, 1.4));
+      const light = new T.DirectionalLight(0xffffff, 1.1);
+      light.position.set(2, -3, 5); scene.add(light);
+      const meshes = model.meshes.map(part => {
+        const geometry = new T.BufferGeometry();
+        geometry.setAttribute('position', new T.Float32BufferAttribute(part.vertices.flat(), 3));
+        geometry.setIndex(part.faces.flat()); geometry.computeVertexNormals();
+        const material = new T.MeshStandardMaterial({color: part.color, roughness: .7, metalness: .15, side: T.DoubleSide});
+        return {...part, geometry, material};
+      });
+      const bodies = Array.from({length: 11}, (_, i) => {
+        const body = new T.Group(), parts = new T.Group();
+        for (const part of meshes) {
+          if (part.kind === 'motor' && i >= 10) continue;
+          parts.add(new T.Mesh(part.geometry, part.material));
+        }
+        if (i < 10 && JOINT_SPECS[i].axis === 'yaw') parts.rotation.x = Math.PI / 2;
+        body.add(parts); scene.add(body); return body;
+      });
+      // shortcut: board dimensions are illustrative until the driver assembly is measured.
+      const driverResources = [
+        {geometry: new T.BoxGeometry(.055, .026, .003), material: new T.MeshStandardMaterial({color: 0x227a52, roughness: .8})},
+        {geometry: new T.BoxGeometry(.018, .014, .004), material: new T.MeshStandardMaterial({color: 0xa3acb8, metalness: .5, roughness: .5})}
+      ];
+      driverResources.forEach((part, i) => {
+        const mesh = new T.Mesh(part.geometry, part.material);
+        mesh.position.z = .025 + i * .004;
+        bodies[10].add(mesh);
+      });
+      cadView = {renderer, scene, bodies, meshes, driverResources, grid, camera: new T.PerspectiveCamera(50, 1, .05, 300)};
+      renderer.domElement.addEventListener('webglcontextlost', event => {
+        event.preventDefault(); disposeCad();
+        $('sim-model-status').textContent = '3D context lost · simplified view available. Reload to restore CAD.';
+      });
+      $('sim-model-status').textContent = '10 motors · 11 connectors · ID 10: Waveshare bus servo driver + ESP32 (board proxy). Connector STEP revision, mounting and 0.1 m spacing unverified; physics illustrative. Battery section excluded.';
+    } catch (_) {
+      disposeCad();
+      $('sim-model-status').textContent = 'CAD view unavailable · simplified model shown. Assembly, mass and contact remain illustrative.';
+    }
+  }
+
+  function disposeCad() {
+    if (!cadView) return;
+    const view = cadView; cadView = null;
+    for (const part of [...view.meshes, ...view.driverResources]) { part.geometry.dispose(); part.material.dispose(); }
+    view.grid.geometry.dispose(); view.grid.material.dispose();
+    view.renderer.dispose(); view.renderer.domElement.remove();
+  }
+
+  function renderCad(width, height, dpr) {
+    const {renderer, scene, camera: view, bodies} = cadView;
+    if (cadView.width !== width || cadView.height !== height || cadView.dpr !== dpr) {
+      renderer.setPixelRatio(Math.min(2, dpr)); renderer.setSize(width, height, false);
+      cadView.width = width; cadView.height = height; cadView.dpr = dpr;
+      view.fov = 2 * Math.atan(height / 960) * 180 / Math.PI;
+      view.aspect = width / height; view.updateProjectionMatrix();
+    }
+    cadView.grid.position.set(Math.round(camera.target.x * 2) / 2, Math.round(camera.target.y * 2) / 2, 0);
+    const cp = Math.cos(-camera.pitch), sp = Math.sin(-camera.pitch), cy = Math.cos(camera.yaw), sy = Math.sin(camera.yaw);
+    view.position.set(camera.target.x + sy * cp * camera.distance, camera.target.y - cy * cp * camera.distance, camera.target.z + sp * camera.distance);
+    view.up.set(-sy * sp, cy * sp, cp); view.lookAt(camera.target.x, camera.target.y, camera.target.z);
+    bodies.forEach((body, i) => {
+      const pose = simulationPoses?.[i];
+      body.position.set(...(pose?.position || simulationLinks?.[i] || [-.05 - i * .1, 0, .04]));
+      body.quaternion.set(...(pose?.quaternion || [0, 0, 0, 1]));
+    });
+    renderer.render(scene, view);
   }
 
   // 6. Interactive 3D Perspective Canvas Engine
@@ -520,10 +751,17 @@
 
     const activePointers = new Map();
     let initialPointersDist = 0;
+    let drawingPointer = null;
     let initialCameraDist = 2.2;
 
     // Keyboard controls for 3D Camera
     canvas.addEventListener('keydown', e => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', '+', '=', '-'].includes(e.key)) e.preventDefault();
+      if (e.shiftKey && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
+        cameraMode = 'free'; $('sim-camera-mode').value = cameraMode;
+      }
+      if (['+', '='].includes(e.key)) camera.distance = Math.max(.8, camera.distance * .9);
+      if (e.key === '-') camera.distance = Math.min(150, camera.distance * 1.1);
       if (e.key === 'ArrowLeft') {
         camera.yaw -= 0.05;
         updateCameraHUD();
@@ -547,6 +785,7 @@
       } else if (e.key === 'Home') {
         resetCamera();
       }
+      updateCameraHUD();
     });
 
     // Camera action buttons
@@ -556,7 +795,7 @@
         if (action === 'zoom-in') {
           camera.distance = Math.max(0.8, camera.distance * 0.9);
         } else if (action === 'zoom-out') {
-          camera.distance = Math.min(4.5, camera.distance * 1.1);
+          camera.distance = Math.min(150, camera.distance * 1.1);
         } else if (action === 'reset') {
           resetCamera();
         }
@@ -566,6 +805,14 @@
 
     // Pointer events (unifies mouse and touch with pointer capture)
     canvas.addEventListener('pointerdown', e => {
+      if (routeDrawing && e.button === 0) {
+        e.preventDefault();
+        drawingPointer = e.pointerId;
+        canvas.setPointerCapture?.(e.pointerId);
+        const point = groundPoint(e, canvas);
+        if (point && routeDraft.length < 500) setRouteDraft([...routeDraft, point]);
+        return;
+      }
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (typeof canvas.setPointerCapture === 'function') {
         canvas.setPointerCapture(e.pointerId);
@@ -584,6 +831,11 @@
     });
 
     canvas.addEventListener('pointermove', e => {
+      if (routeDrawing && drawingPointer === e.pointerId) {
+        const point = groundPoint(e, canvas), last = routeDraft.at(-1);
+        if (point && routeDraft.length < 500 && (!last || Math.hypot(point[0] - last[0], point[1] - last[1]) > .03)) setRouteDraft([...routeDraft, point]);
+        return;
+      }
       if (activePointers.has(e.pointerId)) {
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }
@@ -591,7 +843,7 @@
         const pts = Array.from(activePointers.values());
         const currentDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
         if (initialPointersDist > 0 && currentDist > 0) {
-          camera.distance = Math.max(0.8, Math.min(4.5, initialCameraDist * (initialPointersDist / currentDist)));
+          camera.distance = Math.max(0.8, Math.min(150, initialCameraDist * (initialPointersDist / currentDist)));
           updateCameraHUD();
         }
         return;
@@ -606,6 +858,7 @@
         camera.yaw -= dx * 0.008;
         camera.pitch = Math.max(-1.4, Math.min(0.2, camera.pitch + dy * 0.008));
       } else {
+        cameraMode = 'free'; $('sim-camera-mode').value = cameraMode;
         const cosY = Math.cos(camera.yaw);
         const sinY = Math.sin(camera.yaw);
         camera.target.x += (-sinY * dx + cosY * dy) * 0.002 * (camera.distance / 2);
@@ -615,6 +868,7 @@
     });
 
     canvas.addEventListener('pointerup', e => {
+      if (drawingPointer === e.pointerId) drawingPointer = null;
       if (typeof canvas.releasePointerCapture === 'function' && canvas.hasPointerCapture?.(e.pointerId)) {
         canvas.releasePointerCapture(e.pointerId);
       }
@@ -631,6 +885,7 @@
     });
 
     function cancelCameraDrag(e) {
+      drawingPointer = null;
       if (e && e.pointerId != null) {
         activePointers.delete(e.pointerId);
       } else {
@@ -658,7 +913,7 @@
     canvas.addEventListener('wheel', e => {
       e.preventDefault();
       const zoomFactor = e.deltaY > 0 ? 1.08 : 0.92;
-      camera.distance = Math.max(0.8, Math.min(4.5, camera.distance * zoomFactor));
+      camera.distance = Math.max(0.8, Math.min(150, camera.distance * zoomFactor));
       updateCameraHUD();
     }, { passive: false });
 
@@ -666,11 +921,13 @@
   }
 
   function updateCameraHUD() {
+    const viewEl = $('hud-cam-view');
+    if (viewEl) viewEl.textContent = cameraMode === 'follow' ? 'Follow ID 1 head' : cameraMode === 'overview' ? 'Route overview' : 'Free camera';
     const anglesEl = $('hud-cam-angles');
     if (anglesEl) {
       const yawDeg = Math.round(camera.yaw * 180 / Math.PI) % 360;
       const pitchDeg = Math.round(camera.pitch * 180 / Math.PI);
-      const zoom = (2.2 / camera.distance).toFixed(1);
+      const zoom = (1.6 / camera.distance).toFixed(1);
       anglesEl.textContent = `Yaw ${yawDeg}° | Pitch ${pitchDeg}° | Zoom ${zoom}x`;
     }
   }
@@ -770,7 +1027,12 @@
       }
     }
 
-    // Draw 3D Scene
+    if (cameraMode === 'follow' && !routeDrawing && !camera.isDragging && simulationHead) {
+      const p = simulationHead.position, alpha = 1 - Math.exp(-8 * Math.max(0, dt));
+      camera.target.x += (p[0] - camera.target.x) * alpha;
+      camera.target.y += (p[1] - camera.target.y) * alpha;
+      camera.target.z += (Math.max(.08, p[2]) - camera.target.z) * alpha;
+    }
     draw3DScene();
 
     if (typeof animFrameId !== 'undefined') {
@@ -801,7 +1063,8 @@
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // Deep space dark background
+    ctx.clearRect(0, 0, width, height);
+    if (!cadView) {
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, width, height);
 
@@ -812,19 +1075,22 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
+    }
+    if (cadView) renderCad(width, height, dpr);
     // 1. Draw 3D Ground Grid at Z = 0
-    drawGroundGrid(ctx, width, height);
+    if (!cadView) drawGroundGrid(ctx, width, height);
 
     // PyBullet publishes actual world-space link centers; neutral is shown before the first run.
-    const positions = simulationLinks || Array.from({ length: 11 }, (_, i) => [0.05 + i * 0.1, 0, 0.04]);
+    const positions = simulationLinks || Array.from({ length: 11 }, (_, i) => [-0.05 - i * 0.1, 0, 0.04]);
     const segments = positions.map((position, i) => ({
-      index: i, isHead: i === 0, joint: i ? JOINT_SPECS[i - 1] : null,
+      index: i, isHead: i === 0, isDriver: i === positions.length - 1, joint: i ? JOINT_SPECS[i - 1] : null,
       x: position[0], y: position[1], z: position[2]
     }));
 
+    drawRouteOverlay(ctx, width, height);
     // 3. Draw Ground Shadows
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    for (let i = 0; i < segments.length - 1; i++) {
+    for (let i = 0; !cadView && i < segments.length - 1; i++) {
       const p1 = project3D(segments[i].x, segments[i].y, 0.002, width, height);
       const p2 = project3D(segments[i + 1].x, segments[i + 1].y, 0.002, width, height);
       if (p1 && p2) {
@@ -879,9 +1145,9 @@
 
     // Draw elements
     drawElements.forEach(el => {
-      if (el.type === 'link') {
+      if (el.type === 'link' && !cadView) {
         drawLinkSegment(ctx, el.from, el.to, el.joint, width, height);
-      } else if (el.type === 'joint') {
+      } else if (el.type === 'joint' && (!cadView || el.segment.isHead || el.segment.isDriver)) {
         drawJointNode(ctx, el.segment, width, height);
       }
     });
@@ -891,36 +1157,22 @@
 
   // Draw 3D Perspective Ground Grid
   function drawGroundGrid(ctx, width, height) {
-    const gridRange = 1.4;
-    const step = 0.2;
+    const gridRange = 5;
+    const step = 0.5;
     const originX = Math.round(camera.target.x / step) * step;
     const originY = Math.round(camera.target.y / step) * step;
 
     ctx.lineWidth = 1;
 
-    for (let x = originX - gridRange; x <= originX + gridRange; x += step) {
-      const p1 = project3D(x, originY - gridRange, 0, width, height);
-      const p2 = project3D(x, originY + gridRange, 0, width, height);
-      if (p1 && p2) {
-        const isMain = Math.abs(x) < 0.001;
-        ctx.strokeStyle = isMain ? 'rgba(239, 68, 68, 0.45)' : 'rgba(148, 163, 184, 0.15)';
-        ctx.beginPath();
-        ctx.moveTo(p1.u, p1.v);
-        ctx.lineTo(p2.u, p2.v);
-        ctx.stroke();
-      }
-    }
-
-    for (let y = originY - gridRange; y <= originY + gridRange; y += step) {
-      const p1 = project3D(originX - gridRange, y, 0, width, height);
-      const p2 = project3D(originX + gridRange, y, 0, width, height);
-      if (p1 && p2) {
-        const isMain = Math.abs(y) < 0.001;
-        ctx.strokeStyle = isMain ? 'rgba(74, 222, 128, 0.45)' : 'rgba(148, 163, 184, 0.15)';
-        ctx.beginPath();
-        ctx.moveTo(p1.u, p1.v);
-        ctx.lineTo(p2.u, p2.v);
-        ctx.stroke();
+    for (let a = -gridRange; a <= gridRange; a += step) {
+      for (let b = -gridRange; b < gridRange; b += step) {
+        for (const horizontal of [false, true]) {
+          const p1 = project3D(originX + (horizontal ? b : a), originY + (horizontal ? a : b), 0, width, height);
+          const p2 = project3D(originX + (horizontal ? b + step : a), originY + (horizontal ? a : b + step), 0, width, height);
+          if (!p1 || !p2) continue;
+          ctx.strokeStyle = 'rgba(148,163,184,0.18)';
+          ctx.beginPath(); ctx.moveTo(p1.u, p1.v); ctx.lineTo(p2.u, p2.v); ctx.stroke();
+        }
       }
     }
   }
@@ -983,12 +1235,15 @@
       ctx.strokeStyle = '#000000';
       ctx.stroke();
 
-      // Head eye dots
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(p.u - radius * 0.3, p.v - radius * 0.3, Math.max(1, radius * 0.25), 0, Math.PI * 2);
-      ctx.arc(p.u + radius * 0.3, p.v - radius * 0.3, Math.max(1, radius * 0.25), 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = '600 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('ID 1 · HEAD', p.u, p.v - radius - 8);
+    } else if (s.isDriver) {
+      ctx.fillStyle = '#55db9c'; ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = '600 12px sans-serif'; ctx.textAlign = 'center';
+      const labelX = Math.max(80, Math.min(width - 80, p.u));
+      ctx.fillText('ID 10 · DRIVER', labelX, p.v + radius + 16);
+      ctx.fillText('Waveshare + ESP32', labelX, p.v + radius + 31);
     } else {
       const isPitch = s.joint && s.joint.axis === 'pitch';
       ctx.fillStyle = isPitch ? '#059669' : '#0284c7';
@@ -1042,6 +1297,8 @@
   }
 
   if (typeof document !== 'undefined') {
+    window.addEventListener('pagehide', disposeCad);
+    window.addEventListener('pageshow', event => { if (event.persisted && !cadView) loadCadVisuals(); });
     document.addEventListener('visibilitychange', syncSimulationActivity);
     if (typeof window !== 'undefined') {
       window.addEventListener('hashchange', () => setTimeout(syncSimulationActivity, 0));

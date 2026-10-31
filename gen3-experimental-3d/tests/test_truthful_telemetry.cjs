@@ -30,7 +30,7 @@ initialContext.initTelemetryGrid();
 assert.match(initialCards[0].innerHTML, /Neutral \(not measured\)/);
 assert.match(initialCards[0].innerHTML, /-- \(unsampled\)/);
 assert.doesNotMatch(initialCards[0].innerHTML, /Measured Angle/);
-const sampleContext = {$,snapshotAvailable:true, measuredSamples:Array(10).fill(null),
+const sampleContext = {cameraMode:'free', $,snapshotAvailable:true, measuredSamples:Array(10).fill(null),
  JOINT_SPECS:Array.from({length:10},(_,i)=>({id:i+1})),currentAngles:Array(10).fill(0),
  lastFrameTime:0,draw3DScene(){},requestAnimationFrame(){},Date:{now:()=>100000},Math};
 vm.createContext(sampleContext);

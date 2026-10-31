@@ -3,6 +3,13 @@
 Gen 3 keeps the Gen 2 motors and connections and changes the joint arrangement.
 CAD is supplied by the owner and is not modified by these tools.
 
+## Current Status & Console Continuation (31 October 2026)
+
+- **Gen 2.1 Dashboard Restructuring**: Layout updated to 5-box architecture strictly matching operator schematic (Mathematical Path, Gamepad State/Node, Live Trajectory Tracking, Simulation Physics, and 2x5 Telemetry grid).
+- **Continuous Simulation Pathing**: `path_engine.py` supports whole-path traversal using segment projection, preventing undulation stalls at 20% progress. Manual stop triggers accuracy report conditionally when progress >20%.
+- **Gen 3 Console Alignment**: Operator select dropdown and morphing password button unified with Gen 2.1 paper styling; `Connect simulation engine` relocated to the right of `Serial port`.
+- **Route Simulation & CAD Models**: Web console route navigation, Three.js 3D model with 11 links and 10 joints, and local CAD asset loaders verified in `docs/GEN3_SIMULATION.md`.
+
 ## Current hardware result — 26 October 2026
 
 The owner has completed single-motor centering and reported successful pitch-only

@@ -99,3 +99,12 @@ The web controller implementation has been completed and verified under `gen3-ex
 - **Commissioning Route**: `http://127.0.0.1:5001/gen3`
 - **Status**: 10-joint spatial commissioning, physical-order calibration map, finite pitch/yaw trials, operator auth leases, and disarmed bus diagnostics verified. Test suite passes (30 Node suites, 39 Python unit tests).
 
+
+### Progress Update — 31 October 2026
+
+- **Completed**: Continuous whole-path traversal in `path_engine.py` using segment projection ($t \ge 0.85$, cross-track error $\le 0.25$ m).
+- **Completed**: Conditional manual stop report logic in `web_app.py` and `script.js` (>20% threshold).
+- **Completed**: Gen 2.1 dashboard 5-box restructuring matching operator schematic.
+- **Completed**: Header refinements (195px compact serial port dropdown, hidden motion dock).
+- **Completed**: Gen 3 operator select and morphing password styling unification with Gen 2.1 paper aesthetic.
+- **Verification**: 33 Node test suites, 44 Gen 2.1 Python unit tests, and 103 Gen 3 Python unit tests passing cleanly.

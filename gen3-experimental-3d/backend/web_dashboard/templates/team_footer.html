@@ -3,16 +3,41 @@
     <h2 id="surge-team-heading">The team behind SURGE 090</h2>
     <p>Smart Snake System</p>
   </div>
+  {% set members = [
+    {'name': 'Shashank Jangir', 'initials': 'SJ', 'email': 'mailto:ee1241048@iitd.ac.in', 'contact': 'tel:+918690604513', 'github': 'https://github.com/shashankjangir', 'instagram': 'https://www.instagram.com/shxnkg_/'},
+    {'name': 'Bhavesh Bansiwal', 'initials': 'BB', 'email': none, 'contact': 'tel:+918233281016', 'github': none, 'instagram': none},
+    {'name': 'Mahima Chotiya', 'initials': 'MC', 'email': none, 'contact': 'tel:+916376356392', 'github': none, 'instagram': none}
+  ] %}
+  {% set icons = {
+    'Email': 'M4 5h16v14H4z M4 6l8 7 8-7',
+    'Contact': 'M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2z',
+    'GitHub': 'M9 19c-4 1-4-2-6-2 M15 22v-4a3.5 3.5 0 0 0-1-2.7c3.3-.4 6.7-1.6 6.7-7.3a5.7 5.7 0 0 0-1.5-4 5.3 5.3 0 0 0-.1-4s-1.3-.4-4.1 1.5a14 14 0 0 0-7 0C5.2-.4 3.9 0 3.9 0a5.3 5.3 0 0 0-.1 4A5.7 5.7 0 0 0 2.3 8c0 5.7 3.4 6.9 6.7 7.3A3.5 3.5 0 0 0 8 18v4',
+    'Instagram': 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M17.5 6.5h.01'
+  } %}
   <ul class="surge-team-board">
-    {% for name, initials in [('Shashank Jangir', 'SJ'), ('Bhavesh Bansiwal', 'BB'), ('Mahima Chotiya', 'MC')] %}
+    {% for member in members %}
     <li class="surge-team-card">
-      {% if name == 'Shashank Jangir' %}
-      <img class="surge-team-avatar" src="/static/images/shashank-jangir.png" alt="" width="44" height="44">
-      {% else %}
-      <span class="surge-team-avatar" aria-hidden="true">{{ initials }}</span>
-      {% endif %}
-      <h3>{{ name }}</h3>
-      <span class="surge-team-tag">SURGE 090</span>
+      <div class="surge-team-identity">
+        {% if member.initials == 'SJ' %}
+        <img class="surge-team-avatar" src="/static/images/shashank-jangir.png" alt="" width="56" height="56">
+        {% else %}
+        <span class="surge-team-avatar" aria-hidden="true">{{ member.initials }}</span>
+        {% endif %}
+        <span class="surge-team-tag">SURGE 090</span>
+      </div>
+      <h3>{{ member.name }}</h3>
+      <div class="surge-team-actions">
+        {% for label, url in [('Email', member.email), ('Contact', member.contact), ('GitHub', member.github), ('Instagram', member.instagram)] %}
+        {% if url %}
+        <a class="surge-team-action" href="{{ url }}" aria-label="{{ label }} — {{ member.name }}"{% if url.startswith('https://') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+        {% else %}
+        <button class="surge-team-action" type="button" disabled aria-label="{{ label }} — {{ member.name }} (not added yet)">
+        {% endif %}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ icons[label] }}"/></svg>
+          <span>{{ label }}</span>
+        {% if url %}</a>{% else %}</button>{% endif %}
+        {% endfor %}
+      </div>
     </li>
     {% endfor %}
   </ul>

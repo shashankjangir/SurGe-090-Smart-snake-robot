@@ -946,7 +946,8 @@ if (gaitForm) {
       execution,
       ...(simulationTracking ? {simulation_tracking: simulationTracking} : {}),
       port: $('port').value,
-      ...draft
+      ...draft,
+      ...(execution === 'simulation' ? {speed: window.getSimulationSpeed()} : {})
     });
   });
   };

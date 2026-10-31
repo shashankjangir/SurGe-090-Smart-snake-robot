@@ -15,6 +15,16 @@ const path = require('path');
 
 const gen3Html = fs.readFileSync(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html'), 'utf8');
 const gen3SimJs = fs.readFileSync(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3-sim.js'), 'utf8');
+const vm = require('vm');
+const speedInput = {disabled: false, valueAsNumber: 750, checkValidity: () => true};
+const speedContext = {window: {}, $: () => speedInput};
+vm.runInNewContext(gen3SimJs.slice(gen3SimJs.indexOf('  window.getSimulationSpeed ='), gen3SimJs.indexOf('  window.getSimulationTracking =')), speedContext);
+assert.equal(speedContext.window.getSimulationSpeed(), 750);
+speedInput.disabled = true;
+assert.throws(() => speedContext.window.getSimulationSpeed(), /Review the simulation speed limit/);
+speedInput.disabled = false;
+speedInput.checkValidity = () => false;
+assert.throws(() => speedContext.window.getSimulationSpeed(), /Review the simulation speed limit/);
 
 console.log('Testing Gen 3 3D Simulation Frontend...');
 
@@ -29,6 +39,11 @@ console.log('  PASS: Tab order verified (3D Simulation placed before Controls)')
 // 2. Verify Panel Placement: panel-simulation MUST be before panel-operate
 const panelSimPos = gen3Html.indexOf('id="panel-simulation"');
 const panelOperatePos = gen3Html.indexOf('id="panel-operate"');
+const connectPos = gen3Html.indexOf('id="btn-gen3-sim-connect"');
+assert(connectPos > gen3Html.indexOf('class="hero-actions"') && connectPos < panelSimPos,
+  'Simulation connection must stay in the dashboard header, outside tab panels');
+assert.equal((gen3Html.match(/id="btn-gen3-sim-connect"/g) || []).length, 1,
+  'Only one simulation connection button should exist');
 assert(panelSimPos > 0, 'gen3.html must contain id="panel-simulation"');
 assert(panelOperatePos > 0, 'gen3.html must contain id="panel-operate"');
 assert(panelSimPos < panelOperatePos, 'panel-simulation MUST be placed before panel-operate');

@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/static/distorted-glass.css">
   <link rel="stylesheet" href="/static/morphing-button.css">
   <link rel="stylesheet" href="/static/shader-lens-blur.css">
-  <link rel="stylesheet" href="/static/canvas-fractal-grid.css">
+  <link rel="stylesheet" href="/static/liquid-grid.css">
   <link rel="stylesheet" href="/static/grid-beam.css">
   <link rel="stylesheet" href="/static/pixel-snake-heading.css">
   <link rel="stylesheet" href="/static/hero-snake-motion.css">
@@ -29,22 +29,24 @@
   <script src="/static/rolling-number.js" defer></script>
   <script src="/static/morphing-button.js" defer></script>
   <script src="/static/shader-lens-blur.js" defer></script>
-  <script src="/static/canvas-fractal-grid.js" defer></script>
+  <script src="/static/liquid-grid.js" defer></script>
   <script src="/static/grid-beam.js" defer></script>
   <script src="/static/pixel-snake-heading.js" defer></script>
-  <script src="/static/hero-snake-motion.js" defer></script>
+  <script src="/static/hero-fluid-trail.js" defer></script>
+    <script src="/static/hero-snake-motion.js" defer></script>
   <script src="/static/motion-state.js" defer></script>
   <script src="/static/operator-session.js" defer></script>
   <script src="/static/gen3.js" defer></script>
+  <script src="/static/vendor/three-r128.min.js" defer></script>
   <script src="/static/gen3-sim.js" defer></script>
   <script src="/static/gen3-search.js" defer></script>
   <script src="/static/hover-background.js" defer></script>
   <script src="/static/distorted-glass.js" defer></script>
 </head>
 <body class="gen3">
-  <!-- Canvas Fractal Grid - Animated Snake Dot Grid Background -->
-  <div id="canvas-fractal-grid-bg" class="canvas-fractal-grid-bg" aria-hidden="true">
-    <canvas id="canvas-fractal-grid"></canvas>
+  <!-- Liquid Grid - Rippling dot-matrix background -->
+  <div id="liquid-grid-bg" class="liquid-grid-bg" aria-hidden="true">
+    <canvas id="liquid-grid"></canvas>
   </div>
 
   <!-- Full-bleed Marquee Scrolling Banner -->
@@ -233,6 +235,8 @@
           <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; text-transform: uppercase;">
             Serial port <select id="hero-port" style="min-width: 170px;"><option value="">Select serial port</option></select>
           </label>
+          <button type="button" id="btn-gen3-sim-connect" class="btn btn-secondary" disabled>Connect simulation engine</button>
+          <span id="sim-connection-status" role="status" aria-live="polite">Simulation status unknown</span>
           <div class="status-indicator" style="margin-top: 0;">
             <span class="dot headlight-glass" id="status-dot"></span>
             <span id="conn-status">Disconnected</span>
@@ -290,51 +294,52 @@
     <!-- PANEL 0: 3D SIMULATION -->
     <div id="panel-simulation" class="tab-panel active" role="tabpanel" aria-labelledby="tab-simulation">
       <div class="main-content" id="sim-hub">
-        <!-- Left Column: Connection Engine & 3D Spatial Gait Presets & Joint Architecture -->
-        <aside class="control-panel">
-          <section class="card">
-            <h2>PyBullet simulation</h2>
-            <p>Sign in as an operator to start a finite, headless PyBullet run. The viewport shows simulated link positions; the model uses placeholder dimensions and contact properties.</p>
-          </section>
-
+        <!-- Left: gait selection and simulation limits -->
+        <aside class="control-panel sim-support">
           <!-- 3D Spatial Gait Presets Card -->
-          <section class="card card-lavender">
+          <section class="card card-lavender" id="sim-gait-card">
             <div class="card-header-row">
               <h2>3D Spatial Gait</h2>
-              <span class="card-tag">Generator</span>
             </div>
             <div class="input-group">
-              <label for="sim-3d-preset">Preset Gait Pattern</label>
+              <label for="sim-3d-preset">Gait pattern</label>
               <select id="sim-3d-preset" style="width: 100%; border: 1px solid var(--color-carbon); border-radius: 6px; padding: 6px 10px; font-weight: 600; background: #ffffff;">
-                <option value="sidewinding">Sidewinding Gait (Lateral Shift)</option>
-                <option value="rolling">Helical Rolling Gait (Pipe / Obstacle Roll)</option>
-                <option value="lateral_undulation">Lateral Undulation (Planar Baseline)</option>
-                <option value="sinus_lifting">Sinus-Lifting Step (Ground Clearance)</option>
-                <option value="corkscrew">3D Corkscrew Wave (Spatial Helix)</option>
-                <option value="custom" selected>Custom Spatial Parameterization</option>
+                <option value="sidewinding">Sidewinding · lateral shift</option>
+                <option value="rolling">Helical rolling · pipe / obstacle</option>
+                <option value="lateral_undulation">Lateral undulation · planar</option>
+                <option value="sinus_lifting">Sinus lifting · ground clearance</option>
+                <option value="corkscrew">Corkscrew · spatial helix</option>
+                <option value="custom" selected>Custom</option>
               </select>
             </div>
             <div class="gait-preset-details" id="sim-preset-desc-box" style="background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 8px 10px; margin-top: 8px; font-size: 12px; line-height: 1.4;">
               <div id="sim-preset-summary" style="font-weight: 700; color: #1e293b;">Yaw 30° · Pitch 25° · Offset 90° · Freq 0.50Hz</div>
               <div id="sim-preset-description" style="color: #64748b; margin-top: 2px;">Orthogonal yaw and pitch waves with a 90° phase offset.</div>
             </div>
-            <button type="button" id="btn-load-3d-preset" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Load Gait Preset</button>
+            <button type="button" id="btn-load-3d-preset" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Load preset</button>
+            <p>Simulation route baseline: Lateral undulation.</p>
           </section>
 
-          <!-- Alternating Axis Joint Map Card -->
-          <div class="qr-card">
-            <div class="qr-panel" style="background: var(--color-mint-pop, #55db9c); display: flex; align-items: center; justify-content: center;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 17 12 22 22 17"></polyline>
-                <polyline points="2 12 12 17 22 12"></polyline>
-              </svg>
-            </div>
-            <div class="qr-label-panel">
-              <div class="qr-badge-title">SPATIAL JOINT MAP</div>
-              <div class="qr-badge-desc">10 Servos · Odd: Pitch (1,3,5,7,9) · Even: Yaw (2,4,6,8,10) · Confirmed signs: Pitch 1 = +1; 3,5,7,9 = -1; All Yaw = +1</div>
-            </div>
-          </div>
+          <section class="card" id="sim-safety-limits-card" aria-labelledby="sim-safety-heading">
+            <h2 id="sim-safety-heading">Saved Map Safety Limits</h2>
+            <p>Saved map values. Edits affect simulation only; hardware calibration is unchanged.</p>
+            <div class="input-group"><label for="sim-speed-limit">Speed limit · counts/s</label>
+              <input id="sim-speed-limit" type="number" min="1" max="1500" step="1" disabled required></div>
+            <details class="sim-map-details">
+              <summary>Position limits · encoder counts</summary>
+              <p id="sim-position-limits">Loading saved joint position limits…</p>
+            </details>
+            <details class="sim-map-details">
+              <summary>Joint order &amp; signs</summary>
+              <p>ID 1: head · ID 10: driver end. Odd IDs: pitch; even IDs: yaw. Pitch 1: +1; pitch 3/5/7/9: −1; all yaw: +1. Neutral: 2048.</p>
+            </details>
+                  <div class="input-group"><label for="sim-tracking-error">Tracking error · counts</label>
+                    <input id="sim-tracking-error" type="number" min="1" max="796" step="any" disabled required></div>
+                  <div class="input-group"><label for="sim-tracking-timeout">Tracking timeout · seconds</label>
+                    <input id="sim-tracking-timeout" type="number" min="0.1" max="2" step="any" disabled required></div>
+                  <label class="check"><input id="sim-tracking-verified" type="checkbox" disabled> I verified the simulation limits.</label>
+                  <p id="sim-tracking-status" role="status">Loading saved map settings…</p>
+          </section>
         </aside>
 
         <!-- Center Column: Interactive 3D Spatial Simulation Viewport -->
@@ -344,12 +349,21 @@
             <div class="canvas-badges">
               <span class="badge-pill" style="background-color: var(--color-mint-pop, #55db9c); color: #000000;">● 5 Pitch Joints</span>
               <span class="badge-pill" style="background-color: var(--badge-target-bg, var(--color-electric-blue, #4da2ff)); color: var(--badge-target-text, #000000);">● 5 Yaw Joints</span>
-              <span class="badge-pill" style="background-color: var(--color-lavender, #e9ccff); color: #000000;">● 11 Links</span>
+              <span class="badge-pill" style="background-color: var(--color-lavender, #e9ccff); color: #000000;">● 11 Links · 11 connectors</span>
               <span class="badge-pill" style="background-color: var(--color-sunburst, #ffd731); color: #000000;">● 3D Ground Plane</span>
             </div>
           </div>
+          <div class="sim-view-toolbar">
+            <label for="sim-camera-mode">Camera</label>
+            <select id="sim-camera-mode">
+              <option value="follow">Follow ID 1 head</option>
+              <option value="overview">Route overview</option>
+              <option value="free">Free camera</option>
+            </select>
+            <button type="button" id="sim-fullscreen" class="btn btn-secondary">Fullscreen</button>
+          </div>
           <div class="canvas-wrapper sim-3d-canvas-wrapper" style="position: relative; background: radial-gradient(circle at 50% 30%, #1e293b, #0f172a); border-radius: 12px; overflow: hidden; border: 1px solid var(--color-carbon, #000000); box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
-            <canvas id="gen3SimCanvas" width="700" height="420" style="width: 100%; height: 420px; display: block; cursor: grab;"></canvas>
+            <canvas id="gen3SimCanvas" width="900" height="560" tabindex="0" aria-label="Gen 3 simulation. Arrow keys orbit; shift up or down pans; plus/minus zoom; Home resets the view." aria-describedby="sim-route-help"></canvas>
             <!-- 3D HUD overlay -->
             <div id="sim-3d-hud" style="position: absolute; top: 12px; left: 14px; pointer-events: none; display: flex; flex-direction: column; gap: 4px; font-family: monospace; font-size: 11px; color: #94a3b8; background: rgba(15,23,42,0.75); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">
               <div>VIEW: <span id="hud-cam-view" style="color: #38bdf8; font-weight: 700;">Perspective Orbit</span></div>
@@ -363,96 +377,95 @@
               <span style="color: #60a5fa; font-weight: 700;">Z: Vert (Pitch)</span>
             </div>
           </div>
+          <div class="sim-route-toolbar" role="group" aria-label="Simulation route editor">
+            <button type="button" id="sim-route-line" class="btn btn-secondary">Straight route</button>
+            <button type="button" id="sim-route-curve" class="btn btn-secondary">Broad S-curve</button>
+            <button type="button" id="sim-route-draw" class="btn btn-secondary" aria-pressed="false">Draw route</button>
+            <button type="button" id="sim-route-clear" class="btn btn-secondary">Clear route</button>
+          </div>
+          <p id="sim-route-help">10 × 10 m grid · Blue: planned · Orange: ID 1 trail. Endpoint tolerance: 0.1 m · Route limit: 120 s · Stall: 30 s without checkpoint progress.</p>
+          <p id="sim-route-status" role="status">No route · free gait run</p>
+          <details class="sim-map-details">
+            <summary>Route points · metres</summary>
+            <label for="sim-route-points">One x, y pair per line. World X points forward; Y points left.</label>
+            <textarea id="sim-route-points" rows="4" spellcheck="false" placeholder="0, 0&#10;1, 0"></textarea>
+            <button type="button" id="sim-route-apply" class="btn btn-secondary">Use points</button>
+          </details>
           <div class="canvas-controls-footer">
             <p class="canvas-instructions">
-              💡 <strong>3D Controls:</strong> Left click & drag to orbit / rotate 3D view • Right click & drag to pan • Scroll to zoom in/out • Positions update from the active PyBullet simulation
+              <strong>View:</strong> Drag / arrows to orbit · Right-drag to pan · Scroll or +/− to zoom.<br>Live PyBullet positions · Operator sign-in required to start.
             </p>
             <div class="canvas-actions-row">
-              <button type="button" id="btn-gen3-sim-connect" class="btn btn-secondary btn-sm" disabled>Connect simulation engine</button>
-              <span id="sim-connection-status" role="status" aria-live="polite">Simulation status unknown</span>
               <button type="button" id="btn-gen3-sim-start" class="btn btn-primary btn-sm" title="Start a finite PyBullet simulation">▶ Start simulation</button>
               <button type="button" id="btn-gen3-sim-reset" class="btn btn-secondary btn-sm" title="Reset the camera view">↺ Reset view</button>
+              <button type="button" id="sim-fullscreen-stop" class="btn btn-danger">Stop / torque off</button>
             </div>
             <span class="motion-permission-hint" style="font-size: 11px; color: var(--color-muted, #64748b); display: block;" hidden>Log in as Operator to start</span>
           </div>
+          <p id="sim-model-status">Loading CAD visuals… Assembly spacing, mass and contact are illustrative; the removed battery section is excluded.</p>
         </section>
 
         <!-- Right Column: Simulation gait settings & Contact Tuning -->
-        <aside class="control-panel">
+        <aside class="control-panel sim-settings">
           <section class="card" id="sim-3d-physics-card">
             <div class="card-header-row">
               <h2>Simulation gait settings</h2>
-              <span class="card-tag">Tuning</span>
             </div>
-            <p class="physics-help">Confirm gait changes before starting a run. The model is illustrative and is not calibrated for predicting robot travel.</p>
+            <p class="physics-help">Confirm changes before running. Placeholder geometry and contact; travel is not physically calibrated.</p>
             
             <details class="sim-physics-group" open>
-              <summary class="sim-group-heading"><strong>Motion &amp; Kinematics</strong></summary>
+              <summary class="sim-group-heading"><strong>Motion</strong></summary>
               <div class="sim-group-content">
                 <div class="input-group">
-                  <label for="sim-param-yaw-amp">Yaw Amplitude (deg): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
+                  <label for="sim-param-yaw-amp">Yaw amplitude (°): <span id="val-sim-yaw-amp" style="font-family: monospace;">30</span>°</label>
                   <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="70" step="1" value="30" aria-describedby="help-sim-yaw">
-                  <span class="physics-help" id="help-sim-yaw">Horizontal bending angle on IDs 2, 4, 6, 8, 10. Clamped to ±70°.</span>
+                  <span class="physics-help" id="help-sim-yaw">Yaw IDs 2/4/6/8/10 · max ±70°.</span>
                 </div>
 
                 <div class="input-group">
-                  <label for="sim-param-pitch-amp">Pitch Amplitude (deg): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
+                  <label for="sim-param-pitch-amp">Pitch amplitude (°): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
                   <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="70" step="1" value="25" aria-describedby="help-sim-pitch">
-                  <span class="physics-help" id="help-sim-pitch">Vertical lifting angle on IDs 1, 3, 5, 7, 9. Clamped to ±70°.</span>
+                  <span class="physics-help" id="help-sim-pitch">Pitch IDs 1/3/5/7/9 · max ±70°.</span>
                 </div>
 
                 <div class="input-group">
-                  <label for="sim-param-freq">Wave Frequency (Hz): <span id="val-sim-freq" style="font-family: monospace;">0.50</span> Hz</label>
+                  <label for="sim-param-freq">Frequency (Hz): <span id="val-sim-freq" style="font-family: monospace;">0.50</span> Hz</label>
                   <input type="range" id="sim-param-freq" class="sim-param" min="0.05" max="0.6" step="0.05" value="0.10" aria-describedby="help-sim-freq">
-                  <span class="physics-help" id="help-sim-freq">Temporal frequency of traveling wave cycle (0.05–0.60 Hz).</span>
+                  <span class="physics-help" id="help-sim-freq">Wave cycles per second · 0.05–0.60 Hz.</span>
                 </div>
               </div>
             </details>
 
             <details class="sim-physics-group" open>
-              <summary class="sim-group-heading"><strong>Wave Coordination &amp; Steering</strong></summary>
+              <summary class="sim-group-heading"><strong>Wave &amp; steering</strong></summary>
               <div class="sim-group-content">
                 <div class="input-group">
-                  <label for="sim-param-lag">Inter-segment Phase Lag (deg): <span id="val-sim-lag" style="font-family: monospace;">90</span>°</label>
+                  <label for="sim-param-lag">Phase lag (°): <span id="val-sim-lag" style="font-family: monospace;">90</span>°</label>
                   <input type="range" id="sim-param-lag" class="sim-param" min="10" max="180" step="5" value="90" aria-describedby="help-sim-lag">
-                  <span class="physics-help" id="help-sim-lag">Phase shift between successive joints of the same axis (10°–180°).</span>
+                  <span class="physics-help" id="help-sim-lag">Between successive same-axis joints · 10–180°.</span>
                 </div>
 
                 <div class="input-group">
-                  <label for="sim-param-offset">Pitch-to-Yaw Wave Offset (deg): <span id="val-sim-offset" style="font-family: monospace;">90</span>°</label>
+                  <label for="sim-param-offset">Pitch–yaw offset (°): <span id="val-sim-offset" style="font-family: monospace;">90</span>°</label>
                   <input type="range" id="sim-param-offset" class="sim-param" min="-180" max="180" step="5" value="90" aria-describedby="help-sim-offset">
-                  <span class="physics-help" id="help-sim-offset">Phase difference between pitch and yaw waves (-180°–+180°; 90° = sidewinding helix).</span>
+                  <span class="physics-help" id="help-sim-offset">Pitch vs. yaw phase · ±180°; 90° for sidewinding.</span>
                 </div>
 
                 <div class="input-group">
-                  <label for="sim-param-bias">Yaw Steering Bias (deg): <span id="val-sim-bias" style="font-family: monospace;">0</span>°</label>
+                  <label for="sim-param-bias">Steering bias (°): <span id="val-sim-bias" style="font-family: monospace;">0</span>°</label>
                   <input type="range" id="sim-param-bias" class="sim-param" min="-30" max="30" step="1" value="0" aria-describedby="help-sim-bias">
-                  <span class="physics-help" id="help-sim-bias">Constant yaw angle offset for curved steering (-30°–+30°).</span>
+                  <span class="physics-help" id="help-sim-bias">Constant yaw offset for turning · ±30°.</span>
                 </div>
               </div>
             </details>
 
-            <details class="sim-physics-group">
-              <summary class="sim-group-heading"><strong>Tracking &amp; Safety Limits</strong></summary>
-              <div class="sim-group-content">
-                <fieldset class="simulation-tracking-settings">
-                  <legend>Simulation tracking limits</legend>
-                  <p>These values apply only to this simulation run; the saved physical map is unchanged.</p>
-                  <div class="input-group"><label for="sim-tracking-error">Tracking error threshold (counts)</label>
-                    <input id="sim-tracking-error" type="number" min="1" max="796" step="any" disabled required></div>
-                  <div class="input-group"><label for="sim-tracking-timeout">Tracking timeout (seconds)</label>
-                    <input id="sim-tracking-timeout" type="number" min="0.1" max="2" step="any" disabled required></div>
-                  <label class="check"><input id="sim-tracking-verified" type="checkbox" disabled> I verified these simulation limits.</label>
-                  <p id="sim-tracking-status" role="status">Loading saved map settings…</p>
-                </fieldset>
-              </div>
-            </details>
             <div class="sim-settings-actions">
               <button type="button" id="btn-sim-apply-physics" class="btn btn-primary">Confirm settings</button>
-              <button type="button" id="btn-sim-reset-physics" class="btn btn-secondary">Set to Default</button>
+              <button type="button" id="btn-sim-reset-physics" class="btn btn-secondary">Reset defaults</button>
             </div>
             <div id="sim-physics-applied-pill" style="display: none; font-size: 11.5px; font-weight: 700; color: var(--color-btn-start, #15803d); text-align: center; margin-top: 6px;">✓ Simulation gait settings Applied</div>
           </section>
+
         </aside>
 
         <!-- 10-Joint Simulation Feedback Grid -->

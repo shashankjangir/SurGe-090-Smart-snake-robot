@@ -1,4 +1,5 @@
-"""Simple alternating-axis PyBullet bench; dimensions are placeholders, not CAD."""
+"""Alternating-axis PyBullet bench; contact and assembly spacing are illustrative."""
+import math
 import tempfile
 from pathlib import Path
 
@@ -8,12 +9,11 @@ from gait import COUNTS_PER_RADIAN
 def robot_xml(config, length, mass):
     parts = ['<robot name="gen3_bench">']
     for i in range(11):
-        inertia = mass * length * length / 6
         parts.append(f'''<link name="link{i}">
-          <inertial><origin xyz="{length/2} 0 0"/><mass value="{mass}"/>
-            <inertia ixx="{inertia}" ixy="0" ixz="0" iyy="{inertia}" iyz="0" izz="{inertia}"/></inertial>
-          <visual><origin xyz="{length/2} 0 0"/><geometry><box size="{length} 0.04 0.04"/></geometry></visual>
-          <collision><origin xyz="{length/2} 0 0"/><geometry><box size="{length*.85} 0.04 0.04"/></geometry></collision>
+          <inertial><origin xyz="{-length/2} 0 0"/><mass value="{mass}"/>
+            <inertia ixx="{mass * .04**2 / 6}" ixy="0" ixz="0" iyy="{mass * (length**2 + .04**2) / 12}" iyz="0" izz="{mass * (length**2 + .04**2) / 12}"/></inertial>
+          <visual><origin xyz="{-length/2} 0 0"/><geometry><box size="{length} 0.04 0.04"/></geometry></visual>
+          <collision><origin xyz="{-length/2} 0 0"/><geometry><box size="{length*.85} 0.04 0.04"/></geometry></collision>
         </link>''')
         if i:
             joint = config['joints'][i-1]
@@ -21,7 +21,7 @@ def robot_xml(config, length, mass):
             limits = [(joint[k] - joint['zero']) / (joint['sign'] * COUNTS_PER_RADIAN) for k in ('min', 'max')]
             parts.append(f'''<joint name="servo{joint['id']}" type="revolute">
               <parent link="link{i-1}"/><child link="link{i}"/>
-              <origin xyz="{length} 0 0"/><axis xyz="{axis}"/>
+              <origin xyz="{-length} 0 0"/><axis xyz="{axis}"/>
               <limit lower="{min(limits)}" upper="{max(limits)}" effort="2.94" velocity="5"/>
             </joint>''')
     return ''.join(parts) + '</robot>'
@@ -50,6 +50,10 @@ class SimulationInterface:
             self.body = self.p.loadURDF(str(path), [0, 0, .04],
                 flags=self.p.URDF_USE_SELF_COLLISION | self.p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
         self.stop()
+        # shortcut: directional contact is illustrative; fit it to measured surface trials later.
+        for i in range(-1, 10):
+            self.p.changeDynamics(self.body, i, lateralFriction=.8,
+                                  anisotropicFriction=[.1, 1, 1], restitution=0)
         self.p.resetDebugVisualizerCamera(1.7, 35, -35, [.5, 0, 0])
         return True, 'Illustrative alternating-axis simulation'
 
@@ -85,6 +89,20 @@ class SimulationInterface:
             list(self.p.getLinkState(self.body, i, computeForwardKinematics=True)[0])
             for i in range(10)
         ]
+
+    def link_poses(self):
+        base = self.p.getBasePositionAndOrientation(self.body)
+        return [dict(position=list(base[0]), quaternion=list(base[1]))] + [
+            dict(position=list(s[0]), quaternion=list(s[1])) for s in
+            (self.p.getLinkState(self.body, i, computeForwardKinematics=True) for i in range(10))
+        ]
+
+    def head_pose(self):
+        """ID 1 head-body COM; local +X points away from the tail, Z is up."""
+        position, quaternion = self.p.getBasePositionAndOrientation(self.body)
+        forward = self.p.getMatrixFromQuaternion(quaternion)
+        return dict(position=list(position), quaternion=list(quaternion),
+                    yaw=math.atan2(forward[3], forward[0]))
 
     def read_telemetry(self):
         # shortcut: fixed 50 ms physics per sample; use a measured model for performance predictions.

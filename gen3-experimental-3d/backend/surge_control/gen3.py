@@ -24,6 +24,7 @@ runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
 from gait import validate_map, validate_gait, calc_peak_speed, envelope, COUNTS_PER_RADIAN
 from surge_control.session import SessionManager
+from surge_control.spatial_route import SpatialRoute
 
 ALLOWED_FIRMWARE_ENVS = ('receiver_gen2_1', 'transmitter_gen2_1')
 DEFAULT_PRESETS = [
@@ -375,6 +376,7 @@ class Gen3Control:
         self.sessions = SessionManager()
         self.firmware = FirmwareManager()
         self.motion_generator = None
+        self.simulation_route = None
         self.simulation = None
         self.simulation_thread = None
         self.simulation_revision = None
@@ -391,6 +393,9 @@ class Gen3Control:
             status='Idle; no connection',
             telemetry={},
             simulation_links=None,
+            simulation_poses=None,
+            simulation_head=None,
+            simulation_route=None,
             simulation_state='disconnected',
             simulation_error=None,
             stage='idle',
@@ -534,7 +539,8 @@ class Gen3Control:
         except Exception as exc:
             self.state.update(simulation_state='error', simulation_error=str(exc))
             raise RuntimeError('Simulation disconnect failed') from exc
-        self.state.update(simulation_state='disconnected', simulation_error=None, simulation_links=None)
+        self.state.update(simulation_state='disconnected', simulation_error=None, simulation_links=None,
+                          simulation_poses=None, simulation_head=None)
 
     @locked
     def start(self, data, session_id=None):
@@ -557,6 +563,11 @@ class Gen3Control:
         execution = data.get('execution', 'preview')
         if mode not in ('read', 'jog', 'gait', 'center', 'align') or execution not in ('preview', 'simulation', 'hardware'):
             raise ValueError('Select read, jog, gait, or center and a valid execution mode')
+        route = None
+        if 'simulation_path' in data:
+            if execution != 'simulation' or mode != 'gait':
+                raise ValueError('Routes are only supported for simulation gait jobs')
+            route = SpatialRoute(data['simulation_path'])
         if self.state['simulation_state'] in ('connecting', 'disconnecting'):
             raise RuntimeError('Wait for the simulation connection to finish changing')
         if execution == 'simulation' and 'simulation_tracking' not in data:
@@ -636,6 +647,7 @@ class Gen3Control:
                 raise RuntimeError('Request history full; restart the stopped server')
             self.start_requests[key] = copy.deepcopy(data)
         self.owner_session = session_id
+        self.simulation_route = route
         self.cancel.clear()
         self.active_run_id = f"web-{time.time_ns()}"
         self.job_started = time.monotonic()
@@ -646,6 +658,9 @@ class Gen3Control:
             status='Starting',
             telemetry={},
             simulation_links=None,
+            simulation_poses=None,
+            simulation_head=None,
+            simulation_route=route.snapshot() if route else None,
             stage='starting',
             log=None,
             execution=execution,
@@ -742,8 +757,14 @@ class Gen3Control:
 
         if self.motion_generator:
             def target_at(t):
+                if execution == 'simulation' and self.simulation_route:
+                    self.simulation_route.update(iface.head_pose(), t)
+                    if self.simulation_route.state in ('completed', 'stalled'):
+                        raise InterruptedError(f'Route {self.simulation_route.state}')
                 targets, current_params = self.motion_generator.evaluate(t)
                 job_config['speed'] = current_params['speed']
+                if execution == 'simulation' and self.simulation_route:
+                    targets = self.simulation_route.targets(targets, job_config, envelope(t, duration, ramp))
                 return targets
         elif values is not None:
             target_at = lambda t: runner.targets_at(t, job_config, *values)
@@ -767,6 +788,9 @@ class Gen3Control:
                     with owner.lock:
                         if execution == 'simulation' and row[3] == 10:
                             owner.state['simulation_links'] = iface.link_positions()
+                            owner.state['simulation_poses'] = iface.link_poses()
+                            owner.state['simulation_head'] = iface.head_pose()
+                            owner.state['simulation_route'] = owner.simulation_route.snapshot() if owner.simulation_route else None
                         owner.state['feedback_at'] = time.time()
                         owner.state['stage'] = row[0]
                         owner.state['telemetry'][row[3]] = dict(
@@ -795,6 +819,7 @@ class Gen3Control:
                     execution=execution,
                     joint_map=config,
                     simulation_tracking=(dict(tracking_error=job_config['tracking_error'], tracking_timeout=job_config['tracking_timeout']) if execution == 'simulation' else None),
+                    simulation_path=self.simulation_route.path if execution == 'simulation' and self.simulation_route else None,
                     values=values,
                     duration=duration,
                     ramp=ramp,
@@ -873,6 +898,17 @@ class Gen3Control:
         finally:
             if execution == 'simulation':
                 with self.lock:
+                    if self.simulation_route:
+                        route = self.simulation_route
+                        if route.state not in ('completed', 'stalled'):
+                            route.state = 'error' if failed else 'stopped' if self.cancel.is_set() else 'timed_out'
+                        self.state['simulation_route'] = copy.deepcopy(route.snapshot())
+                        if not failed:
+                            status = 'Completed route; torque off' if route.state == 'completed' else f'Stopped: route {route.state.replace("_", " ")}; torque off'
+                        try:
+                            atomic_json(log.parent / 'routes' / log.with_suffix('.json').name, self.state['simulation_route'])
+                        except OSError as exc:
+                            status += f'; route log failed: {exc}'
                     try:
                         if iface is not None:
                             if not failed and not self.simulation_disconnect_requested:
@@ -888,6 +924,8 @@ class Gen3Control:
                             status += f'; disconnect failed: {cleanup_exc}'
                     if failed or self.simulation_disconnect_requested:
                         self.state['simulation_links'] = None
+                        self.state['simulation_poses'] = None
+                        self.state['simulation_head'] = None
                         self.simulation = None
                         self.simulation_revision = None
                     self.state['simulation_state'] = 'error' if failed else 'disconnected' if self.simulation_disconnect_requested else 'connected'

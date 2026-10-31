@@ -17,7 +17,7 @@
 
   function loadLibraries() {
     return libraries ||= Promise.all([
-      ['gsap', '/static/vendor/gsap-3.13.0.min.js'],
+      ['gsap', '/static/vendor/gsap-3.15.0.min.js'],
       ['THREE', '/static/vendor/three-r128.min.js']
     ].map(([name, src]) => window[name] ? Promise.resolve() : new Promise((resolve, reject) => {
       const script = document.createElement('script');

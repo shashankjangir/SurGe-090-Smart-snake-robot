@@ -111,6 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
             const data = await post(endpoint);
+            if (stopping) {
+                if (data && data.report) {
+                    storeSavedResult(data.report);
+                    showReport(data.report);
+                } else {
+                    const modal = document.getElementById('accuracy-modal');
+                    if (modal) modal.style.display = 'none';
+                }
+            }
             updateStatus();
             return data;
         } catch (error) {
@@ -218,6 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isRunning) {
                 const report = document.getElementById('accuracy-modal');
                 if (report) report.style.display = 'none';
+            } else if (data.status === 'Path Complete' && (!lastRunResult || lastRunResult.path_revision !== data.path_revision)) {
+                if (typeof fetch === 'function' && typeof showReport === 'function') {
+                    fetch('/api/report').then(res => res.ok ? res.json() : null).then(repData => {
+                        if (repData) {
+                            storeSavedResult(repData);
+                            showReport(repData);
+                        }
+                    }).catch(() => {});
+                }
             }
 
             const connStatusEl = document.getElementById('conn-status');
