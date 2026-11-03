@@ -380,3 +380,23 @@ No distinct primary action color was observed; use the extracted neutral button 
   --radius-full: 152.19px;
 }
 ```
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**Dashboard and website (31 Oct – 2 Nov).**
+- Fonts are self-hosted (Antonio, Bowlby One, Inter; `static/fonts/`). Images are WebP.
+- Removed the GSAP bundle, `socket.io.min.js` and `snake_motion.mp4`. `OrbitControls-r128.js` is vendored for `/3d`.
+- `web_app.py` adds asset versioning, compression and cache headers.
+- Generation-switch transition rewritten as one 2D-canvas controller (shaded 3D and flat planner
+  variants, approaching viper head); no GSAP.
+- Hero snake trail is 1.5× stronger. Battery indicator added to both headers.
+- 2 Nov "AI-look" audit (`docs/archive/AI_LOOK_AUDIT_REPORT.md`, screenshots in `report-assets/`).
+  Follow-ups: remediation plan `docs/ideas/ai-look-remediation-plan.md` and research
+  `docs/research/ai-look-primary-research.md`. These are **proposals only, not implemented**.

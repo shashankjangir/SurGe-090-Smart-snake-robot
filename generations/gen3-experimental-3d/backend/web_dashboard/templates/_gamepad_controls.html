@@ -1,0 +1,28 @@
+<div id="{{ controller_id }}" class="controller-block">
+  <p class="controller-intro">Hold LB and press A to start; release LB or press B to stop. Keep this page focused: inputs expire after 0.5 s.</p>
+  <div class="controller-actions">
+    <button type="button" id="{{ controller_id }}-enable" data-gamepad="enable" class="btn-secondary" aria-pressed="false" disabled>Enable Controller</button>
+    <button type="button" id="{{ controller_id }}-calibrate" data-gamepad="calibrate" class="btn-secondary">Centre sticks</button>
+  </div>
+  <p id="{{ controller_id }}-status" class="controller-state" data-gamepad="status" role="status">Log in as operator to enable the controller.</p>
+  <p id="{{ controller_id }}-preset" class="controller-state" data-gamepad="preset">Controller stopped</p>
+  <div class="controller-settings">
+    <label for="{{ controller_id }}-assist">Assistance<select id="{{ controller_id }}-assist" data-gamepad="assist"><option value="manual">Manual steering</option><option value="heading">Heading hold</option><option value="route">Waypoint route</option></select></label>
+    <label for="{{ controller_id }}-steering-sign">Navigation steering sign<select id="{{ controller_id }}-steering-sign" data-gamepad="steering-sign"><option value="1">+1</option><option value="-1">−1</option></select></label>
+    <label for="{{ controller_id }}-inspection" class="check"><input type="checkbox" id="{{ controller_id }}-inspection" data-gamepad="inspection"> Gen 3 head inspection (right stick, ±10°; body neutral)</label>
+    <label for="{{ controller_id }}-localization" class="check"><input type="checkbox" id="{{ controller_id }}-localization" data-gamepad="localization"> Physical navigation: I verified head localization, world frame and steering sign</label>
+  </div>
+  <details>
+    <summary>Button map, route and setup</summary>
+    <p>RT: gait rate · left stick: steer · X: smooth reverse · Y: blend gait shape · D-pad left/right: yaw amplitude · D-pad down/up: pitch amplitude.</p>
+    <label for="{{ controller_id }}-path">Route in metres: [[x,y], …] (Gen 2.1 can also use its drawn route)</label>
+    <textarea id="{{ controller_id }}-path" data-gamepad="path" rows="3" placeholder="[[0,0],[1,0]]"></textarea>
+    <div class="controller-settings">
+      <label for="{{ controller_id }}-deadzone">Stick dead zone<input id="{{ controller_id }}-deadzone" data-gamepad="deadzone" type="number" min="0.05" max="0.4" step="0.01" value="0.15"></label>
+      <label for="{{ controller_id }}-sensitivity">Steering sensitivity<input id="{{ controller_id }}-sensitivity" data-gamepad="sensitivity" type="number" min="0.2" max="1" step="0.1" value="1"></label>
+      <label for="{{ controller_id }}-invert" class="check"><input type="checkbox" id="{{ controller_id }}-invert" data-gamepad="invert"> Invert steering</label>
+    </div>
+    <p>Release sticks and throttle before centring or enabling. Setup is saved per browser and controller; changing it disables control. Only the standard (Xbox-style) browser layout is accepted.</p>
+    <p>Hardware navigation needs a fresh external head-pose feed; IMU heading alone gives no waypoint position. Each controller uses only its own workspace and limits.</p>
+  </details>
+</div>

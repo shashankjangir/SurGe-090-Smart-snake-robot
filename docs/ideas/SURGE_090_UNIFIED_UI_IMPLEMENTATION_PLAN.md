@@ -73,3 +73,31 @@ Use the concept as the visual reference for the shared structure, bold SURGE 090
 - The requested heading, telemetry hover, and generation-switch effects are present and responsive.
 - Generation-specific workflows remain available and clearly labeled.
 - The relevant tests pass and the reviewed pages work across desktop and mobile widths.
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**What happened after this document.** Its plans and findings were carried into these commits:
+- `4959334` / PR #2 (29 Oct): consolidated web dashboard backend, unified Slush UI, docs.
+- `2515ae1`, `b2d64c5` (30 Oct): security hardening, simulation UX fixes, 3D generation transition.
+- `fc24e4e` (31 Oct): Gen 2.1 five-box layout, whole-path undulation without stalls, unified console UI.
+
+Later, uncommitted work (31 Oct – 2 Nov) is summarised below. Treat this document as history;
+the current record is `docs/GEN3_HANDOFF.md`, `docs/gen3/GEN3_SIMULATION.md` and `docs/research/solution-of-gen3-research-map.md`.
+
+**Dashboard and website (31 Oct – 2 Nov).**
+- Fonts are self-hosted (Antonio, Bowlby One, Inter; `static/fonts/`). Images are WebP.
+- Removed the GSAP bundle, `socket.io.min.js` and `snake_motion.mp4`. `OrbitControls-r128.js` is vendored for `/3d`.
+- `web_app.py` adds asset versioning, compression and cache headers.
+- Generation-switch transition rewritten as one 2D-canvas controller (shaded 3D and flat planner
+  variants, approaching viper head); no GSAP.
+- Hero snake trail is 1.5× stronger. Battery indicator added to both headers.
+- 2 Nov "AI-look" audit (`../archive/AI_LOOK_AUDIT_REPORT.md`, screenshots in `report-assets/`).
+  Follow-ups: remediation plan `docs/ideas/ai-look-remediation-plan.md` and research
+  `docs/research/ai-look-primary-research.md`. These are **proposals only, not implemented**.

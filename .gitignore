@@ -33,7 +33,7 @@ skills-lock.json
 removed/baselines/control-checkout-git/
 
 # Local full-resolution videos and other unselected media
-/gen2-st3215/media/local-only/
+/generations/gen2-st3215/media/local-only/
 
 # Separate environment for historical-source inspection
 /.venv-archive/
@@ -42,10 +42,13 @@ removed/baselines/control-checkout-git/
 previous backups/
 **/.build-v3/
 node_modules/
-gen3-experimental-3d/operators.json
-gen2-st3215/firmware/common/surge_credentials.h
+generations/gen3-experimental-3d/operators.json
+generations/gen2-st3215/firmware/common/surge_credentials.h
+generations/gen2-st3215/firmware/common/ota_config.h
 
 # Local scratch and graphify transient caches
 .scratch/
-graphify-out/cache/
+artifacts/graphify-out/cache/
 
+# Machine-specific transmitter USB socket hint
+generations/gen3-experimental-3d/transmitter_port.json

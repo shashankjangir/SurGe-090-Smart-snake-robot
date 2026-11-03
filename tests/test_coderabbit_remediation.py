@@ -16,7 +16,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "gen3-experimental-3d/backend"))
+sys.path.insert(0, str(ROOT / "generations/gen3-experimental-3d/backend"))
 sys.path.insert(0, str(ROOT / "shared"))
 
 # Gen 3 Backend imports
@@ -312,7 +312,7 @@ class CodeRabbitRemediationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             missing_cfg = os.path.join(tmpdir, "nonexistent.json")
             sm = SessionManager(config_path=missing_cfg)
-            ok, _, err = sm.authenticate("Shashank", "xyz@1234")
+            ok, _, err = sm.authenticate("Shashank", "test-only-operator-password")
             self.assertFalse(ok)
             self.assertIn("not configured", err)
 
@@ -449,6 +449,25 @@ class CodeRabbitRemediationTests(unittest.TestCase):
         res3 = client.get('/api/report')
         self.assertEqual(res3.status_code, 200)
         self.assertEqual(res3.get_json()['path_progress'], 0.6)
+
+
+from tempfile import TemporaryDirectory as _TemporaryDirectory
+from unittest.mock import patch as _patch
+
+
+def setUpModule():
+    global _operator_fixture, _operator_patch
+    _operator_fixture = _TemporaryDirectory()
+    config = Path(_operator_fixture.name) / 'operators.json'
+    config.write_text(json.dumps({'operators': ['Shashank', 'Bhavesh', 'Mahima'],
+                                 'password': 'test-only-operator-password'}))
+    _operator_patch = _patch('surge_control.session.DEFAULT_CONFIG_PATH', config)
+    _operator_patch.start()
+
+
+def tearDownModule():
+    _operator_patch.stop()
+    _operator_fixture.cleanup()
 
 
 if __name__ == '__main__':

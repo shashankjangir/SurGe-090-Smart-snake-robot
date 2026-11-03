@@ -1,0 +1,8 @@
+#pragma once
+// Copy to ota_config.h and set private passwords before building.
+#ifndef SURGE_OTA_WIFI_PASSWORD
+#define SURGE_OTA_WIFI_PASSWORD ""
+#endif
+#ifndef SURGE_OTA_PASSWORD
+#define SURGE_OTA_PASSWORD ""
+#endif

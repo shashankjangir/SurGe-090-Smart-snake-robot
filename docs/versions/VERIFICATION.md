@@ -49,7 +49,7 @@ Run from the repository root in PowerShell:
 ```powershell
 .venv/Scripts/python.exe -X utf8 -B -m unittest discover -s tests -v
 .venv/Scripts/python.exe -X utf8 -B shared/desktop-app/app.py --sim --duration 1
-.venv/Scripts/python.exe -X utf8 -B gen3-experimental-3d/test_3d_snake.py
+.venv/Scripts/python.exe -X utf8 -B generations/gen3-experimental-3d/test_3d_snake.py
 node --check shared/web-dashboard/static/script.js
 pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e sensor_gen2_1 -e get_mac_oled
 ```
@@ -74,17 +74,33 @@ From repository root in PowerShell:
 
 ```powershell
 # 1. Frontend component & visual verification (30/30 suites)
-node --test gen3-experimental-3d/tests/*.cjs
+node --test generations/gen3-experimental-3d/tests/*.cjs
 
 # 2. Backend console & hardening verification (39 tests)
-python -m unittest gen3-experimental-3d/tests/test_console.py gen3-experimental-3d/tests/test_console_hardening.py
+python -m unittest generations/gen3-experimental-3d/tests/test_console.py generations/gen3-experimental-3d/tests/test_console_hardening.py
 
 # 3. Planar Gen 2.1 regressions (31 tests)
 python tests/test_gen2_1.py
 
 # 4. Launch unified web server
-conda run --no-capture-output -n surge python gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
+conda run --no-capture-output -n surge python generations/gen3-experimental-3d/backend/web_dashboard/web_app.py --port 5001
 ```
 
-Verification status: Full audit completed in `docs/audits/SURGE_090_POST_IMPLEMENTATION_AUDIT.md`. 96.0% implementation pass rate, zero console errors, zero horizontal overflow across 320px–1440px viewports, and persistent emergency Stop controls verified.
+Verification status: Full audit completed in `docs/archive/audits/SURGE_090_POST_IMPLEMENTATION_AUDIT.md`. 96.0% implementation pass rate, zero console errors, zero horizontal overflow across 320px–1440px viewports, and persistent emergency Stop controls verified.
 
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**Verification (1–2 Nov).**
+- Gen 3 Python: 105 tests passed (web, console, hardening, gait, battery), plus 98 targeted
+  assembly-simulation tests. All 38 Node suites passed. Offline Chrome checks at 320–1440 px passed.
+- New tests: `test_assembly_simulation.py`, `test_battery*.py/.cjs`, `test_bus_metrics.cjs`,
+  `test_control_spatial_presets.cjs`, `test_port_detection.py`, `test_pose_presets.cjs`.
+- Not verified: clicking Move to Pose in a browser (needs an operator login), and any hardware run of the new features.

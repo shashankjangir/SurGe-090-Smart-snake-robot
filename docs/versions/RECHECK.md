@@ -44,3 +44,20 @@ stack, and separates Gen 3.0 3D experiments. Nothing is discarded. See INDEX und
   originals; active sensor firmware uses a configurable setup password.
 - Browser 3D/font resources still use CDNs; offline-browser support is not complete.
 - LLM autonomy remains a documented proposal. Interview preparation is out of scope.
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**What happened after this document.** Its plans and findings were carried into these commits:
+- `4959334` / PR #2 (29 Oct): consolidated web dashboard backend, unified Slush UI, docs.
+- `2515ae1`, `b2d64c5` (30 Oct): security hardening, simulation UX fixes, 3D generation transition.
+- `fc24e4e` (31 Oct): Gen 2.1 five-box layout, whole-path undulation without stalls, unified console UI.
+
+Later, uncommitted work (31 Oct – 2 Nov) is summarised below. Treat this document as history;
+the current record is `docs/GEN3_HANDOFF.md`, `docs/gen3/GEN3_SIMULATION.md` and `docs/research/solution-of-gen3-research-map.md`.

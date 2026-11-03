@@ -11,7 +11,7 @@ from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "gen3-experimental-3d/backend"))
+sys.path.insert(0, str(ROOT / "generations/gen3-experimental-3d/backend"))
 sys.path.insert(0, str(ROOT / "shared"))
 from surge_control.gait import SnakeKinematics
 from surge_control.hardware import ST3215Interface
@@ -166,15 +166,23 @@ class RuntimeTests(unittest.TestCase):
         self.c.tick(.1)
         self.assertEqual(self.c.state['status'], 'Running')
 
-    def test_preset_reaches_gait(self):
-        self.c.controller({"btn_preset": True})
-        self.c.tick(.02)
-        self.assertEqual(self.c.gait.amplitude, 1.2)
+    def test_preset_reaches_manual_gait_without_overwriting_draft(self):
+        import time
+        self.c.pause()
+        self.c.controller(dict(btn_start=True, sequence=0, captured_at=time.time(), deadman=True, throttle=1))
+        self.c.controller(dict(sequence=1, captured_at=time.time(), deadman=True, throttle=1,
+                               preset=True, run_id=self.c.controller_run_id))
+        for _ in range(5): self.c.tick(.02)
+        self.assertEqual(self.c.manual.preset, 1)
+        self.assertLess(self.c.manual.yaw, .8)
+        self.assertEqual(self.c.state['params']['amp'], .8)
 
     def test_controller_timeout_stops(self):
-        self.c.controller({"stick_x": 1, "stick_y": 0}, now=1)
+        import time
+        self.c.pause()
+        self.c.controller(dict(btn_start=True, sequence=0, captured_at=time.time(), deadman=True, throttle=1), now=1)
         self.c.tick(.02, now=2)
-        self.assertTrue(self.c.state["is_paused"])
+        self.assertTrue(self.c.state['is_paused'])
         self.assertFalse(self.f.sent)
 
     def test_reverse_advances_negative_phase(self):
@@ -332,13 +340,13 @@ class HardwareTests(unittest.TestCase):
 
 class ApiTests(unittest.TestCase):
     def setUp(self):
-        web_path = "gen3-experimental-3d/backend/web_dashboard/web_app.py" if (ROOT / "gen3-experimental-3d/backend/web_dashboard/web_app.py").exists() else "shared/web-dashboard/web_app.py"
+        web_path = "generations/gen3-experimental-3d/backend/web_dashboard/web_app.py" if (ROOT / "generations/gen3-experimental-3d/backend/web_dashboard/web_app.py").exists() else "shared/web-dashboard/web_app.py"
         self.module = load("web_under_test", web_path)
         self.c = ControlRuntime()
         self.c.iface = FakeInterface()
         self.c.state.update(is_running=True, engine="SIM")
         self.client = self.module.create_app(self.c).test_client()
-        self.assertEqual(self.client.post('/api/gen3/session/login', json={'name': 'Shashank', 'password': 'xyz@1234'}).status_code, 200)
+        self.assertEqual(self.client.post('/api/gen3/session/login', json={'name': 'Shashank', 'password': 'test-only-operator-password'}).status_code, 200)
 
     def test_import_has_no_worker(self):
         self.assertIsNone(self.module.app.config["CONTROL"].thread)
@@ -421,7 +429,7 @@ class PreservationTests(unittest.TestCase):
         for rel, expected in baseline.items():
             # Gen 1 overview was refreshed; its original remains in the archive.
             source = ("removed/pre-gen1-docs-2026-10-16/" + rel
-                      if rel == "gen1-dynamixel/README.md" else rel)
+                      if rel == "generations/gen1-dynamixel/README.md" else rel)
             if not (ROOT / source).exists():
                 self.skipTest(f"Preservation source {source} not present in workspace")
             actual = subprocess.check_output(
@@ -438,17 +446,60 @@ class PreservationTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), digest, rel)
 
     def test_planar_model_has_10_joints_11_links(self):
-        urdf_path = ROOT / "gen3-experimental-3d/backend/simulation/pybullet/snake.urdf" if (ROOT / "gen3-experimental-3d/backend/simulation/pybullet/snake.urdf").exists() else ROOT / "shared/simulation/pybullet/snake.urdf"
+        urdf_path = ROOT / "generations/gen3-experimental-3d/backend/simulation/pybullet/snake.urdf" if (ROOT / "generations/gen3-experimental-3d/backend/simulation/pybullet/snake.urdf").exists() else ROOT / "shared/simulation/pybullet/snake.urdf"
         root = ET.parse(urdf_path).getroot()
         self.assertEqual(len(root.findall("joint")), 10)
         self.assertEqual(len(root.findall("link")), 11)
         self.assertTrue(all(j.find("axis").get("xyz") == "0 0 1" for j in root.findall("joint")))
 
     def test_gen3_dry_run_targets_are_bounded(self):
-        module = load("experimental", "gen3-experimental-3d/test_3d_snake.py")
+        module = load("experimental", "generations/gen3-experimental-3d/test_3d_snake.py")
         targets = module.positions_at(.4)
         self.assertEqual(len(targets),10)
         self.assertTrue(all(1252 <= v <= 2844 for v in targets.values()))
+
+
+class BenchLauncherTests(unittest.TestCase):
+    def test_modes_keep_alignment_waveforms_and_cleanup(self):
+        from surge_control.bench import main
+        for mode in ("align", "sine", "spiral"):
+            with self.subTest(mode=mode), patch("surge_control.bench.ST3215Interface") as factory, \
+                    patch("surge_control.bench.align") as measured_align, \
+                    patch("surge_control.bench.time.monotonic", side_effect=[0, 0, 0, 20]), \
+                    patch("surge_control.bench.time.sleep"), patch("builtins.print"):
+                iface = factory.return_value
+                iface.connect.return_value = (True, "connected")
+                main([mode, "--port", "TEST", "--duration", "10"])
+                factory.assert_called_once_with(port="TEST")
+                iface.start.assert_called_once_with()
+                measured_align.assert_called_once_with(iface)
+                iface.disconnect.assert_called_once_with()
+                if mode == "align":
+                    iface.write_positions.assert_not_called()
+                else:
+                    expected = {i: 2048 + round(400 * math.sin(-i * .6))
+                                if mode == "sine" else 2048 for i in range(1, 11)}
+                    iface.write_positions.assert_called_once_with(
+                        expected, speed=1500 if mode == "sine" else 300)
+
+    def test_invalid_or_missing_mode_never_connects(self):
+        from surge_control.bench import main
+        for argv in ([], ["unknown"]):
+            with self.subTest(argv=argv), patch("surge_control.bench.ST3215Interface") as factory, \
+                    patch("sys.stderr"), self.assertRaises(SystemExit) as error:
+                main(argv)
+            self.assertEqual(error.exception.code, 2)
+            factory.assert_not_called()
+
+    def test_alignment_failure_disconnects(self):
+        from surge_control.bench import main
+        with patch("surge_control.bench.ST3215Interface") as factory, \
+                patch("surge_control.bench.align", side_effect=TimeoutError), \
+                self.assertRaises(TimeoutError):
+            factory.return_value.connect.return_value = (True, "connected")
+            main(["sine", "--port", "TEST"])
+        factory.return_value.write_positions.assert_not_called()
+        factory.return_value.disconnect.assert_called_once_with()
 
 
 class SimulationTests(unittest.TestCase):
@@ -475,6 +526,25 @@ class SimulationTests(unittest.TestCase):
         finally:
             a.disconnect()
             b.disconnect()
+
+from tempfile import TemporaryDirectory as _TemporaryDirectory
+from unittest.mock import patch as _patch
+
+
+def setUpModule():
+    global _operator_fixture, _operator_patch
+    _operator_fixture = _TemporaryDirectory()
+    config = Path(_operator_fixture.name) / 'operators.json'
+    config.write_text(json.dumps({'operators': ['Shashank', 'Bhavesh', 'Mahima'],
+                                 'password': 'test-only-operator-password'}))
+    _operator_patch = _patch('surge_control.session.DEFAULT_CONFIG_PATH', config)
+    _operator_patch.start()
+
+
+def tearDownModule():
+    _operator_patch.stop()
+    _operator_fixture.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

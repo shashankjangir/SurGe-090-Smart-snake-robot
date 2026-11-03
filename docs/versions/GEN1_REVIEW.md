@@ -32,3 +32,16 @@ The original overview is at
 [removed/pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md](../../removed/pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md).
 Original baseline manifests remain unchanged. The preservation test now explicitly
 checks that archived overview alongside the unchanged original project files.
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**Gen 1 status.** Gen 1 (Dynamixel XL330, Raspberry Pi) is archived. No Gen 1 files have changed since
+commit `2782bf9` (16 Oct 2026). Active work is Gen 2.1 firmware (ESP-NOW radio) and Gen 3 (3D ST3215
+snake, web console, CAD simulation); see `docs/GEN3_HANDOFF.md`.

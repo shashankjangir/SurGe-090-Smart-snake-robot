@@ -1,0 +1,97 @@
+[
+  {
+    "class": "hero-section hero-compact",
+    "rect": {
+      "x": 24,
+      "y": 184.671875,
+      "width": 342,
+      "height": 335.359375,
+      "top": 184.671875,
+      "right": 366,
+      "bottom": 520.03125,
+      "left": 24
+    },
+    "css": {
+      "display": "flex",
+      "opacity": "1",
+      "transform": "none",
+      "height": "335.359px"
+    }
+  },
+  {
+    "class": "hero-content",
+    "rect": {
+      "x": 37,
+      "y": 197.671875,
+      "width": 316,
+      "height": 309.359375,
+      "top": 197.671875,
+      "right": 353,
+      "bottom": 507.03125,
+      "left": 37
+    },
+    "css": {
+      "display": "grid",
+      "opacity": "1",
+      "transform": "none",
+      "height": "309.359px"
+    }
+  },
+  {
+    "class": "display-headline distorted-glass-headline pixel-snake-active",
+    "rect": {
+      "x": 83.28125,
+      "y": 197.671875,
+      "width": 223.4375,
+      "height": 39.1875,
+      "top": 197.671875,
+      "right": 306.71875,
+      "bottom": 236.859375,
+      "left": 83.28125
+    },
+    "css": {
+      "display": "flex",
+      "opacity": "1",
+      "transform": "none",
+      "height": "39.1875px"
+    }
+  },
+  {
+    "class": "modular-control-wrapper",
+    "rect": {
+      "x": 97,
+      "y": 246.859375,
+      "width": 196,
+      "height": 49.5,
+      "top": 246.859375,
+      "right": 293,
+      "bottom": 296.359375,
+      "left": 97
+    },
+    "css": {
+      "display": "flex",
+      "opacity": "1",
+      "transform": "none",
+      "height": "49.5px"
+    }
+  },
+  {
+    "class": "hero-actions",
+    "rect": {
+      "x": 37,
+      "y": 326.359375,
+      "width": 316,
+      "height": 180.671875,
+      "top": 326.359375,
+      "right": 353,
+      "bottom": 507.03125,
+      "left": 37
+    },
+    "css": {
+      "display": "flex",
+      "opacity": "1",
+      "transform": "none",
+      "height": "180.672px"
+    }
+  }
+]

@@ -2,7 +2,7 @@
 
 Prepared 18 October 2026.
 
-Source: `gen1-dynamixel/docs/presentations/Smart_Snake_Robot_SURGE090_Progress_Review_v2.pptx`.
+Source: `generations/gen1-dynamixel/docs/presentations/Smart_Snake_Robot_SURGE090_Progress_Review_v2.pptx`.
 Proposed output: `Smart_Snake_Robot_SURGE090_Progress_Review_v3.pptx`.
 This document is the plan; the PowerPoint has not been edited.
 
@@ -82,7 +82,7 @@ On-slide text:
 
 Visual: a large current prototype photo on the right, three short status lines
 on the left. Use one glass text surface, not three status cards.
-Photo: `gen2-st3215/media/20260925_164442.jpg`.
+Photo: `generations/gen2-st3215/media/20260925_164442.jpg`.
 Motion: photo Fade, followed by the three status lines. No animated completion meter.
 Speaker note: “The next slides explain what changed and how the working setup is organised.”
 
@@ -94,7 +94,7 @@ On-slide text: ten-joint architecture retained; mounts and power redesigned;
 servo communication moved to the ST3215 bus.
 
 Visual: a compact Gen 1 → Gen 2 comparison, with only actuator, interface and
-power architecture. Use `gen2-st3215/media/waveshare servo photo.png` alongside it.
+power architecture. Use `generations/gen2-st3215/media/waveshare servo photo.png` alongside it.
 Do not repeat numerical torque or cost ratios without voltage-specific datasheets
 and dated purchase records. In particular, the old slide's 0.35 A figure must
 not be reused as a Dynamixel stall-current specification.
@@ -106,7 +106,7 @@ Speaker note: “The change affected mechanics, wiring and software together.”
 **Main point:** show the physical assembly rather than another CAD-only status slide.
 
 On-slide text: modular body; ten yaw joints; daisy-chained servo connections.
-Visual: `gen2-st3215/media/20260923_224427.jpg`, rotated for a landscape layout
+Visual: `generations/gen2-st3215/media/20260923_224427.jpg`, rotated for a landscape layout
 only if it improves readability. Preserve the whole chain. Add a few clear
 callouts to actual visible joints, wiring and body sections.
 Motion: numbered joint callouts appear along the chain. These indicate joint order,
@@ -174,7 +174,7 @@ Gen 2.0 battery/temperature cutoffs or evasion state machine.
 On-slide equation: θᵢ(t) = A sin(ωt − iφ) + b.
 Define A = amplitude, ω = temporal frequency, φ = phase lag, b = steering bias.
 Visual: an editable ten-joint schematic in three successive phases. Use a small
-still from `gen2-st3215/media/20260925_164828.jpg` to relate the schematic to the
+still from `generations/gen2-st3215/media/20260925_164828.jpg` to relate the schematic to the
 physical body. Do not reuse this photo elsewhere in the continuation.
 Motion: Morph between schematic states, or reveal the three phases sequentially.
 Caption: “Controller illustration; not a measured trajectory”.
@@ -204,7 +204,7 @@ On-slide text: working Gen 2 operation; command and feedback interfaces;
 software simulation. Separate line: speed, slip, power consumption and stop latency
 still need a consistent measurement record.
 Visual: a large 16:9 demonstration frame. Until video is supplied, use
-`gen2-st3215/media/Screenshot_20261016_012632_WhatsApp.jpg` with “Video to be added”.
+`generations/gen2-st3215/media/Screenshot_20261016_012632_WhatsApp.jpg` with “Video to be added”.
 A small table can list “Physical operation / software checks / measurements”
 without inventing scores, charts or completion percentages.
 Motion: actual video starts on click when added. Otherwise use a static image.
@@ -217,7 +217,7 @@ Do not claim the Gen 2.1 sensor stream proves autonomous navigation.
 
 On-slide text: alternating joint axes; revised connectors and plate-chain layout;
 experimental 3D waveform.
-Visual: reserve a CAD screenshot from `gen3-experimental-3d/cad/`, with yaw and
+Visual: reserve a CAD screenshot from `generations/gen3-experimental-3d/cad/`, with yaw and
 pitch axes labelled. Use a second state of the same model for a deliberate
 motion illustration, not an unrelated stock robot.
 Placeholder: “Gen 3 CAD — connector and joint-axis view”.
@@ -266,23 +266,23 @@ or generated for this plan.
 
 ### Slide 17 — current robot
 
-![Slide 17: Gen 2 curved prototype](../../gen2-st3215/media/20260925_164442.jpg)
+![Slide 17: Gen 2 curved prototype](../../generations/gen2-st3215/media/20260925_164442.jpg)
 
 ### Slide 18 — actuator
 
-![Slide 18: ST3215 reference photo](../../gen2-st3215/media/waveshare%20servo%20photo.png)
+![Slide 18: ST3215 reference photo](../../generations/gen2-st3215/media/waveshare%20servo%20photo.png)
 
 ### Slide 19 — full chain
 
-![Slide 19: straight assembly](../../gen2-st3215/media/20260923_224427.jpg)
+![Slide 19: straight assembly](../../generations/gen2-st3215/media/20260923_224427.jpg)
 
 ### Slide 24 — physical counterpart to the wave illustration
 
-![Slide 24: robot configuration](../../gen2-st3215/media/20260925_164828.jpg)
+![Slide 24: robot configuration](../../generations/gen2-st3215/media/20260925_164828.jpg)
 
 ### Slide 26 — temporary demonstration still
 
-![Slide 26: video placeholder still](../../gen2-st3215/media/Screenshot_20261016_012632_WhatsApp.jpg)
+![Slide 26: video placeholder still](../../generations/gen2-st3215/media/Screenshot_20261016_012632_WhatsApp.jpg)
 
 ### Spaces to leave open
 
@@ -335,3 +335,15 @@ fill them with generic robot imagery or generated evidence.
 
 The current plan changes no PowerPoint, image, CAD or software files. Missing
 photos and videos can be added later without changing the slide sequence.
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+Material for the next deck (since v3): CAD-driven Gen 3 simulation, per-joint/pose control, caterpillar gait,
+live tracking telemetry, plain-text radio, battery indicator, dashboard audit. Screenshots are in `report-assets/`.

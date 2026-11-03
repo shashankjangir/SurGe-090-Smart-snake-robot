@@ -1,0 +1,131 @@
+[
+  {
+    "path": "docs/architecture/API_DOCUMENTATION.md",
+    "sha256": "8e906703f8f915a00951d4688c77a0cb7a421c07b70e1eda1834ee32a20b4690"
+  },
+  {
+    "path": "docs/architecture/GEN2_1_VS_GEN3_FRONTEND_COMPARISON.md",
+    "sha256": "4183e66cfd5406d2811fdb2b1b37c2540c33947b0b51ab9d2b69373619022b9a"
+  },
+  {
+    "path": "docs/development/FIX_CHECKLIST.md",
+    "sha256": "2d2cfe20e033daae2177a546b520611537f8270fe03180e434f68d363207e0b7"
+  },
+  {
+    "path": "docs/development/GEN3_ANTIGRAVITY_SKILLS.md",
+    "sha256": "f539fd3891f870d50555d579244b74a43d81487e3177820b1f82669c32e2ef87"
+  },
+  {
+    "path": "docs/development/GEN3_CODEX_REPAIRS.md",
+    "sha256": "cd260176f192398d21f41dac57bc205948239988b2351cd652650a77976d6f73"
+  },
+  {
+    "path": "docs/development/SURGE_DASHBOARD_VERIFICATION.md",
+    "sha256": "e5fe4dd54cc9ea10984da217f67fef287b16314b896feb7e9c7fb97e805868f1"
+  },
+  {
+    "path": "docs/gen3/GEN3_PROGRESS.md",
+    "sha256": "94d9bf56b8f2325d6bbdbcace70106f08d47ba522258f547530eab98c11194cf",
+    "original_sha256": "f65035cde68d4be06e9d6b53eef5b8213b012103d665d9ba64a050b321c65c92",
+    "preservation": "Local operator password redacted before GitHub publication. Original private snapshot retained only in ignored scratch backup."
+  },
+  {
+    "path": "docs/gen3/GEN3_SIMULATION.md",
+    "sha256": "d51932736358728efa76d543860b9db04f4ff333959ec7e61781333adb965894"
+  },
+  {
+    "path": "docs/GEN3_HANDOFF.md",
+    "sha256": "e1e3755f4cd03c0c70ad46edbfcc2149ad4989b261d2d24caa025a423fef0345"
+  },
+  {
+    "path": "docs/hardware/4_WIRING_DIAGRAM.md",
+    "sha256": "b89bb7a4337c652b201e5abf9eaca417adf57304335fd89bd59d5c9f9875ab2f"
+  },
+  {
+    "path": "docs/hardware/5_PARTS_AND_SAFETY.md",
+    "sha256": "b22cf6adfe348d368297c5c65b40e2e4eb33130e48e3a36ac49395410c01d1f0"
+  },
+  {
+    "path": "docs/hardware/6_ADDITIONAL_PARTS.md",
+    "sha256": "ab096cef864f0de0243a71c16da302d54a4051d153537ef509626039959fac02"
+  },
+  {
+    "path": "docs/hardware/power_centre_fed_v1.md",
+    "sha256": "882804204df5b68207aa1d821c7ce6c7b7572a767cd77d08c2f132aea532174d"
+  },
+  {
+    "path": "docs/hardware/power_split_bus_v2.md",
+    "sha256": "8fcc6a847cf2e95f85070ec3df31807eb96e483dfc1b0677bfe7fb3bcbf66d45"
+  },
+  {
+    "path": "docs/hardware/power_split_bus_v3.md",
+    "sha256": "aa0251268d8500d10ca5701610b216e1c30a5eea27aa0a421776989604dcf71b"
+  },
+  {
+    "path": "docs/hardware/README.md",
+    "sha256": "b8923c3d7a22dc882ff82e1152d19a6a163f4eef4891af94a972dc5540a9389c"
+  },
+  {
+    "path": "docs/hardware/Updated_Hardware_Inventory.md",
+    "sha256": "f6acb9587f3b5629bef097deba5b77df35d6e93ad8e69ae5408a1d268b881511"
+  },
+  {
+    "path": "docs/operations/1_APP_USAGE_MANUAL.md",
+    "sha256": "76ee93d7bf06866b70dfa0bb14fecdc44c8b56ee6653ace2de6051a999526c78"
+  },
+  {
+    "path": "docs/operations/3_RASPBERRY_PI_SETUP.md",
+    "sha256": "118338ebd636d8860623c839c16770f02635614a595789e829892b9224395858"
+  },
+  {
+    "path": "docs/operations/4_LLM_AUTONOMY_SETUP.md",
+    "sha256": "d99043d4014a3708b12adf757f7272d33831d7e88c7fe7f70ac350e7bd8e60ce"
+  },
+  {
+    "path": "docs/operations/7_TELEMETRY_AND_PERFORMANCE.md",
+    "sha256": "b386f9b30850ca3e2b79b9f090170df3120df93d6acddd5bda29e7275468314a"
+  },
+  {
+    "path": "docs/operations/CONTROLLER_UPGRADES.md",
+    "sha256": "d6da2a8836026046826904af89bc4f457cafa8ef8e8e6df51ef889e96b3580dd"
+  },
+  {
+    "path": "docs/operations/FIRMWARE_OTA.md",
+    "sha256": "9fadf7c7c80a62c8326e7a822d30f8085c53590f9876ea265d5f5de815ace7a9"
+  },
+  {
+    "path": "docs/README.md",
+    "sha256": "e1f2abbcfe5502a81fb3cba7002989d04f2a60666f22152cbf65525a85e5af7f"
+  },
+  {
+    "path": "docs/reports/CHANGES_FROM_BASE_REPO.md",
+    "sha256": "c471ed3938fe24504afde1899b51883d0b22360ef7c282211b6cae199e183b9c"
+  },
+  {
+    "path": "docs/REPOSITORY_LAYOUT.md",
+    "sha256": "3fa80735c9c1a03e8156fa4ade09df81172315b7e66cc369cccdb2f362e45fcb"
+  },
+  {
+    "path": "generations/gen2-st3215/README.md",
+    "sha256": "f1d1297068cc97f5d8c58e5a9ddb3cb0b3ec81a23ef479f05dbd8b8f1251b52a"
+  },
+  {
+    "path": "generations/gen3-experimental-3d/backend/web_dashboard/README.md",
+    "sha256": "5d4552265c64c0f92addb7b5780cc494c2145d13a90b3fb855f7cf21ed6fba6b"
+  },
+  {
+    "path": "generations/gen3-experimental-3d/README.md",
+    "sha256": "d14dca9fa23499f00841fb2a982c12d4953b76a6c988725b61d3e761777f345f"
+  },
+  {
+    "path": "README.md",
+    "sha256": "9f576ba76684d403c33ca0abf4f8505243885679720ef1deb3e662315a9410c6",
+    "archive_path": "root/README.md",
+    "original_sha256": "36811e71c9e948e36eef87a945bbd680dea739f0157488d88c1ebabdb6edd50f",
+    "preservation": "Text restored from the pre-rewrite readout after the archive index occupied the same name. Original byte hash retained separately; byte equality is not claimed for this entry."
+  },
+  {
+    "path": "generations/gen2-st3215/tests/README.md",
+    "sha256": "9cbcbcb16d8647c54e5698dc3b82eaa86d35512cedc79511d75c8466fe3a7825"
+  }
+]

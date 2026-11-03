@@ -12,3 +12,11 @@ including which decision conflicts and why it may need reconsideration.
 
 For Gen 3, also follow the continuation instructions in `AGENTS.md`: read the
 current handoff and joint map before operation, calibration or implementation work.
+
+---
+
+## Update — 2 November 2026
+
+**Status (2 Nov).** These conventions are unchanged. Issues are currently kept per feature under
+`.scratch/<feature>/issues/`, for example `esp-connection/01–03` (signed packet length, plain-text radio,
+high-amplitude servo loss — owner reports wiring fixed, re-query pending) and `gen3-console/01–14`.

@@ -91,3 +91,26 @@ Full-screen overlay with a flat background from the existing palette (Slate Gray
 - [ ] No dropped frames in the Performance panel during the animation; no layout shifts; no console errors.
 - [ ] Rapid repeated clicks don't break or stack the animation.
 - [ ] Reduced-motion fallback works.
+
+---
+
+## Update — 2 November 2026
+
+**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
+2 November below is in the working tree and **not yet committed**. No hardware motion was
+commanded by the assistant during that work unless stated.
+
+**Dashboard and website (31 Oct – 2 Nov).**
+- Fonts are self-hosted (Antonio, Bowlby One, Inter; `static/fonts/`). Images are WebP.
+- Removed the GSAP bundle, `socket.io.min.js` and `snake_motion.mp4`. `OrbitControls-r128.js` is vendored for `/3d`.
+- `web_app.py` adds asset versioning, compression and cache headers.
+- Generation-switch transition rewritten as one 2D-canvas controller (shaded 3D and flat planner
+  variants, approaching viper head); no GSAP.
+- Hero snake trail is 1.5× stronger. Battery indicator added to both headers.
+- 2 Nov "AI-look" audit (`../archive/AI_LOOK_AUDIT_REPORT.md`, screenshots in `report-assets/`).
+  Follow-ups: remediation plan `docs/ideas/ai-look-remediation-plan.md` and research
+  `docs/research/ai-look-primary-research.md`. These are **proposals only, not implemented**.
+
+**Status.** The transition was implemented on 30 Oct (`b2d64c5`). In the working tree it has since been rewritten
+as a single 2D-canvas controller with shaded-3D and flat-planner variants, without GSAP.
