@@ -559,9 +559,10 @@
           <div class="grid-beam-title-group">
             <span class="grid-beam-title" id="bus-metrics-status">
               <svg class="grid-beam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 12h16M12 4v16"/></svg>
-              Bus Metrics · Query disarmed diagnostics to sample
+              Bus Metrics · Select a port and log in to refresh automatically
             </span>
           </div>
+          <span id="bus-refresh-status" role="status">Stopped Hardware refreshes every 3 s; voltage and temperature pause during motion.</span>
         </div>
 
         <div class="grid-beam-dividers" aria-hidden="true">
@@ -607,8 +608,17 @@
         <div class="pose-preset-row">
           <label for="pose-preset">Shape preset</label>
           <select id="pose-preset" aria-describedby="pose-preset-desc"><option value="">Choose a shape</option></select>
+          <button type="button" class="job" id="btn-pose-recalibrate" disabled>Re-calibrate selected preset</button>
         </div>
         <p class="pose-preset-desc" id="pose-preset-desc">Loads angles into the sliders only; nothing moves until Move to Pose.</p>
+        <p>Select a saved pose, press STOP / torque off, support and reposition the snake, then Re-calibrate. Click Update selected pose to replace its saved joint readings. Joint zero, signs and limits stay unchanged.</p>
+        <p>To teach a shape: press STOP / torque off, support the body, and position the powered snake gently by hand. Capture reads all ten joints without enabling torque. Keep it still during the snapshot.</p>
+        <div class="controls">
+          <button type="button" class="job" id="btn-pose-capture">Capture hand-positioned pose</button>
+          <label>Pose name<input id="pose-save-name" type="text" maxlength="80" placeholder="My shape"></label>
+          <button type="button" id="btn-pose-save" disabled>Save captured pose</button>
+        </div>
+        <p id="pose-capture-status" role="status">No pose captured yet. Capture always reads the real robot, including when Dry run is selected.</p>
         <div class="table-scroll" role="region" tabindex="0" aria-label="Per-joint pose and gait settings">
           <table class="joint-control-table">
             <caption>Angles in degrees. Slider range is each joint's calibrated min–max.</caption>

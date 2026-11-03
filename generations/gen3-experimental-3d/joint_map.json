@@ -81,8 +81,8 @@
       "max": 2844
     }
   ],
-  "speed": 1500,
-  "tracking_error": 216,
+  "speed": 2144,
+  "tracking_error": 492,
   "tracking_timeout": 0.5,
   "calibrated": true
 }

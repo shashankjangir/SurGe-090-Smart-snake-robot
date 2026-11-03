@@ -586,7 +586,7 @@ class Gen3Control:
             return snap
 
     def battery_snapshot(self):
-        # shortcut: voltage is sampled by disarmed D diagnostics; extend motion feedback for live readings.
+        # shortcut: D is disarmed-only; extend receiver motion feedback for voltage during runs.
         with self.lock:
             diagnostic = self.last_diagnostic or {}
             voltages = [row['voltage'] / 10 for row in diagnostic.get('servos', {}).values()
@@ -596,6 +596,7 @@ class Gen3Control:
             age = max(0, time.time() - sampled_at) if sampled_at is not None else None
             voltage = sum(voltages) / len(voltages) if voltages else None
             return dict(
+                chemistry='LiPo', cells=3, capacity_mah=2200,
                 percent=max(0, min(100, round((voltage - 11.1) / 1.5 * 100))) if voltage is not None else None,
                 voltage=round(voltage, 2) if voltage is not None else None,
                 sample_count=len(voltages), sampled_at=sampled_at,
@@ -953,7 +954,7 @@ class Gen3Control:
         if self.state['busy']:
             self.state['status'] = 'Stop requested; waiting for torque-off cleanup'
 
-    def read_diagnostics(self, port):
+    def read_diagnostics(self, port, sample_telemetry=False):
         with self.lock:
             if self.state['busy'] or self.firmware.snapshot()['is_busy']:
                 raise RuntimeError("Stop active motion and firmware jobs before running diagnostics")
@@ -964,6 +965,23 @@ class Gen3Control:
                 ok, message = iface.connect()
                 if not ok:
                     raise RuntimeError(message)
+                if sample_telemetry:
+                    started = time.monotonic()
+                    telemetry = iface.read_telemetry()
+                    latency = time.monotonic() - started
+                    if latency > runner.MAX_GAP:
+                        raise RuntimeError('Telemetry deadline exceeded')
+                    for motor in range(1, 11):
+                        row = telemetry.get(motor, {})
+                        position = row.get('position')
+                        row['valid'] = bool(row.get('valid')) and type(position) is int and 0 <= position <= 4095
+                        telemetry[motor] = row
+                    sampled_at = time.time()
+                    previous = self.state.get('bus') or {}
+                    interval = sampled_at - previous['at'] if previous.get('port') == port and previous.get('kind') == 'idle' else None
+                    self.state.update(telemetry=telemetry, feedback_at=sampled_at,
+                                      bus=dict(port=port, at=sampled_at, latency_ms=round(latency * 1000, 1),
+                                               interval_s=interval, kind='idle'))
                 diag = iface.read_diagnostics()
                 self.last_diagnostic = {
                     'timestamp': time.time(),
@@ -973,6 +991,69 @@ class Gen3Control:
                 return self.last_diagnostic
             finally:
                 iface.disconnect()
+
+    @locked
+    def capture_pose(self, port):
+        if self.state['busy'] or self.firmware.snapshot()['is_busy']:
+            raise RuntimeError('Stop active motion and firmware jobs before capturing a pose')
+        if not isinstance(port, str) or not port.strip():
+            raise ValueError('Select a valid transmitter serial port')
+        config = runner.load_map(self.map_path)
+        iface = self.hardware_factory(port=port)
+        try:
+            ok, message = iface.connect()
+            if not ok:
+                raise RuntimeError(message)
+            started = time.monotonic()
+            telemetry = iface.read_telemetry()
+            if time.monotonic() - started > runner.MAX_GAP:
+                raise RuntimeError('Telemetry deadline exceeded; capture again')
+            pose = {}
+            for joint in config['joints']:
+                row = telemetry.get(joint['id'], {})
+                position = row.get('position')
+                if not row.get('valid') or type(position) is not int or not 0 <= position <= 4095:
+                    raise ValueError(f"Joint {joint['id']} has missing or invalid feedback; capture again")
+                if not joint['min'] <= position <= joint['max']:
+                    raise ValueError(f"Joint {joint['id']} is outside its calibrated limits")
+                pose[str(joint['id'])] = joint['sign'] * (position - joint['zero']) * 360 / 4096
+            return dict(pose=pose, joints=config['joints'])
+        finally:
+            iface.disconnect()
+
+    @locked
+    def get_pose_presets(self):
+        path = self.map_path.parent / 'runs' / 'pose_presets.json'
+        return json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+
+    @locked
+    def save_pose_preset(self, data):
+        name = data.get('name')
+        if not isinstance(name, str) or not 1 <= len(name.strip()) <= 80:
+            raise ValueError('Pose name must be 1 to 80 characters')
+        config = runner.load_map(self.map_path)
+        if data.get('joints') != config['joints']:
+            raise ValueError('Joint calibration changed; capture the pose again')
+        pose = data.get('pose')
+        if not isinstance(pose, dict) or set(pose) != {str(j['id']) for j in config['joints']}:
+            raise ValueError('A complete pose for all ten joints is required')
+        validate_pose(config, pose)
+        presets = self.get_pose_presets()
+        previous = next((p for p in presets if p['name'] == name.strip()), None)
+        if 'expected' in data:
+            if previous is None or data['expected'] != previous:
+                raise RuntimeError('Saved pose changed; reload the presets and re-calibrate again')
+        elif previous is not None:
+            raise ValueError('A pose with this name already exists; choose another name')
+        updated = dict(name=name.strip(), pose=pose, joints=config['joints'])
+        if previous is None:
+            presets.append(updated)
+        else:
+            presets[presets.index(previous)] = updated
+        path = self.map_path.parent / 'runs' / 'pose_presets.json'
+        path.parent.mkdir(exist_ok=True)
+        atomic_json(path, presets)
+        return presets
 
     def _run(self, mode, execution, port, config, values, duration, ramp, run_speed, sid, ticks):
         iface = self.simulation if execution == 'simulation' else None

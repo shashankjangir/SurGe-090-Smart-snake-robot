@@ -36,6 +36,28 @@ The port is an example based on the last identification. Read mode still opens t
 
 For stopped bus diagnostics, the receiver's D command reports register, torque, voltage, temperature and status information. It refuses diagnostics while armed. Do not fabricate a reading for a missing motor.
 
+## Automatic bus metrics and battery
+
+Gen 3 Hardware refreshes stopped telemetry and diagnostics automatically every three seconds while the tab is visible, an Operator is logged in and a transmitter port is selected. Requests use the existing handshake and Stop/torque-off connection, never RUN or position targets. Failed requests retry after 15 seconds. Viewer, hidden tabs, Simulation, motion jobs and firmware jobs do not initiate these reads.
+
+Latency measures the telemetry round trip; idle telemetry rate measures the interval between samples, so its first value arrives after the second sample. Tracking reads **Idle · torque off** while stopped because no target is commanded. During hardware motion these three values use the active run's feedback. Voltage, temperature and battery stay on the last stopped diagnostic sample during motion: the installed receiver refuses armed diagnostics. Sample ages remain visible and battery becomes stale after 30 seconds.
+
+The owner-reported battery is a **2200 mAh 3S LiPo**. Its reserve percentage uses the existing conservative voltage scale (12.6 V = 100%, 11.1 V = recharge), not measured remaining mAh or runtime. Changing capacity does not change this voltage scale.
+
+## Save a hand-positioned shape
+
+In Gen 3 Hardware, open Per-Joint Control and log in as Operator. Select the transmitter port (COM8 in the 3 November two-board USB setup; verify the current port).
+
+1. Press **STOP / torque off** and confirm release before handling the joints. Support the body so it cannot fall when torque is off.
+2. With servo power connected, gently arrange the snake by hand within its calibrated limits. Do not force a joint.
+3. Keep the body still and click **Capture hand-positioned pose**. This opens the real connection, requests Stop and reads all ten joint positions, even if Dry run is selected. Missing feedback or an out-of-range joint rejects the capture.
+4. Enter a name and click **Save captured pose**. The snapshot is stored on the dashboard computer in `generations/gen3-experimental-3d/runs/pose_presets.json`. New captures require a unique name; use Re-calibrate to update an existing saved pose.
+5. Choose **Saved: your name** in **Shape preset** to load the angles. Loading does not move the robot. **Move to Pose** uses the existing Hardware / Dry run choice and confirmation; it moves, holds for the selected duration, then returns to neutral.
+
+To update a saved pose, select its **Saved:** entry, press **STOP / torque off**, support and reposition the snake, then click **Re-calibrate selected preset**. After capture, click **Update selected pose** to replace its readings under the same name. Re-capture alone does not overwrite the preset. Updates reject a preset changed by another browser after it was loaded. Built-in shapes are not editable through this button. Re-calibration of a pose does not change robot joint zero, signs or limits.
+
+Captures retain encoder precision and the joint calibration used to interpret them. Re-calibrate the saved pose after changing joint calibration. Save records the captured snapshot, even if you subsequently adjust the sliders; capture again to record a different physical shape. This feature records one static shape at a time, not a motion sequence.
+
 ## Commissioning after changing assembly
 
 I first inspect all measured positions with torque off. I then jog one selected joint with mechanical support and clearance. A small example is:
@@ -67,3 +89,15 @@ These commands physically move the planar robot. They are not the alternating-ax
 Use [the controller guide](CONTROLLER_UPGRADES.md) for LB + A start, RT throttle and focus-loss stopping. Firmware updates are described in [the OTA guide](FIRMWARE_OTA.md). Initial OTA installation requires USB. The receiver and transmitter need their own matching firmware images.
 
 The older standalone desktop commands are archived because their shared/desktop-app path is absent from this checkout. Gen 2.0 direct-bus and onboard firmware also use different interfaces. I do not mix their commands with the maintained text receiver.
+
+## Phone controller over Wi-Fi
+
+Added 3 November 2026; tested in a browser only, not yet with a real phone or with the robot moving.
+
+1. Put the laptop and phone on the same Wi-Fi. Start the dashboard so it listens on that network: `python generations/gen3-experimental-3d/backend/web_dashboard/web_app.py --host 0.0.0.0 --port 5000` (or the `dashboard-phone` launch entry). Windows may ask to allow Python through the firewall; allow it on private networks.
+2. On the laptop, open `http://localhost:5000/gen3`, log in as operator and find the controller card. It shows a `Phone controller:` link with a pairing key. The key changes on every server restart.
+3. Open that link on the phone. Turning the phone sideways gives the gamepad layout; the corner button switches to full screen.
+4. Click **Enable Controller** on the laptop and keep that page focused. The phone acts as a standard gamepad, so all the usual rules apply. **HOLD** is LB: keep a thumb on it. Sliding up from where you touched sets RT throttle. **A** starts, **B/Stop** stops, **X** reverses, **Y** changes shape, the D-pad sets yaw/pitch amplitude, and the small stick moves the head in inspection mode.
+5. Letting go of HOLD stops the robot. So do Stop, locking the phone or switching apps, and losing Wi-Fi for more than 0.3 s. Hardware starts still need the confirmation on the laptop while HOLD is held.
+
+The link uses plain HTTP on the local network. Anyone with the key can send controller input, but input only matters while the laptop operator has Enable Controller on. Operator login stays laptop-only.

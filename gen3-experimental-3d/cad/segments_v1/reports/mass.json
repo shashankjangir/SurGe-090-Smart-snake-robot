@@ -1,0 +1,235 @@
+{
+ "density_g_cm3": 1.27,
+ "material": "PETG (assumed)",
+ "parts": {
+  "head": {
+   "volume_cm3": 43.78,
+   "mass_g_solid": 55.6,
+   "com_body_mm": [
+    4.5,
+    -0.0,
+    -0.0
+   ]
+  },
+  "mid": {
+   "volume_cm3": 36.46,
+   "mass_g_solid": 46.3,
+   "com_body_mm": [
+    -32.1,
+    0.6,
+    -0.0
+   ]
+  },
+  "tail": {
+   "volume_cm3": 53.37,
+   "mass_g_solid": 67.8,
+   "com_body_mm": [
+    -52.7,
+    3.8,
+    0.2
+   ]
+  }
+ },
+ "printed_total_g": 540.1,
+ "bodies": [
+  {
+   "body": "B0",
+   "type": "head",
+   "mass_g": 55.6,
+   "com_body_mm": [
+    4.5,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "body": "B1",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B2",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B3",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B4",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B5",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B6",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B7",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B8",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B9",
+   "type": "mid",
+   "mass_g": 114.3,
+   "com_body_mm": [
+    -20.7,
+    0.2,
+    -0.0
+   ]
+  },
+  {
+   "body": "B10",
+   "type": "tail",
+   "mass_g": 155.8,
+   "com_body_mm": [
+    -37.9,
+    1.7,
+    0.1
+   ]
+  }
+ ],
+ "robot_total_g": 1240.1,
+ "robot_com_world_mm": [
+  -301.1,
+  -0.1,
+  -0.3
+ ],
+ "overall_length_mm": 679.6,
+ "assumptions": {
+  "servo_g": 60.0,
+  "board_g": 20.0,
+  "cable_g_per_joint": 4.0,
+  "screws_g_per_joint": 4.0,
+  "friction_mu": 0.5,
+  "duty_factor": 0.5,
+  "note": "printed masses are for 100% solid parts; slicer infill lowers them"
+ },
+ "allowable_continuous_Nm": {
+  "12V": 0.49,
+  "7.4V": 0.245
+ },
+ "lifting_moments": [
+  {
+   "joint": "J1 (pitch)",
+   "head_side_Nm": 0.014,
+   "tail_side_Nm": 3.425,
+   "head_side_links": 1,
+   "tail_side_links": 10
+  },
+  {
+   "joint": "J3 (pitch)",
+   "head_side_Nm": 0.227,
+   "tail_side_Nm": 2.219,
+   "head_side_links": 3,
+   "tail_side_links": 8
+  },
+  {
+   "joint": "J5 (pitch)",
+   "head_side_Nm": 0.703,
+   "tail_side_Nm": 1.274,
+   "head_side_links": 5,
+   "tail_side_links": 6
+  },
+  {
+   "joint": "J7 (pitch)",
+   "head_side_Nm": 1.44,
+   "tail_side_Nm": 0.591,
+   "head_side_links": 7,
+   "tail_side_links": 4
+  },
+  {
+   "joint": "J9 (pitch)",
+   "head_side_Nm": 2.439,
+   "tail_side_Nm": 0.17,
+   "head_side_links": 9,
+   "tail_side_links": 2
+  }
+ ],
+ "max_cantilever_links": {
+  "12V": {
+   "head_end": 3,
+   "tail_end": 2
+  },
+  "7.4V": {
+   "head_end": 3,
+   "tail_end": 2
+  }
+ },
+ "grounded_drag": [
+  {
+   "joint": "J2 (yaw)",
+   "upper_bound_drag_Nm": 1.395
+  },
+  {
+   "joint": "J4 (yaw)",
+   "upper_bound_drag_Nm": 0.857
+  },
+  {
+   "joint": "J6 (yaw)",
+   "upper_bound_drag_Nm": 0.45
+  },
+  {
+   "joint": "J8 (yaw)",
+   "upper_bound_drag_Nm": 0.174
+  },
+  {
+   "joint": "J10 (yaw)",
+   "upper_bound_drag_Nm": 0.029
+  }
+ ]
+}

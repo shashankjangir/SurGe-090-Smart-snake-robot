@@ -3432,8 +3432,9 @@ window.SurgeBattery = (() => {
     const details = valid
       ? `${sample.voltage.toFixed(2)} V average · ${sample.sample_count} servos · sampled ${Math.round(sample.age_s)}s ago.`
       : 'No valid voltage feedback.';
-    const hint = fresh ? (percent <= 20 ? 'Recharge soon.' : 'Battery reserve estimate.') : 'Query disarmed diagnostics to refresh.';
-    const description = `${text} battery reserve. ${details} ${hint} 12.6 V = 100%; 11.1 V = recharge.`;
+    const hint = fresh ? (percent <= 20 ? 'Recharge soon.' : 'Voltage-based reserve estimate; not measured remaining mAh.')
+      : 'Open Gen 3 Hardware as Operator for automatic stopped diagnostics. Voltage sampling pauses during motion.';
+    const description = `${text} battery reserve. 2200 mAh 3S LiPo. ${details} ${hint} 12.6 V = 100%; 11.1 V = recharge.`;
     const key = `${level}|${description}`;
     if (key === previous) return;
     previous = key;
@@ -3615,6 +3616,29 @@ if (typeof module !== 'undefined') {
 /* endasset: distorted-glass.js */
 
 ;
+/* asset: phone-pad.js */
+// Presents the /phone controller page as one more standard gamepad on the laptop dashboard.
+window.SurgePhonePad = (() => {
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  let pad = null, link = null;
+  const waiting = [];
+  async function poll() {
+    try {
+      const response = await fetch('/api/phone/pad', {cache: 'no-store', signal: AbortSignal.timeout(500)});
+      const data = await response.json();
+      pad = data.pad ? {id: 'SURGE phone controller', index: 99, connected: true, mapping: 'standard',
+        axes: data.pad.axes, buttons: data.pad.buttons.map(value => ({pressed: value > .5, value}))} : null;
+    } catch (_) { pad = null; }
+    setTimeout(poll, pad ? 50 : 500);
+  }
+  if (local) {
+    void poll();
+    fetch('/api/phone/link').then(r => r.json()).then(data => { link = data; waiting.splice(0).forEach(fn => fn(data)); }).catch(() => {});
+  }
+  return {pad: () => pad, onLink: fn => { if (link) fn(link); else waiting.push(fn); }};
+})();
+/* endasset: phone-pad.js */
+
 /* asset: controller-input.js */
 window.SurgeGamepad = (() => {
   const observers = [];
@@ -3671,7 +3695,7 @@ window.SurgeGamepad = (() => {
       if (owned) void stop();
     }
     function padNow() {
-      const pads = Array.from(navigator.getGamepads()).filter(p => p && p.connected);
+      const pads = [...Array.from(navigator.getGamepads()), window.SurgePhonePad?.pad()].filter(p => p && p.connected);
       return device === null ? pads[0] : pads.find(p => `${p.index}:${p.id}` === device);
     }
     function storageKey(pad) { return `surge-controller-v1:${pad.id}`; }
@@ -3736,6 +3760,20 @@ window.SurgeGamepad = (() => {
       operator = Boolean(event.detail.is_current_operator);
       if (!enabled && operator !== wasOperator) $('status').textContent = operator ? 'Operator ready. Enable Controller in this workspace when ready.' : 'Log in as operator to enable the controller.';
       if (!operator && enabled) disable('Operator lease lost; stopped.');
+    });
+    window.SurgePhonePad?.onLink(info => {
+      const el = $('phone');
+      if (!el) return;
+      el.replaceChildren('Phone controller: ');
+      if (!info.lan) el.append('restart the dashboard with --host 0.0.0.0 so phones on this Wi-Fi can connect.');
+      else if (!info.urls.length) el.append('no Wi-Fi address found on this laptop.');
+      else {
+        const a = document.createElement('a');
+        a.href = a.textContent = info.urls[0];
+        a.target = '_blank';
+        el.append('open ', a, ' on a phone on the same Wi-Fi, then Enable Controller here.');
+      }
+      el.hidden = false;
     });
     $('inspection').disabled = !gen3;
     $('steering-sign').value = gen3 ? '-1' : '1';

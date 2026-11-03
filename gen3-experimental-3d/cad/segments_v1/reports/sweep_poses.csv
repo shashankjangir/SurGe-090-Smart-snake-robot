@@ -1,0 +1,15 @@
+pose,min_gap,where,status,violations
+straight (all 2048),1.587,B0.horns / B1.rest,ok,
+yaw all +30,1.587,B0.horns / B1.rest,ok,
+yaw all +45,1.587,B0.horns / B1.rest,ok,
+yaw all +60,0.0,B0.rest / B10.rest,FORBIDDEN,B0.rest / B10.rest (0.00)
+yaw all +90 (coil),0.0,B0.rest / B7.rest,FORBIDDEN,B0.rest / B7.rest (0.00); B0.rest / B8.rest (0.00); B0.horns / B9.case (0.00); B1.case / B8.horns (0.00); B1.rest / B9.rest (0.00); B1.horns / B10.case (0.00)
+yaw alternating +-90,1.587,B9.horns / B10.rest,ok,
+pitch all +45,1.587,B1.horns / B2.rest,ok,
+pitch all +90,0.0,B0.rest / B8.rest,FORBIDDEN,B0.rest / B8.rest (0.00); B0.horns / B9.case (0.00); B1.case / B8.horns (0.00); B1.rest / B9.rest (0.00); B1.horns / B10.case (0.00); B2.case / B9.horns (0.00)
+pitch alternating +-90,1.587,B4.horns / B5.rest,ok,
+all joints +90,0.0,B0.rest / B5.rest,FORBIDDEN,B0.rest / B5.rest (0.00); B0.rest / B6.rest (0.00); B0.horns / B7.case (0.00); B1.case / B6.horns (0.00); B1.rest / B7.rest (0.00); B1.horns / B8.case (0.00)
+all joints +45,0.0,B0.rest / B10.rest,FORBIDDEN,B0.rest / B10.rest (0.00)
+software limit yaw +69.96 all,0.0,B0.rest / B10.rest,FORBIDDEN,B0.rest / B10.rest (0.00); B1.rest / B10.rest (0.00); B2.case / B10.rest (0.00)
+serpenoid yaw 60 deg amp,1.587,B0.horns / B1.rest,ok,
+sidewinding 45/45,1.587,B1.horns / B2.rest,ok,

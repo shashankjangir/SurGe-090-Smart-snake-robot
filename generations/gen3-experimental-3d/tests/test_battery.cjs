@@ -15,6 +15,7 @@ for (const [percent, level] of [[100, 'high'], [51, 'high'], [50, 'medium'], [21
   assert.equal(elements['battery-fill'].style.transform, `scaleX(${percent / 100})`);
 }
 assert.match(elements['battery-indicator']['aria-label'], /Recharge soon/);
+assert.match(elements['battery-indicator']['aria-label'], /2200 mAh 3S LiPo/);
 render({ percent: 60, voltage: 12, age_s: 31, sample_count: 10, state: 'stale' });
 assert.equal(elements['battery-value'].textContent, 'Stale');
 assert.equal(elements['battery-indicator'].dataset.level, 'unavailable');

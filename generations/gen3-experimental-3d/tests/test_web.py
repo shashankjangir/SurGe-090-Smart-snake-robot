@@ -64,6 +64,99 @@ class WebTests(unittest.TestCase):
             self.control.start(dict(data, speed=3001))
         self.assertFalse(self.control.state['busy'])
 
+    def pose_hardware(self, telemetry):
+        class Hardware:
+            closed = False
+            def connect(self): return True, 'Torque off'
+            def read_telemetry(self): return telemetry
+            def disconnect(self): self.closed = True
+        iface = Hardware()
+        self.control.hardware_factory = lambda **kw: iface
+        return iface
+
+    def test_idle_metrics_refresh_updates_telemetry_voltage_and_timing(self):
+        class Hardware:
+            closed = False
+            voltage = 119
+            def connect(self): return True, 'Torque off'
+            def read_telemetry(self): return {i: dict(valid=True, position=2048) for i in range(1, 11)}
+            def read_diagnostics(self): return {i: dict(valid=True, voltage=self.voltage, temperature=30) for i in range(1, 11)}
+            def disconnect(self): self.closed = True
+        iface = Hardware()
+        self.control.hardware_factory = lambda **kw: iface
+        self.control.read_diagnostics('FAKE', sample_telemetry=True)
+        first = self.control.snapshot()
+        self.assertTrue(iface.closed)
+        self.assertEqual(len(first['telemetry']), 10)
+        self.assertEqual(first['bus']['kind'], 'idle')
+        self.assertGreaterEqual(first['bus']['latency_ms'], 0)
+        self.assertEqual(self.control.battery_snapshot()['voltage'], 11.9)
+        iface.voltage = 117
+        with _patch('surge_control.gen3.time.time', return_value=first['bus']['at'] + 3):
+            self.control.read_diagnostics('FAKE', sample_telemetry=True)
+        self.assertEqual(self.control.battery_snapshot()['voltage'], 11.7)
+        self.assertGreater(self.control.snapshot()['bus']['interval_s'], 0)
+        self.assertEqual(self.control.battery_snapshot()['capacity_mah'], 2200)
+
+    def test_capture_pose_roundtrips_encoder_counts_and_persists(self):
+        config = json.loads(self.path.read_text())
+        positions = {j['id']: j['min'] if j['id'] % 2 else 2101 for j in config['joints']}
+        iface = self.pose_hardware({i: dict(valid=True, position=p) for i, p in positions.items()})
+        captured = self.control.capture_pose('FAKE')
+        self.assertTrue(iface.closed)
+        from gait import validate_pose
+        self.assertEqual(validate_pose(config, captured['pose']), positions)
+        saved = self.control.save_pose_preset(dict(captured, name='My shape'))
+        self.assertEqual(saved[0]['pose'], captured['pose'])
+        other = Gen3Control(threading.RLock(), self.path)
+        self.addCleanup(other.close)
+        self.assertEqual(other.get_pose_presets(), saved)
+        with self.assertRaisesRegex(ValueError, 'already exists'):
+            self.control.save_pose_preset(dict(captured, name=' My shape '))
+        changed = copy.deepcopy(captured)
+        changed['joints'][0]['sign'] *= -1
+        with self.assertRaisesRegex(ValueError, 'calibration changed'):
+            self.control.save_pose_preset(dict(changed, name='Other'))
+        self.assertEqual(self.control.get_pose_presets(), saved)
+
+    def test_recalibrate_saved_pose_preserves_name_and_rejects_stale_updates(self):
+        original_map = self.path.read_text()
+        joints = json.loads(original_map)['joints']
+        initial = dict(name='Hand shape', joints=joints, pose={str(i): 0 for i in range(1, 11)})
+        self.control.save_pose_preset(initial)
+        self.control.save_pose_preset(dict(initial, name='Other shape'))
+        replacement = dict(initial, pose={str(i): 1 for i in range(1, 11)}, expected=initial)
+        updated = self.control.save_pose_preset(replacement)
+        self.assertEqual(len(updated), 2)
+        self.assertEqual(updated[0]['name'], 'Hand shape')
+        self.assertEqual(updated[0]['pose'], replacement['pose'])
+        self.assertEqual(updated[1], dict(initial, name='Other shape'))
+        with self.assertRaisesRegex(RuntimeError, 'Saved pose changed'):
+            self.control.save_pose_preset(replacement)
+        with self.assertRaisesRegex(RuntimeError, 'Saved pose changed'):
+            self.control.save_pose_preset(dict(replacement, name='Missing pose'))
+        self.assertEqual(self.control.get_pose_presets(), updated)
+        self.assertEqual(self.path.read_text(), original_map)
+
+    def test_capture_rejects_missing_invalid_and_out_of_range_feedback(self):
+        for row in ({}, dict(valid=False, position=2048), dict(valid=True, position=True),
+                    dict(valid=True, position=4096), dict(valid=True, position=1000)):
+            with self.subTest(row=row):
+                telemetry = {i: dict(valid=True, position=2048) for i in range(1, 11)}
+                telemetry[4] = row
+                iface = self.pose_hardware(telemetry)
+                with self.assertRaises(ValueError):
+                    self.control.capture_pose('FAKE')
+                self.assertTrue(iface.closed)
+                self.assertEqual(self.control.get_pose_presets(), [])
+
+    def test_capture_refuses_busy_robot_before_connecting(self):
+        self.control.state['busy'] = True
+        self.control.hardware_factory = lambda **kw: self.fail('Hardware opened while busy')
+        with self.assertRaisesRegex(RuntimeError, 'Stop active'):
+            self.control.capture_pose('FAKE')
+        self.control.state['busy'] = False
+
     def test_partial_read_preserves_real_values_and_never_arms(self):
         class Hardware:
             def __init__(self, **kw): self.closed = False
@@ -202,6 +295,34 @@ class WebTests(unittest.TestCase):
         state = self.job(dict(mode='gait', execution='preview', duration=4, yaw=5, pitch=5, joints={'2': {'enabled': False}}))
         self.assertIn('Preview complete', state['status'])
 
+    def test_pose_api_requires_operator_and_persists_without_motion(self):
+        spec = importlib.util.spec_from_file_location('pose_web_test', DASHBOARD_DIR / 'web_app.py')
+        web = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(web)
+        app = web.create_app()
+        gen3 = app.config['GEN3']
+        self.addCleanup(gen3.close)
+        gen3.map_path = self.path
+        iface = self.pose_hardware({i: dict(valid=True, position=2048 + i) for i in range(1, 11)})
+        gen3.hardware_factory = lambda **kw: iface
+        client = app.test_client()
+        self.assertEqual(client.post('/api/gen3/pose/capture', json={'port': 'FAKE'}).status_code, 403)
+        self.assertEqual(client.post('/api/gen3/pose/presets', json={}).status_code, 403)
+        self.assertEqual(client.post('/api/gen3/metrics', json={'port': 'FAKE'}).status_code, 403)
+        self.assertFalse(iface.closed)
+        self.assertEqual(client.post('/api/gen3/session/login', json={
+            'name': 'Shashank', 'password': 'test-only-operator-password'}).status_code, 200)
+        app.config['CONTROL'].state['is_running'] = True
+        self.assertEqual(client.post('/api/gen3/pose/capture', json={'port': 'FAKE'}).status_code, 409)
+        self.assertEqual(client.post('/api/gen3/metrics', json={'port': 'FAKE'}).status_code, 409)
+        app.config['CONTROL'].state['is_running'] = False
+        response = client.post('/api/gen3/pose/capture', json={'port': 'FAKE'})
+        self.assertEqual(response.status_code, 200)
+        snapshot = response.get_json()
+        self.assertEqual(client.post('/api/gen3/pose/presets', json=dict(snapshot, name='Hand')).status_code, 200)
+        self.assertEqual(client.get('/api/gen3/pose/presets').get_json()['presets'][0]['pose'], snapshot['pose'])
+        self.assertFalse(gen3.state['busy'])
+
     def test_web_port_ownership_and_validation(self):
         spec = importlib.util.spec_from_file_location('gen3_web_test', DASHBOARD_DIR / 'web_app.py')
         web = importlib.util.module_from_spec(spec)
@@ -221,6 +342,32 @@ class WebTests(unittest.TestCase):
         app.config['GEN3'].state['busy'] = True
         self.assertEqual(client.post('/api/connect', json={}).status_code, 409)
         self.assertEqual(client.post('/api/controller', json={'btn_start': True}).status_code, 409)
+
+    def test_phone_controller_relays_only_fresh_keyed_input_to_laptop(self):
+        spec = importlib.util.spec_from_file_location('phone_web_test', DASHBOARD_DIR / 'web_app.py')
+        web = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(web)
+        app = web.create_app()
+        self.addCleanup(app.config['GEN3'].close)
+        client = app.test_client()
+        phone = client.application.test_client()
+        phone.environ_base['REMOTE_ADDR'] = '192.168.1.50'
+        self.assertEqual(phone.get('/phone').status_code, 200)
+        self.assertEqual(phone.get('/api/phone/link').status_code, 403)
+        self.assertEqual(phone.get('/api/phone/pad').status_code, 403)
+        key = client.get('/api/phone/link').get_json()['key']
+        pad = dict(key=key, client='p1', sequence=1, axes=[0.5, 0, 0, 0], buttons=[0] * 4 + [1] + [0] * 12)
+        self.assertEqual(phone.post('/api/phone/input', json=dict(pad, key='wrong')).status_code, 403)
+        self.assertEqual(phone.post('/api/phone/input', json=dict(pad, axes=[2, 0, 0, 0])).status_code, 400)
+        self.assertEqual(phone.post('/api/phone/input', json=dict(pad, buttons=[0] * 16)).status_code, 400)
+        self.assertFalse(phone.post('/api/phone/input', json=pad).get_json()['laptop_listening'])
+        self.assertEqual(client.get('/api/phone/pad').get_json()['pad']['axes'][0], 0.5)
+        # Late packet from the same phone is ignored; laptop is now seen as listening.
+        late = phone.post('/api/phone/input', json=dict(pad, sequence=0, axes=[-1, 0, 0, 0])).get_json()
+        self.assertTrue(late['laptop_listening'])
+        self.assertEqual(client.get('/api/phone/pad').get_json()['pad']['axes'][0], 0.5)
+        app.config['PHONE']['pad']['at'] -= 1
+        self.assertIsNone(client.get('/api/phone/pad').get_json()['pad'])
 
 
 from tempfile import TemporaryDirectory as _TemporaryDirectory

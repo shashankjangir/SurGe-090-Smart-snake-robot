@@ -1,0 +1,10 @@
+joints,swept_min_gap,swept_at,swept_where,swept_corner_min,min_gap,at,where,corner_min,passes,grid_points
+J1+J2,1.6,"(-90.0, -90.0)",B0.rest / B1.rest,1.6,1.587,"(-85.0, -90.0)",B1.horns / B2.rest,1.587,True,1369
+J2+J3,1.6,"(-90.0, -90.0)",B1.rest / B2.rest,1.6,1.587,"(-40.0, -90.0)",B2.horns / B3.rest,1.587,True,1369
+J3+J4,1.6,"(-90.0, -90.0)",B2.rest / B3.rest,1.6,1.587,"(-20.0, -90.0)",B3.horns / B4.rest,1.587,True,1369
+J4+J5,1.6,"(-90.0, -90.0)",B3.rest / B4.rest,1.6,1.587,"(-20.0, -90.0)",B4.horns / B5.rest,1.587,True,1369
+J5+J6,1.6,"(-90.0, -90.0)",B4.rest / B5.rest,1.6,1.587,"(-19.0, -90.0)",B5.horns / B6.rest,1.587,True,1369
+J6+J7,1.6,"(-90.0, -90.0)",B5.rest / B6.rest,1.6,1.587,"(-35.0, -90.0)",B6.horns / B7.rest,1.587,True,1369
+J7+J8,1.6,"(-90.0, -90.0)",B6.rest / B7.rest,1.6,1.587,"(-10.0, -90.0)",B7.horns / B8.rest,1.587,True,1369
+J8+J9,1.6,"(-90.0, -90.0)",B7.rest / B8.rest,1.6,1.587,"(-53.0, -90.0)",B8.horns / B9.rest,1.587,True,1369
+J9+J10,1.6,"(-90.0, -90.0)",B8.rest / B9.rest,1.6,1.587,"(-35.0, -90.0)",B9.horns / B10.rest,1.587,True,1369

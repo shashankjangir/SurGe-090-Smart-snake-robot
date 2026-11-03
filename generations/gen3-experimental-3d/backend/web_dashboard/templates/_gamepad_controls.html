@@ -6,6 +6,7 @@
   </div>
   <p id="{{ controller_id }}-status" class="controller-state" data-gamepad="status" role="status">Log in as operator to enable the controller.</p>
   <p id="{{ controller_id }}-preset" class="controller-state" data-gamepad="preset">Controller stopped</p>
+  <p id="{{ controller_id }}-phone" class="controller-state phone-link" data-gamepad="phone" hidden></p>
   <div class="controller-settings">
     <label for="{{ controller_id }}-assist">Assistance<select id="{{ controller_id }}-assist" data-gamepad="assist"><option value="manual">Manual steering</option><option value="heading">Heading hold</option><option value="route">Waypoint route</option></select></label>
     <label for="{{ controller_id }}-steering-sign">Navigation steering sign<select id="{{ controller_id }}-steering-sign" data-gamepad="steering-sign"><option value="1">+1</option><option value="-1">−1</option></select></label>

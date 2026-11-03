@@ -541,6 +541,9 @@ function setViewerMode(isViewer) {
     $('jog-reverse'),
     $('center'),
     $('read-all'),
+    $('btn-pose-capture'),
+    $('btn-pose-save'),
+    $('btn-pose-recalibrate'),
     $('align-all'),
     $('btn-save-map'),
     $('run-diagnostics'),
@@ -570,6 +573,7 @@ function setViewerMode(isViewer) {
   }
 
   $('btn-save-preset').disabled = isViewer || !statusOnline || pendingAction;
+  $('btn-pose-save').disabled = isViewer || !statusOnline || pendingAction || !capturedPose;
   document.querySelectorAll('.motion-permission-hint').forEach(hint => {
     hint.hidden = !isViewer;
   });
@@ -797,8 +801,7 @@ const COUNTS_PER_DEGREE = 4096 / 360;
 
 function jointDegreeRange(joint) {
   const ends = [joint.min - joint.zero, joint.max - joint.zero].map(c => joint.sign * c / COUNTS_PER_DEGREE);
-  // Round inward so a slider end never maps outside the calibrated counts.
-  return [Math.ceil(Math.min(...ends)), Math.floor(Math.max(...ends))];
+  return [Math.min(...ends), Math.max(...ends)];
 }
 
 function renderJointControls(config) {
@@ -816,7 +819,7 @@ function renderJointControls(config) {
         <td><strong>${joint.id}</strong></td>
         <td>${joint.axis}</td>
         <td class="pose-cell">
-          <input type="range" class="pose-slider" step="1" value="0" aria-label="Joint ${joint.id} pose angle">
+          <input type="range" class="pose-slider" step="any" value="0" aria-label="Joint ${joint.id} pose angle">
           <output class="pose-value">0°</output>
         </td>
         <td><input type="checkbox" class="ov-enabled" checked aria-label="Joint ${joint.id} follows gait"></td>
@@ -856,17 +859,84 @@ const POSE_PRESETS = {
     desc: 'Alternating yaw curve lying flat; a compact resting shape.' }
 };
 
+let savedPosePresets = [];
+let capturedPose = null;
+let recalibratingPose = null;
+
 function loadPosePreset(key) {
-  const preset = POSE_PRESETS[key];
+  $('btn-pose-recalibrate').disabled = $('btn-pose-capture').disabled || !key.startsWith('saved:');
+  const preset = key.startsWith('saved:') ? savedPosePresets[Number(key.slice(6))] : POSE_PRESETS[key];
   if (!preset) return;
+  if (preset.joints && !preset.joints.every(joint => {
+    const current = currentConfig?.joints.find(j => j.id === joint.id);
+    return current && ['axis', 'sign', 'zero', 'min', 'max'].every(field => current[field] === joint[field]);
+  })) {
+    showError(new Error('This pose uses a different joint calibration. Capture it again.'));
+    return;
+  }
   for (const tr of $('joint-control-body').children) {
     const slider = tr.querySelector('.pose-slider');
     const target = preset.pose[tr.dataset.id] ?? 0;
     slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), target));
-    tr.querySelector('.pose-value').textContent = `${slider.value}°`;
+    tr.querySelector('.pose-value').textContent = `${Number(slider.value).toFixed(2)}°`;
   }
-  $('pose-preset-desc').textContent = `${preset.desc} Loaded into the sliders; nothing moves until Move to Pose.`;
+  $('pose-preset-desc').textContent = `${preset.desc || 'Saved hand-positioned shape.'} Loaded into the sliders; nothing moves until Move to Pose.`;
 }
+
+async function loadSavedPosePresets() {
+  const data = await api('pose/presets', undefined, 'GET');
+  savedPosePresets = data.presets;
+  const select = $('pose-preset');
+  for (const option of [...select.options]) if (option.value.startsWith('saved:')) option.remove();
+  savedPosePresets.forEach((preset, index) => select.add(new Option(`Saved: ${preset.name}`, `saved:${index}`)));
+}
+
+function captureTaughtPose(preset = null) {
+  return action(async () => {
+    capturedPose = null;
+    recalibratingPose = null;
+    $('btn-pose-save').disabled = true;
+    $('btn-pose-save').textContent = preset ? 'Update selected pose' : 'Save captured pose';
+    $('pose-save-name').readOnly = Boolean(preset);
+    if (preset) $('pose-save-name').value = preset.name;
+    $('pose-capture-status').textContent = 'Reading all ten joints; keep the supported snake still…';
+    try {
+      capturedPose = await api('pose/capture', {port: $('port').value});
+      recalibratingPose = preset;
+      $('btn-pose-save').disabled = false;
+      $('pose-capture-status').textContent = preset
+        ? `Captured replacement for “${preset.name}”. Click Update selected pose to save it. No motion was commanded.`
+        : 'Captured all ten joints. Enter a name and save. No motion was commanded.';
+    } catch (err) {
+      $('pose-capture-status').textContent = 'Capture failed. No pose saved; check the connection and capture again.';
+      throw err;
+    }
+  });
+}
+
+$('btn-pose-capture').onclick = () => captureTaughtPose();
+$('btn-pose-recalibrate').onclick = () => {
+  const key = $('pose-preset').value;
+  const preset = key.startsWith('saved:') && savedPosePresets[Number(key.slice(6))];
+  if (preset) return captureTaughtPose(preset);
+};
+
+$('btn-pose-save').onclick = () => action(async () => {
+  if (!capturedPose) throw new Error('Capture the robot pose first.');
+  const name = recalibratingPose?.name || $('pose-save-name').value;
+  await api('pose/presets', {...capturedPose, name, ...(recalibratingPose ? {expected: recalibratingPose} : {})});
+  await loadSavedPosePresets();
+  $('pose-preset').value = `saved:${savedPosePresets.findIndex(preset => preset.name === name.trim())}`;
+  loadPosePreset($('pose-preset').value);
+  $('pose-capture-status').textContent = recalibratingPose
+    ? `Updated “${name}” and loaded its new angles into the sliders. No motion was commanded.`
+    : 'Pose saved. Choose it from Shape preset to load it, then use Move to Pose when ready.';
+  capturedPose = null;
+  recalibratingPose = null;
+  $('pose-save-name').readOnly = false;
+  $('btn-pose-save').textContent = 'Save captured pose';
+  $('btn-pose-save').disabled = true;
+});
 
 {
   const select = $('pose-preset');
@@ -991,16 +1061,40 @@ $('run-diagnostics').onclick = () => action(async () => {
   renderDiagnostics(data);
 });
 
-// Latency, rate, sync and servo count are live while a hardware run reads feedback (fresh < 2 s).
-// Voltage and temperature need extra bus reads, so they stay the last disarmed diagnostics snapshot.
+let metricsRefreshAt = 0;
+let metricsRefreshInFlight = false;
+let metricsRefreshDelay = 3000;
+
+async function refreshHardwareMetrics(state) {
+  if (document.hidden || !currentIsOperator || pendingAction || state.busy || state.firmware?.is_busy ||
+      $('tab-operate').getAttribute('aria-selected') !== 'true' || !$('port').value ||
+      metricsRefreshInFlight || Date.now() - metricsRefreshAt < metricsRefreshDelay) return;
+  metricsRefreshInFlight = true;
+  metricsRefreshAt = Date.now();
+  try {
+    await api('metrics', {port: $('port').value});
+    metricsRefreshDelay = 3000;
+    $('bus-refresh-status').textContent = 'Automatic refresh · every 3 s while stopped';
+  } catch (err) {
+    metricsRefreshDelay = 15000;
+    $('bus-refresh-status').textContent = `Automatic refresh failed: ${err.message}`;
+  } finally {
+    metricsRefreshAt = Date.now();
+    metricsRefreshInFlight = false;
+  }
+}
+
+// Motion uses its existing feedback; idle sampling also refreshes voltage and temperature.
 function renderBusMetrics(data, state) {
   const bus = state?.bus;
-  const live = Boolean(bus) && Number.isFinite(state.server_time) && state.server_time - bus.at < 2;
+  const idle = bus?.kind === 'idle';
+  const live = Boolean(bus) && Number.isFinite(state.server_time) && state.server_time - bus.at < (idle ? 6 : 2);
   const feedback = Object.values(state?.telemetry || {}).filter(t => t.valid && Number.isFinite(t.position));
   const errors = feedback.filter(t => Number.isFinite(t.target)).map(t => Math.abs(t.target - t.position) * 360 / 4096);
   $('grid-metric-latency').textContent = live ? `${bus.latency_ms.toFixed(0)} ms` : 'Unavailable';
   $('grid-metric-rate').textContent = live && bus.interval_s > 0 ? `${(1 / bus.interval_s).toFixed(1)} Hz` : 'Unavailable';
-  $('grid-metric-sync').textContent = live && errors.length ? `±${Math.max(...errors).toFixed(1)}°` : 'Unavailable';
+  $('grid-metric-sync').textContent = live && errors.length ? `±${Math.max(...errors).toFixed(1)}°`
+    : live && idle ? 'Idle · torque off' : 'Unavailable';
   const servos = Object.values(data?.servos || {});
   const voltages = servos.map(s => s.voltage).filter(v => Number.isFinite(v) && v > 0);
   const temperatures = servos.map(s => s.temperature).filter(t => Number.isFinite(t) && t >= 0);
@@ -1010,7 +1104,7 @@ function renderBusMetrics(data, state) {
     : data ? `${servos.filter(s => Number.isFinite(s.reg8) && s.reg8 >= 0).length} / 10` : 'Unavailable';
   const age = data ? `${Math.max(0, Math.floor(Date.now() / 1000 - data.timestamp))}s old` : '';
   $('bus-metrics-status').textContent = live
-    ? `Bus Metrics · Live · ${bus.port}${data ? ` · voltage/temp snapshot ${age}` : ''}`
+    ? `Bus Metrics · ${idle ? 'Auto refresh' : 'Live'} · ${bus.port}${data ? ` · voltage/temp snapshot ${age}` : ''}`
     : data ? `Bus Metrics · Snapshot · ${data.port} · ${age}`
     : 'Bus Metrics · Query disarmed diagnostics to sample';
 }
@@ -1512,6 +1606,7 @@ async function poll() {
     renderBusMetrics(state.diagnostic, state);
     if (!statusOnline) showError(null);
     statusOnline = true;
+    void refreshHardwareMetrics(state);
     window.SurgeGamepad?.observe(state);
     $('btn-save-preset').disabled = !currentIsOperator || pendingAction;
     $('status').textContent = state.status;
@@ -1577,6 +1672,8 @@ async function poll() {
     });
 
     $('btn-start').disabled = !currentIsOperator || state.busy || pendingAction;
+    $('btn-pose-save').disabled = !currentIsOperator || state.busy || pendingAction || !capturedPose;
+    $('btn-pose-recalibrate').disabled = $('btn-pose-capture').disabled || !$('pose-preset').value.startsWith('saved:');
     checkDraftDifferences();
 
     // Render Telemetry Table with in-place row reuse
@@ -1701,6 +1798,7 @@ async function pollSystemStats() {
     await loadPorts();
     await loadPresets();
     await loadRuns();
+    await loadSavedPosePresets();
     syncHashTab();
     updateSpeedDemand();
     if (tabNavAnimated) tabNavAnimated.sync();
@@ -1712,7 +1810,7 @@ async function pollSystemStats() {
     showError(err);
     window.SurgeGenerationTransition?.fail();
   }
-  // Display-only polls: idle while hidden; system stats every 2 s like Gen 2.1.
+  // Polls pause while hidden; visible stopped Hardware also schedules its guarded bus refresh.
   let statsTick = 0;
   async function updateLoop() {
     if (!document.hidden) {

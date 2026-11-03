@@ -9,7 +9,7 @@ I use ten ST3215 serial-bus servos in the current robot. Gen 2 is a planar yaw c
 | Ten ST3215 servos | Joint IDs 1 through 10 |
 | Waveshare Servo Driver with ESP32 | Robot receiver and servo bus interface |
 | A second ESP32 | USB transmitter at the host computer |
-| External 3S 1800 mAh LiPo | Recorded motor power source |
+| External 3S 2200 mAh LiPo | Owner-reported replacement on 3 November 2026; motor power source |
 | Buck supply for the controller | Separate controller supply in the proposed power design |
 | Raspberry Pi 5 and camera | Earlier host/vision work; the maintained dashboard can run on a PC |
 | Optional sensor node | Separate sensor firmware, not proof of installed localization |

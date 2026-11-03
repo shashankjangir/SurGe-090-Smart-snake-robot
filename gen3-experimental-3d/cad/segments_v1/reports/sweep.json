@@ -1,0 +1,19 @@
+{
+ "quick": false,
+ "coarse_step": 5.0,
+ "refine_step": 1.0,
+ "gap_moving": 1.5,
+ "neutral_min_gap": 1.587,
+ "neutral_where": "B0.horns / B1.rest",
+ "single_all_pass": true,
+ "pairs_all_pass": true,
+ "forbidden_poses": [
+  "yaw all +60",
+  "yaw all +90 (coil)",
+  "pitch all +90",
+  "all joints +90",
+  "all joints +45",
+  "software limit yaw +69.96 all"
+ ],
+ "seconds": 1898.5
+}

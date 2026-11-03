@@ -2,8 +2,11 @@
 import atexit
 import copy
 import gzip
+import hmac
 import json
 import math
+import secrets
+import socket
 import sys
 import time
 import zlib
@@ -113,7 +116,8 @@ def create_app(runtime=None):
             if request.path == '/api/stop' or not isinstance(data, dict) or not data.get('run_id'):
                 gen3.cancel.set()
         if request.path.startswith('/api/'):
-            if request.method != 'GET' or request.path == '/api/gen3/session':
+            # Phone input only touches the relay below, so it never waits on the motion lock.
+            if (request.method != 'GET' and request.path != '/api/phone/input') or request.path == '/api/gen3/session':
                 control.lock.acquire()
                 g.control_locked = True
         if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
@@ -366,6 +370,29 @@ def create_app(runtime=None):
             gen3.start(data, session_id=session_id)
         return jsonify(success=True), 202
 
+    @app.post('/api/gen3/metrics')
+    def gen3_refresh_metrics():
+        with control.lock:
+            if control.state['is_running']:
+                raise RuntimeError('Disconnect the planar controller before refreshing Gen 3 metrics')
+            gen3.read_diagnostics((request.get_json() or {}).get('port'), sample_telemetry=True)
+        return jsonify(success=True)
+
+    @app.post('/api/gen3/pose/capture')
+    def gen3_capture_pose():
+        with control.lock:
+            if control.state['is_running']:
+                raise RuntimeError('Disconnect the planar controller before capturing a pose')
+            return jsonify(gen3.capture_pose((request.get_json() or {}).get('port')))
+
+    @app.get('/api/gen3/pose/presets')
+    def gen3_pose_presets():
+        return jsonify(presets=gen3.get_pose_presets())
+
+    @app.post('/api/gen3/pose/presets')
+    def gen3_save_pose_preset():
+        return jsonify(presets=gen3.save_pose_preset(request.get_json() or {}))
+
     @app.get('/api/gen3/presets')
     def gen3_get_presets():
         return jsonify(presets=gen3.get_presets())
@@ -435,6 +462,72 @@ def create_app(runtime=None):
         if not name.startswith('web-') or not name.endswith(('.csv', '.json', '.events.jsonl')):
             raise ValueError('Select a Gen 3 web log')
         return send_from_directory(gen3.map_path.parent / 'runs', name, as_attachment=True)
+
+    # Phone controller: the phone page posts virtual gamepad state; the laptop dashboard
+    # (opened at localhost) reads it as a standard gamepad, so every controller safety rule still applies.
+    phone = {'key': secrets.token_urlsafe(6), 'pad': None, 'laptop_seen': 0.}
+    app.config['PHONE'] = phone
+    PHONE_STALE = .3
+
+    def is_loopback():
+        return request.remote_addr in ('127.0.0.1', '::1', 'localhost', None)
+
+    def lan_addresses():
+        found = set()
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+                probe.connect(('10.255.255.255', 1))  # UDP connect sends no packet
+                found.add(probe.getsockname()[0])
+        except OSError:
+            pass
+        try:
+            found.update(info[4][0] for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET))
+        except OSError:
+            pass
+        return sorted(a for a in found if not a.startswith(('127.', '169.254.')))
+
+    @app.get('/phone')
+    def phone_page():
+        return render_template('phone.html')
+
+    @app.get('/api/phone/link')
+    def phone_link():
+        if not is_loopback():
+            return jsonify(error='The pairing link is only shown on the laptop'), 403
+        port = request.host.rsplit(':', 1)[1] if ':' in request.host.split(']')[-1] else '80'
+        urls = [f'http://{ip}:{port}/phone?key={phone["key"]}' for ip in lan_addresses()]
+        return jsonify(key=phone['key'], urls=urls, lan=app.config.get('LAN_BOUND', False))
+
+    @app.post('/api/phone/input')
+    def phone_input():
+        data = request.get_json(silent=True) or {}
+        key = data.get('key')
+        if not isinstance(key, str) or not hmac.compare_digest(key.encode(), phone['key'].encode()):
+            return jsonify(error='Open the controller link shown on the laptop dashboard'), 403
+        def values(name, count, low):
+            items = data.get(name)
+            if (not isinstance(items, list) or len(items) != count or
+                    any(type(v) not in (int, float) or not math.isfinite(v) or not low <= v <= 1 for v in items)):
+                raise ValueError(f'{name} must be {count} numbers from {low} to 1')
+            return [float(v) for v in items]
+        axes, buttons = values('axes', 4, -1), values('buttons', 17, 0)
+        client, sequence = data.get('client'), data.get('sequence')
+        if not isinstance(client, str) or not 1 <= len(client) <= 64 or type(sequence) is not int:
+            raise ValueError('Phone input requires client and integer sequence')
+        last = phone['pad']
+        # Late packets from the same phone are dropped so input never jumps backwards.
+        if not last or last['client'] != client or sequence > last['sequence']:
+            phone['pad'] = dict(axes=axes, buttons=buttons, client=client, sequence=sequence, at=time.monotonic())
+        return jsonify(success=True, laptop_listening=time.monotonic() - phone['laptop_seen'] < 1.5)
+
+    @app.get('/api/phone/pad')
+    def phone_pad():
+        if not is_loopback():
+            return jsonify(error='Only the laptop dashboard reads phone input'), 403
+        phone['laptop_seen'] = time.monotonic()
+        pad = phone['pad']
+        fresh = pad is not None and time.monotonic() - pad['at'] <= PHONE_STALE
+        return jsonify(pad=dict(axes=pad['axes'], buttons=pad['buttons']) if fresh else None)
 
     @app.errorhandler(ValueError)
     def bad_request(exc):
@@ -634,6 +727,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5000)
     args = parser.parse_args()
+    app.config['LAN_BOUND'] = args.host not in ('127.0.0.1', 'localhost', '::1')
     runtime = app.config["CONTROL"]
     runtime.start_worker()
     atexit.register(runtime.close)

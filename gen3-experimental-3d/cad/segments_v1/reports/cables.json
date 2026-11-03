@@ -1,0 +1,447 @@
+{
+ "cable_r": 1.5,
+ "cable_loop_r": null,
+ "rows": [
+  {
+   "joint": "J1",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": null,
+   "note": "J1: head side carries no servo; the head's sensor passage uses the same crossing"
+  },
+  {
+   "joint": "J2",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J3",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J4",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J5",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J6",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J7",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J8",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J9",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 35.89,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  },
+  {
+   "joint": "J10",
+   "by_angle": {
+    "-90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 50.43,
+     "bend_at_axis_deg": 90.0
+    },
+    "-45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 55.12,
+     "bend_at_axis_deg": 45.0
+    },
+    "0.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 55.62,
+     "bend_at_axis_deg": 0.0
+    },
+    "45.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 55.12,
+     "bend_at_axis_deg": 45.0
+    },
+    "90.0": {
+     "free_span_mm": 16.0,
+     "clear_to_B_prev": -1.0,
+     "clear_to_B_own": 1.19,
+     "clear_to_others": 50.43,
+     "bend_at_axis_deg": 90.0
+    }
+   },
+   "free_span_change_mm": 0.0,
+   "bend_radius_available_mm": 12.5,
+   "lead_length_bay_to_bay_mm": 101.2,
+   "note": ""
+  }
+ ],
+ "caveat": "straight-segment model; the lead is meant to rest on B(i-1)'s hub disc (clear ~0 there)"
+}

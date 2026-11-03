@@ -38,4 +38,10 @@ context.renderBusMetrics(snapshot, {server_time: now, telemetry, bus: {port: 'CO
 assert.equal(elements['grid-metric-latency'].textContent, 'Unavailable');
 assert.equal(elements['grid-metric-servos'].textContent, '1 / 10');
 assert.match(elements['bus-metrics-status'].textContent, /Snapshot · COM7/);
-console.log('Bus diagnostic snapshot and live metrics passed');
+context.renderBusMetrics(snapshot, {server_time: now, telemetry: {1: {valid: true, position: 2048}},
+  bus: {kind: 'idle', port: 'COM8', at: now - 3, latency_ms: 19, interval_s: 3}});
+assert.equal(elements['grid-metric-latency'].textContent, '19 ms');
+assert.equal(elements['grid-metric-rate'].textContent, '0.3 Hz');
+assert.equal(elements['grid-metric-sync'].textContent, 'Idle · torque off');
+assert.match(elements['bus-metrics-status'].textContent, /Auto refresh · COM8/);
+console.log('Bus diagnostic snapshot, automatic idle refresh and live metrics passed');

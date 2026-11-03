@@ -2127,6 +2127,7 @@ html { scroll-padding-bottom: 90px; }
 .controller-block > p, .controller-block details > p { margin: 0 0 8px; font-size: 13px; line-height: 1.4; }
 .controller-block .controller-state { margin: 6px 0 0; font-size: 13px; }
 .controller-block .controller-state + .controller-state { margin-top: 2px; color: #475569; }
+.controller-block .phone-link a { overflow-wrap: anywhere; font-weight: 650; }
 .controller-block .controller-settings label.check { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 12px; line-height: 1.35; }
 .controller-block .controller-settings label.check input { flex-shrink: 0; margin-top: 2px; }
 .controller-block details { margin-top: 4px; }

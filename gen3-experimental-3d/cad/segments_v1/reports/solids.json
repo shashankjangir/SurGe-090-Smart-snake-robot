@@ -1,0 +1,62 @@
+{
+ "ok": true,
+ "parts": [
+  {
+   "part": "head",
+   "brep_valid": true,
+   "brep_solids": 1,
+   "brep_shells": 1,
+   "mesh_watertight": true,
+   "mesh_winding_consistent": true,
+   "mesh_bodies": 1,
+   "manifold_status": "Error.NoError",
+   "manifold_genus": 12,
+   "volume_brep_mm3": 43782.4,
+   "volume_mesh_mm3": 43690.5,
+   "bbox_mm": [
+    56.17,
+    57.0,
+    57.0
+   ],
+   "units": "mm (build123d default; STEP written in mm)"
+  },
+  {
+   "part": "mid",
+   "brep_valid": true,
+   "brep_solids": 1,
+   "brep_shells": 1,
+   "mesh_watertight": true,
+   "mesh_winding_consistent": true,
+   "mesh_bodies": 1,
+   "manifold_status": "Error.NoError",
+   "manifold_genus": 14,
+   "volume_brep_mm3": 36324.6,
+   "volume_mesh_mm3": 36279.8,
+   "bbox_mm": [
+    81.38,
+    57.0,
+    57.0
+   ],
+   "units": "mm (build123d default; STEP written in mm)"
+  },
+  {
+   "part": "tail",
+   "brep_valid": true,
+   "brep_solids": 1,
+   "brep_shells": 1,
+   "mesh_watertight": true,
+   "mesh_winding_consistent": true,
+   "mesh_bodies": 1,
+   "manifold_status": "Error.NoError",
+   "manifold_genus": 8,
+   "volume_brep_mm3": 53230.8,
+   "volume_mesh_mm3": 53097.4,
+   "bbox_mm": [
+    120.66,
+    57.0,
+    57.0
+   ],
+   "units": "mm (build123d default; STEP written in mm)"
+  }
+ ]
+}

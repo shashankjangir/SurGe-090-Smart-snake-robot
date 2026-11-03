@@ -22,8 +22,12 @@ pio run -e receiver_gen2_1 -e transmitter_gen2_1
 The first OTA-capable firmware installation requires USB. Identify the boards before
 uploading; the last confirmed ports were COM6 receiver and COM7 transmitter. Disconnect
 servo power and support the robot before installation. Use the existing USB upload
-procedure for each matching environment. This implementation has not been uploaded
-or tested on physical boards yet.
+procedure for each matching environment. On 3 November 2026 the OTA-capable pair
+was installed by USB on COM6 receiver and COM8 transmitter with the robot battery
+disconnected. Twenty wireless HELLO exchanges passed, including after transmitter
+reset. Actual Wi-Fi OTA transfer/reboot remains untested. With servo power absent,
+receiver torque-off confirmation and therefore receiver OTA entry may be unavailable;
+the safety gate has not been bypassed.
 
 The current `esp32dev` default partition table has two 0x140000-byte OTA application
 slots. Keep that partition layout; do not use a single-app/no-OTA layout. OTA sends
