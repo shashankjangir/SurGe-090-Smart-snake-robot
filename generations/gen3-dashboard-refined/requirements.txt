@@ -1,0 +1,5 @@
+# Gen 3 Experimental 3D Snake Robot Dependencies
+pyserial>=3.5
+pybullet>=3.2.5
+requests>=2.28.0
+pygame>=2.5.0

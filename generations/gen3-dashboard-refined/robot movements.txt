@@ -1,0 +1,10 @@
+motor 1 first up then down
+motor 2 first left then right
+motor 3 first down then up
+motor 4 first left then right
+motor 5 first down then up
+motor 6 first left then right
+motor 7 first down then up 
+motor 8 first left then right 
+motor 9 first down then up
+motor 10 first left then right

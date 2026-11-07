@@ -1,0 +1,271 @@
+import math
+
+class PathEngine:
+    """Handles predictive forward kinematics and pure pursuit pathfinding."""
+    def __init__(self):
+        self.lookahead_distance = 0.5
+        self.max_turn_offset = 0.8
+        self.reset()
+
+    def reset(self):
+        self.progress_idx = 0
+        self.active_path_len = 0
+        self.checkpoints = []
+        self.passed = 0
+        self.last_checkpoint_pose = None
+        self.last_observed_pose = None
+        self.distances = []
+        self.segments = []
+        # Acquisition and tracking controller state
+        self.state = "idle"
+        self.entry_point = None
+        self.entry_idx = 0
+        self.acquired = False
+        self.pid_integral = 0.0
+        self.pid_prev_error = 0.0
+        self.last_cross_track_error = 0.0
+
+    def set_path(self, path):
+        if not path:
+            self.reset()
+            return
+        checkpoints = [tuple(path[0])]
+        distances = [0.]
+        segments = []
+        current_segments = []
+        total = 0.
+        next_distance = .2
+        for start, end in zip(path, path[1:]):
+            start, end = tuple(start), tuple(end)
+            length = math.dist(start, end)
+            if not length:
+                continue
+            offset = 0.
+            segment_start = start
+            while next_distance <= total + length + 1e-12:
+                offset = min(length, next_distance - total)
+                point = (start[0] + (end[0] - start[0]) * offset / length,
+                         start[1] + (end[1] - start[1]) * offset / length)
+                current_segments.append((segment_start, point))
+                segments.append(current_segments)
+                current_segments = []
+                checkpoints.append(point)
+                distances.append(min(next_distance, total + length))
+                if len(checkpoints) > 50000:
+                    raise ValueError('Path is too long to track safely')
+                segment_start = point
+                next_distance += .2
+            if offset < length:
+                current_segments.append((segment_start, end))
+            total += length
+        if current_segments:
+            if len(checkpoints) >= 50000:
+                raise ValueError('Path is too long to track safely')
+            checkpoints.append(tuple(path[-1]))
+            distances.append(total)
+            segments.append(current_segments)
+        self.reset()
+        self.checkpoints = checkpoints
+        self.distances = distances
+        self.segments = segments
+        self.state = "ready"
+
+    def compute_nearest_point(self, x, y, path):
+        """Finds nearest feasible point on the planned path with deterministic projection."""
+        if not path:
+            return None, 0, 0.0
+        best_pt = path[0]
+        best_idx = 0
+        best_dist = math.hypot(x - path[0][0], y - path[0][1])
+
+        for i in range(len(path) - 1):
+            p1 = path[i]
+            p2 = path[i + 1]
+            dx = p2[0] - p1[0]
+            dy = p2[1] - p1[1]
+            seg_len_sq = dx * dx + dy * dy
+            if seg_len_sq < 1e-8:
+                proj = p1
+            else:
+                t = max(0.0, min(1.0, ((x - p1[0]) * dx + (y - p1[1]) * dy) / seg_len_sq))
+                proj = [p1[0] + t * dx, p1[1] + t * dy]
+            d = math.hypot(x - proj[0], y - proj[1])
+            if d < best_dist - 1e-6:
+                best_dist = d
+                best_pt = proj
+                best_idx = i
+        return best_pt, best_idx, best_dist
+
+    def start_acquisition(self, x, y, path):
+        """Initiates path acquisition toward the nearest feasible point on path."""
+        if not path:
+            return
+        entry_pt, entry_idx, _ = self.compute_nearest_point(x, y, path)
+        self.entry_point = entry_pt
+        self.entry_idx = entry_idx
+        self.pid_integral = 0.0
+        self.pid_prev_error = 0.0
+        # If head is already very close to the start point (<= 0.15m), acquire directly
+        if math.hypot(x - path[0][0], y - path[0][1]) <= 0.15:
+            self.state = "tracking"
+            self.acquired = True
+        else:
+            self.state = "acquiring"
+            self.acquired = False
+
+    def observe(self, x, y):
+        if not math.isfinite(x) or not math.isfinite(y):
+            return False
+        if self.last_observed_pose is not None and math.dist((x, y), self.last_observed_pose) > 0.25:
+            return False
+        self.last_observed_pose = (x, y)
+
+        if self.state == "acquiring":
+            target_pt = self.checkpoints[0] if self.checkpoints else (0, 0)
+            target = self.entry_point if self.entry_point else target_pt
+            if math.hypot(x - target[0], y - target[1]) <= 0.20 or math.hypot(x - target_pt[0], y - target_pt[1]) <= 0.20:
+                self.state = "tracking"
+                self.acquired = True
+
+        if self.passed < len(self.checkpoints):
+            curr_chk = self.checkpoints[self.passed]
+            min_step = 0.05 if self.passed == 0 else min(0.05, (self.distances[self.passed] - self.distances[self.passed - 1]) / 2)
+            has_moved = self.last_checkpoint_pose is None or math.dist((x, y), self.last_checkpoint_pose) >= min_step
+
+            # 1. Close to checkpoint (exact 0.1m tolerance)
+            if math.hypot(x - curr_chk[0], y - curr_chk[1]) <= 0.1 and has_moved:
+                self.passed += 1
+                self.last_checkpoint_pose = (x, y)
+            # 2. Progressed along the trajectory segment past checkpoint (accommodates lateral snake undulation)
+            elif self.passed > 0 and has_moved:
+                prev_chk = self.checkpoints[self.passed - 1]
+                dx = curr_chk[0] - prev_chk[0]
+                dy = curr_chk[1] - prev_chk[1]
+                seg_sq = dx * dx + dy * dy
+                if seg_sq > 1e-6:
+                    t = ((x - prev_chk[0]) * dx + (y - prev_chk[1]) * dy) / seg_sq
+                    cross = abs((x - prev_chk[0]) * dy - (y - prev_chk[1]) * dx) / math.sqrt(seg_sq)
+                    if t >= 0.85 and cross <= 0.25:
+                        self.passed += 1
+                        self.last_checkpoint_pose = (x, y)
+
+        if self.passed == len(self.checkpoints):
+            self.state = "completed"
+        return True
+
+    def progress(self):
+        if not self.distances or not self.distances[-1] or not self.passed:
+            return 0.
+        return self.distances[self.passed - 1] / self.distances[-1]
+
+    def deviation(self, x, y):
+        if not self.passed or len(self.checkpoints) < 2:
+            return None
+        index = min(self.passed - 1, len(self.checkpoints) - 2)
+        def distance(a, b):
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            length = dx * dx + dy * dy
+            t = max(0., min(1., ((x - a[0]) * dx + (y - a[1]) * dy) / length)) if length else 0.
+            return math.hypot(x - a[0] - t * dx, y - a[1] - t * dy)
+        return min(distance(a, b) for a, b in self.segments[index])
+
+    def complete(self):
+        return len(self.checkpoints) > 1 and self.passed == len(self.checkpoints)
+
+    def predict_path(self, current_x, current_y, current_yaw, speed, turn_offset, dt=0.1, steps=50):
+        """Predicts the future kinematic path of the snake."""
+        predicted_path = []
+        x, y, yaw = current_x, current_y, current_yaw
+        angular_velocity = -turn_offset * speed * 2.0
+        for _ in range(steps):
+            x += speed * math.cos(yaw) * dt
+            y += speed * math.sin(yaw) * dt
+            yaw += angular_velocity * dt
+            predicted_path.append((x, y))
+        return predicted_path
+
+    def calculate_steering(self, current_x, current_y, current_yaw, target_path, dt=0.02):
+        """
+        Simulation-only head tracking controller combining pure pursuit lookahead
+        with cross-track error PID correction, bounded within physical limits.
+        """
+        if not target_path:
+            return 0.0
+
+        n = len(target_path)
+        if n != self.active_path_len:
+            self.active_path_len = n
+            self.progress_idx = 0
+
+        # If acquiring, guide toward entry_point
+        if self.state == "acquiring" and self.entry_point:
+            dx = self.entry_point[0] - current_x
+            dy = self.entry_point[1] - current_y
+            local_x = math.cos(-current_yaw) * dx - math.sin(-current_yaw) * dy
+            local_y = math.sin(-current_yaw) * dx + math.cos(-current_yaw) * dy
+            dist_sq = local_x**2 + local_y**2
+            if dist_sq < 0.001:
+                return 0.0
+            turn_offset = (2.0 * local_y) / dist_sq * 0.3
+            return max(-self.max_turn_offset, min(self.max_turn_offset, turn_offset))
+
+        # Monotonically track progress forward in a sliding window so loops and crossings don't jump ahead
+        window = max(20, int(n * 0.15))
+        search_start = self.progress_idx
+        search_end = min(n, search_start + window)
+
+        closest_dist = float('inf')
+        closest_idx = self.progress_idx
+        for i in range(search_start, search_end):
+            d = math.hypot(current_x - target_path[i][0], current_y - target_path[i][1])
+            if d < closest_dist:
+                closest_dist = d
+                closest_idx = i
+
+        if closest_idx > self.progress_idx:
+            self.progress_idx = closest_idx
+        elif self.progress_idx < n - 1:
+            curr_pt = target_path[self.progress_idx]
+            if math.hypot(current_x - curr_pt[0], current_y - curr_pt[1]) < 0.35:
+                self.progress_idx += 1
+
+        lookahead_pt = target_path[-1]
+        for i in range(self.progress_idx, n):
+            d = math.hypot(current_x - target_path[i][0], current_y - target_path[i][1])
+            if d >= self.lookahead_distance:
+                lookahead_pt = target_path[i]
+                break
+
+        dx = lookahead_pt[0] - current_x
+        dy = lookahead_pt[1] - current_y
+        local_x = math.cos(-current_yaw) * dx - math.sin(-current_yaw) * dy
+        local_y = math.sin(-current_yaw) * dx + math.cos(-current_yaw) * dy
+        dist_sq = local_x**2 + local_y**2
+        if dist_sq < 0.001:
+            curvature_turn = 0.0
+        else:
+            curvature = (2.0 * local_y) / dist_sq
+            curvature_turn = curvature * 0.3
+
+        # Cross-track error PID correction
+        closest_pt = target_path[closest_idx]
+        cdx = closest_pt[0] - current_x
+        cdy = closest_pt[1] - current_y
+        cross_track = math.sin(-current_yaw) * cdx + math.cos(-current_yaw) * cdy
+        self.last_cross_track_error = cross_track
+
+        kp = 0.4
+        ki = 0.05
+        kd = 0.08
+        dt_clamped = max(0.001, min(0.1, dt))
+
+        self.pid_integral = max(-0.5, min(0.5, self.pid_integral + cross_track * dt_clamped))
+        derivative = (cross_track - self.pid_prev_error) / dt_clamped
+        self.pid_prev_error = cross_track
+
+        pid_turn = kp * cross_track + ki * self.pid_integral + kd * derivative
+        total_turn = curvature_turn + pid_turn
+        return max(-self.max_turn_offset, min(self.max_turn_offset, total_turn))
+
+    def calculate_pure_pursuit(self, current_x, current_y, current_yaw, target_path):
+        return self.calculate_steering(current_x, current_y, current_yaw, target_path)
