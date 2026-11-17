@@ -70,21 +70,20 @@ assert(runtimePy.includes('def is_path_complete('), 'runtime.py must provide is_
 assert(runtimePy.includes('self.path.complete()'), 'runtime.py must verify ordered path completion');
 assert(pathEnginePy.includes('self.progress_idx'), 'path_engine.py must track sequential progress index');
 
-// 11. Verify Generation Switch Hover Info Cards (Planar Snake for Gen 2.1 & 3D Spatial for Gen 3)
+// 11. The refined generation switch exposes both routes and identifies the current page.
 const gen3Html = readAsset(path.join(__dirname, '../../gen3-dashboard-refined/backend/web_dashboard/templates/gen3.html'), 'utf8');
-const genSwitchCss = readAsset(path.join(__dirname, '../../gen3-dashboard-refined/backend/web_dashboard/static/generation-switch.css'), 'utf8');
+const refinedCss = readAsset(path.join(__dirname, '../backend/web_dashboard/static/refined.css'), 'utf8');
 
 [indexHtml, gen3Html].forEach(html => {
-  assert(html.includes('id="tooltip-gen21"'), 'Template must have tooltip-gen21');
-  assert(html.includes('Planar Snake'), 'Gen 2.1 tooltip must state Planar Snake');
-  assert(html.includes('10 Yaw Joints'), 'Gen 2.1 tooltip must specify 10 Yaw Joints');
-  assert(html.includes('id="tooltip-gen3"'), 'Template must have tooltip-gen3');
-  assert(html.includes('3D Spatial Snake'), 'Gen 3 tooltip must state 3D Spatial Snake');
-  assert(html.includes('Alternating 6 Pitch + 6 Yaw Joints'), 'Gen 3 tooltip must specify Alternating Joints');
+  const navigation = html.match(/<nav class="generation-switch"[^>]*>[\s\S]*?<\/nav>/)[0];
+  assert(navigation.includes('aria-label="Robot generation"'));
+  assert(navigation.includes('href="/"') && navigation.includes('href="/gen3"'));
+  assert(navigation.includes('Gen 2.1') && navigation.includes('Gen 3'));
+  assert.equal((navigation.match(/aria-current="page"/g) || []).length, 1);
 });
 
-assert(genSwitchCss.includes('.gen-info-card'), 'generation-switch.css must style .gen-info-card');
-assert(genSwitchCss.includes('.generation-switch a:hover .gen-info-card'), 'generation-switch.css must show card on hover');
+assert(refinedCss.includes(".gen-switch-link[aria-current='page']"), 'The current generation must have a selected style');
+assert(refinedCss.includes(':focus-visible'), 'Navigation links retain visible keyboard focus');
 
 // 12. Verify Canvas Start & Stop buttons next to Clear Canvas
 const updatedIndexHtml = readAsset(path.join(__dirname, '../../gen3-dashboard-refined/backend/web_dashboard/templates/index.html'), 'utf8');
@@ -100,4 +99,4 @@ assert(updatedIndexHtml.includes('id="btn-clear"'), 'Must have btn-clear in canv
 assert(updatedScriptJs.includes('btn-canvas-start'), 'script.js must wire btn-canvas-start to /api/start');
 assert(updatedStyleCss.includes('.canvas-actions-row'), 'style.css must style .canvas-actions-row');
 
-console.log('Gen 2.1 Dashboard Enhancements: 12 checks passed (middle canvas, physics apply & set-to-default, math presets, low-power disclosure, serial ports, 3D viewer button, instant reset pose, gamepad layout, whole path completion, hover info cards, canvas start/stop buttons)');
+console.log('Gen 2.1 Dashboard Enhancements: 12 checks passed (middle canvas, physics apply & set-to-default, math presets, low-power disclosure, serial ports, 3D viewer button, instant reset pose, gamepad layout, whole path completion, generation links, canvas start/stop buttons)');

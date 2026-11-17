@@ -14,7 +14,7 @@ function target() {
     getBoundingClientRect: () => ({width: 700, height: 500}), width: 700, height: 500
   };
 }
-const sim = read('static/gen3-sim.js');
+const sim = read('static/pages/gen3-sim.js');
 const canvas = target(), windowTarget = target(), button = target();
 button.dataset.camera = 'zoom-in';
 const elements = {gen3SimCanvas: canvas, 'hud-cam-angles': target(), 'sim-camera-summary': target(), 'sim-camera-mode': target()};
@@ -47,11 +47,11 @@ for (const ending of ['pointercancel', 'lostpointercapture', 'blur']) {
   assert.equal(camera.yaw, saved);
   assert.equal(camera.isDragging, false);
 }
-const script = read('static/script.js');
+const script = read('static/pages/gen21.js');
 const pathCanvas = target(), pathWindow = target();
 let sent = 0, added = 0;
 const pathContext = {canvas: pathCanvas, window: pathWindow, isDrawing: false, isPanning: false,
-  pathDirty: false, panX: 0, panY: 0, document: {getElementById: () => null},
+  panX: 0, panY: 0, document: {getElementById: () => null},
   renderCanvas() {}, renderPathPoints() {}, sendPath() {sent++;}, addPoint() {added++;}};
 vm.createContext(pathContext);
 vm.runInContext(script.slice(script.indexOf('    // Captured pointers'), script.indexOf("    canvas.addEventListener('wheel'")), pathContext);
@@ -71,21 +71,15 @@ pathCanvas.fire('pointerdown', {...pointer(1, 0, 0), button: 2});
 pathCanvas.fire('pointermove', pointer(1, 40, 20));
 assert.equal(pathContext.panX, 40);
 pathWindow.fire('blur'); assert.equal(pathContext.isPanning, false);
-const form = target(); form.reportValidity = () => true;
-const tbody = {rows: [{querySelectorAll: () => [{valueAsNumber: 1.25}, {valueAsNumber: -2}]}]};
-const editorElements = {'path-edit-points': form, 'path-points-body': tbody, 'path-points-status': target()};
 const posts = [];
-const editor = {document: {getElementById: id => editorElements[id]}, targetPath: [], pathDirty: false,
-  pathSending: 0, pathRevision: 0, renderPathPoints() {}, alert() {},
+const editor = {targetPath: [[1.25, -2]], alert() {},
   post: async (url, body) => posts.push({url, body})};
 vm.createContext(editor);
-vm.runInContext(script.slice(script.indexOf('    function readPathPoints()'), script.indexOf('    const pathEditor =')), editor);
+vm.runInContext(script.slice(script.indexOf('    async function sendPath()'), script.indexOf('    // Captured pointers')), editor);
 (async () => {
-  editor.targetPath = editor.readPathPoints();
   await editor.sendPath();
   assert.equal(posts[0].url, '/api/set_path');
   assert.equal(JSON.stringify(posts[0].body), '{"path":[[1.25,-2]]}');
-  assert.equal(editor.pathDirty, false);
   for (const invalid of [[[NaN, 0]], [[101, 0]], Array(5001).fill([0, 0])]) {
     editor.targetPath = invalid; await editor.sendPath();
   }
@@ -94,5 +88,5 @@ vm.runInContext(script.slice(script.indexOf('    function readPathPoints()'), sc
     assert(!/addEventListener\('(mousedown|mousemove|mouseup|touchstart|touchmove|touchend)'/.test(source));
   }
   assert(read('static/style.css').includes('#pathCanvas, #gen3SimCanvas { touch-action: none; }'));
-  console.log('Canvas accessibility: camera keys/buttons/pinch, cancellation/blur/capture, path edits and validation passed');
+  console.log('Canvas accessibility: camera keys/buttons/pinch, cancellation/blur/capture, path submission and validation passed');
 })().catch(error => {console.error(error); process.exitCode = 1;});

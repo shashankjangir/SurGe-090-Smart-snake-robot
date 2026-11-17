@@ -33,7 +33,7 @@ Keep clearance and slack wires; Ctrl+C requests STOP. The shorter default ramp
 was rejected by the 100 counts/s speed envelope. Do not raise the speed limit to
 bypass that check. Successful bending does not establish efficient locomotion.
 
-Next: use the [measured travel trial sheet](TRAVEL_TRIALS.md) to record three
+Next: use the [measured travel trial sheet](../../../../../generations/gen3-experimental-3d/TRAVEL_TRIALS.md) to record three
 repeats of this baseline before choosing a gait parameter to change.
 
 The controller supports single-joint commissioning, calibrated yaw/pitch waves,

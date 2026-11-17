@@ -5,7 +5,7 @@
 > The Dynamixel XL330 motors were unobtainable in India at the required quantity (10 units),
 > which ended the Gen 1 approach and forced the redesign around Waveshare ST3215 servos (Gen 2).
 >
-> **Current hardware inventory:** [`Updated_Hardware_Inventory.md`](../../../../Updated_Hardware_Inventory.md)
+> **Current hardware guide:** [`Updated_Hardware_Inventory.md`](../../../../docs/hardware/README.md)
 > and [`gen2-st3215/docs/additional_parts_spreadsheet.md`](../../../gen2-st3215/docs/additional_parts_spreadsheet.md)
 
 **Original Budget:** ₹1,00,000 (SURGE Grant, IIT Delhi, Summer 2026)
@@ -94,7 +94,7 @@ The XL330 requires **5 Volts** (max 6.0V). This is **fundamentally different** f
 ---
 
 > **See also:**
-> - [`Updated_Hardware_Inventory.md`](../../../../Updated_Hardware_Inventory.md) — Full current inventory with power architecture
+> - [`Updated_Hardware_Inventory.md`](../../../../docs/hardware/README.md) — Full current inventory with power architecture
 > - [`gen2-st3215/docs/additional_parts_spreadsheet.md`](../../../gen2-st3215/docs/additional_parts_spreadsheet.md) — Detailed Gen 2 parts audit
 > - [`gen2-st3215/PORTING_STATUS.md`](../../../gen2-st3215/PORTING_STATUS.md) — Gen 1 → Gen 2 porting notes
 

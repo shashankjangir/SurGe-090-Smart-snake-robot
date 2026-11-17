@@ -104,7 +104,7 @@ Do not mark a mocked firmware upload or simulated gait as physically validated. 
 ## 10. Implementation & Delivery Status (28 October 2026)
 
 - **Status**: **COMPLETE & VERIFIED**
-- **Artifacts**: Delivered [`docs/GEN3_ANTIGRAVITY_REVIEW.md`](file:///c:/1. SurGe 090 Smart snake robot/docs/GEN3_ANTIGRAVITY_REVIEW.md), [`docs/GEN3_SYSTEM_REVIEW.md`](file:///c:/1. SurGe 090 Smart snake robot/docs/GEN3_SYSTEM_REVIEW.md), and [`docs/gen3/GEN3_PROGRESS.md`](file:///c:/1. SurGe 090 Smart snake robot/docs/gen3/GEN3_PROGRESS.md).
+- **Artifacts**: Delivered `docs/GEN3_ANTIGRAVITY_REVIEW.md` [historical report](GEN3_ANTIGRAVITY_REVIEW.md), `docs/GEN3_SYSTEM_REVIEW.md` [historical report](GEN3_SYSTEM_REVIEW.md), and [`docs/gen3/GEN3_PROGRESS.md`](../gen3/GEN3_PROGRESS.md).
 - **Test Baseline**: 77/77 Gen 3 Python tests passing, 29/29 Gen 2 Python tests passing, 11/11 Node unit tests passing.
 - **Visual Design**: Slush Design System unified across Gen 2.1 and Gen 3 with 7 reactive components (`PixelSnakeHeading`, `CanvasFractalGrid`, `GridBeam`, `ShaderLensBlur`, `MorphingButton`, `DistortedGlass`, `RollingNumber`).
 

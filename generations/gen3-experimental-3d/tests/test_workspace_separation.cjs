@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 const {readAsset} = require('./asset-source.cjs');
 const dir = path.resolve(__dirname, '../backend/web_dashboard/static');
-const simulation = readAsset(path.join(dir, 'gen3-sim.js'));
+const simulation = readAsset(path.join(dir, 'pages/gen3-sim.js'));
 
 test('simulation button and controller share a fixed, serial-free payload and reject busy/disconnected states', () => {
   const source = simulation.slice(simulation.indexOf('window.SurgeSimulation = {'), simulation.indexOf('// Start only a finite simulation'));
@@ -34,7 +34,7 @@ test('simulation button and controller share a fixed, serial-free payload and re
 });
 
 test('hardware execution is confined to hardware or explicit dry run', () => {
-  const source = require('node:fs').readFileSync(path.join(dir, 'gen3.js'), 'utf8');
+  const source = require('node:fs').readFileSync(path.join(dir, 'pages/gen3-hardware.js'), 'utf8');
   const block = source.match(/function hardwareExecution\(\) \{[^}]+\}/)[0];
   const toggle = {checked: true};
   const context = vm.createContext({$: () => toggle});
@@ -46,7 +46,7 @@ test('hardware execution is confined to hardware or explicit dry run', () => {
 });
 
 test('Gen 2.1 is simulation-only and requires a fresh connected SIM engine to start', () => {
-  const source = readAsset(path.join(dir, 'script.js'));
+  const source = readAsset(path.join(dir, 'pages/gen21.js'));
   assert(!/ST3215|serial-port|workspace-hardware/.test(source), 'Gen 2.1 must not expose hardware');
   const begin = source.indexOf('    let workspaceState = null');
   const end = source.indexOf("    window.SurgeGamepad?.mount(document.getElementById('gen21-simulation-controller')", begin);

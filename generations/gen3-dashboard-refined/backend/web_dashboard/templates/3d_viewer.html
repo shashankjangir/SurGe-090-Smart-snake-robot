@@ -216,7 +216,9 @@
             controls.enableDamping = true;
             controls.target.set(0, 0, 0);
         } catch (e) {
-            console.warn('3D Viewer: WebGL unavailable', e);
+            renderer = null;
+    controls = null;
+    console.warn('3D Viewer: WebGL unavailable', e);
             if (statusText) statusText.textContent = '3D Viewer: WebGL unavailable';
         }
         let following = true;
@@ -228,6 +230,12 @@
         const cancelButton = document.getElementById('btn-cancel-path');
         const followButton = document.getElementById('btn-follow');
         const waypointInput = document.getElementById('waypoint-input');
+if (!controls) {
+    for (const button of [drawButton, useButton, cancelButton, followButton, btnResetCam,
+                          document.getElementById('add-waypoint')]) {
+        if (button) button.disabled = true;
+    }
+}
         followButton.addEventListener('click', () => {
             following = !following;
             followButton.textContent = `Follow head: ${following ? 'on' : 'off'}`;
@@ -281,6 +289,7 @@
         const raycaster = new THREE.Raycaster();
         const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         function setDrawing(value) {
+    if (!controls) return;
             drawing = value;
             controls.enabled = !value;
             drawButton.textContent = value ? 'Drawing on ground' : 'Draw path';
@@ -387,6 +396,7 @@
         }
 
         async function poll3DStatus() {
+    if (!controls) return;
             try {
                 const res = await fetch('/api/3d_status');
                 const data = await res.json();

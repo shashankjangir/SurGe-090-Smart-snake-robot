@@ -125,8 +125,8 @@ class ST3215Interface:
         for motor_id, target in positions_dict.items():
             if not 1 <= int(motor_id) <= self.num_motors or not math.isfinite(float(target)):
                 raise ValueError("Invalid motor target")
-            # ±70 degrees, matching the Gen 2.1 receiver.
-            ticks = max(1252, min(2844, int(target)))
+            # ±110 degrees, matching the Gen 2.1 receiver.
+            ticks = max(796, min(3300, int(target)))
             self.last_positions[motor_id] = ticks
             parts.append(f"{motor_id}:{ticks}:{int(speed)}")
         if len(parts) > 1:

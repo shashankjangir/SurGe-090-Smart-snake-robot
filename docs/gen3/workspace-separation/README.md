@@ -1,7 +1,8 @@
 # Workspace separation verification
 
-3 November 2026. Implementation is uncommitted. No physical port was opened and
-no hardware motion or firmware upload was performed. The browser harness makes
+This is the verification record from 3 November 2026. Its test counts, screenshots and settings describe that session. Current setup is in the [simulation guide](../GEN3_SIMULATION.md) and [controller guide](../../operations/CONTROLLER_UPGRADES.md).
+
+No physical port was opened and no hardware motion or firmware upload was performed. The browser harness makes
 physical Gen 3 transport raise immediately; Gen 2.1 hardware Connect is intercepted.
 
 ## Automated checks
@@ -16,7 +17,7 @@ conda run --no-capture-output -n surge python -B generations/gen3-experimental-3
 conda run --no-capture-output -n surge python -B generations/gen3-experimental-3d/tests/test_gen3_navigation_browser.py
 ```
 
-Results: 58 Node tests passed; 148 Gen 3 Python tests passed; 60 shared tests
+Recorded results were 58 Node tests passed, 148 Gen 3 Python tests passed and 60 shared tests
 passed with two existing skips. Playwright was installed in the existing surge
 environment for explicit browser checks; application dependencies did not change.
 
@@ -53,5 +54,5 @@ outside scope; new template/controller IDs are unique. The design detector also
 reports incumbent contrast/decorative rules, and DESIGN.md differs from the
 implemented incumbent palette; these were recorded without an unrelated redesign.
 Motion was checked through the live workflow and reduced-motion CSS, not replayed
-at 10% speed in DevTools. Physical calibration/settings are preserved: speed1500,
-tracking error216, timeout0.5, pitch ID1 sign+1, remaining pitch signs−1, yaw+1.
+at 10% speed in DevTools. The map in that session saved speed 1500,
+tracking error 216, timeout 0.5, pitch ID 1 sign +1, remaining pitch signs −1 and yaw +1. The current twelve-joint map saves 2144 counts/s, 492 counts and 0.5 seconds. See the [handoff](../../GEN3_HANDOFF.md) before physical operation.

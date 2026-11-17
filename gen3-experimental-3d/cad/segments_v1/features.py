@@ -19,7 +19,7 @@ the tongue is the necessary neck at each joint.
 import math
 from functools import lru_cache
 
-from build123d import (chamfer, Box, Cylinder, Pos, Rot, Axis, fillet, Solid, Plane, Vector)
+from build123d import (Box, Cylinder, Pos, Rot, Axis, fillet, Solid, Plane, Vector)
 
 import params as P
 import servo_ref

@@ -42,7 +42,7 @@ No physical connection, motion or upload. Verification includes actual PyBullet
 motion from the browser gamepad shim, Hardware preview and intercepted Gen 2.1
 ST3215 connection; evidence in docs/gen3/workspace-separation/. See
 [operation guide](operations/CONTROLLER_UPGRADES.md) and
-[ADR](adr/0002-simulation-hardware-workspaces.md). Work remains uncommitted.
+[ADR](../../../adr/0002-simulation-hardware-workspaces.md). Work remains uncommitted.
 
 3 November 2026 controller upgrades: the maintained Gen 2.1 and Gen 3 dashboards
 now share browser mapping/centring/dead-zone controls and a backend hold-to-run

@@ -4,14 +4,17 @@ const {readAsset} = require('./asset-source.cjs');
  * Tests all gates from docs/archive/SURGE_090_UNIFIED_UI_EXECUTION_PLAN.md
  */
 const assert = require('assert');
+const fs = require('node:fs');
 const path = require('path');
 
-const indexHtml = readAsset(path.join(__dirname, '../backend/web_dashboard/templates/index.html'), 'utf8');
-const gen3Html = readAsset(path.join(__dirname, '../backend/web_dashboard/templates/gen3.html'), 'utf8');
+const indexHtml = readAsset(path.join(__dirname, '../backend/web_dashboard/templates/pages/index.html'), 'utf8');
+const gen3Html = readAsset(path.join(__dirname, '../backend/web_dashboard/templates/pages/gen3.html'), 'utf8');
 const unifiedCss = readAsset(path.join(__dirname, '../backend/web_dashboard/static/unified-cockpit.css'), 'utf8');
-const scriptJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static/script.js'), 'utf8');
-const gen3Js = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3.js'), 'utf8');
-const searchJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3-search.js'), 'utf8');
+const scriptJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static/pages/gen21.js'), 'utf8');
+const pages = path.join(__dirname, '../backend/web_dashboard/static/pages');
+const gen3Js = fs.readdirSync(pages).filter(name => name.startsWith('gen3') && name.endsWith('.js'))
+  .map(name => readAsset(path.join(pages, name), 'utf8')).join('\n');
+const searchJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static/pages/gen3-search.js'), 'utf8');
 const styleCss = readAsset(path.join(__dirname, '../backend/web_dashboard/static/style.css'), 'utf8');
 
 console.log('Testing SURGE 090 Unified UI Acceptance Gates...');
@@ -38,7 +41,7 @@ console.log('  PASS: Gate 1 — Shared header, brand, and operator login morphin
   assert(html.includes('class="modular-control-wrapper"'), `${route} must include modular-control-wrapper`);
   assert(html.includes('id="tooltip-gen21"') && html.includes('id="tooltip-gen3"'), `${route} must include generation info tooltips`);
   assert(html.includes('Planar Snake') && html.includes('10 Yaw Joints'), `${route} must describe Gen 2.1 planar kinematics`);
-  assert(html.includes('3D Spatial Snake') && html.includes('Alternating 5 Pitch + 5 Yaw Joints'), `${route} must describe Gen 3 spatial kinematics`);
+  assert(html.includes('3D Spatial Snake') && html.includes('Alternating 6 Pitch + 6 Yaw Joints'), `${route} must describe Gen 3 spatial kinematics`);
 });
 console.log('  PASS: Gate 2 — Shared hero, shaders, and generation switch with rich hover cards verified');
 
@@ -79,7 +82,8 @@ assert(indexHtml.includes('id="math-preset"'), 'Gen 2.1 must preserve mathematic
 assert(indexHtml.includes('id="gamepad-card"'), 'Gen 2.1 must preserve gamepad card');
 assert(gen3Html.includes('id="gen3SimCanvas"'), 'Gen 3 must preserve 3D simulation canvas');
 assert(gen3Html.includes('id="panel-calibration"'), 'Gen 3 must preserve calibration panel');
-assert(gen3Html.includes('id="panel-firmware"'), 'Gen 3 must preserve firmware panel');
+assert(!/id="(?:tab-firmware|panel-firmware|fw-[^"]*|btn-(?:build|upload)-fw)"/.test(gen3Html), 'Gen 3 must not expose firmware navigation or controls');
+assert(!/firmware\/(?:build|upload|status)|pollFirmwareLog|\$\('fw-port'\)/.test(gen3Js), 'Gen 3 must not call firmware APIs or access removed firmware elements');
 console.log('  PASS: Gate 7 — Generation-specific workspaces integrity verified');
 
 console.log('\nAll Unified UI Acceptance Gates passed successfully! (7/7)');

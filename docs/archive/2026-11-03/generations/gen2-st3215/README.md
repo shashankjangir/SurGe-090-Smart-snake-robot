@@ -9,16 +9,16 @@ ESP32 gait. **Gen 2.1** adds the shared host software and its receiver/transmitt
 firmware. Both are working; the next mechanical experiments are in
 [Gen 3.0](../gen3-experimental-3d/README.md).
 
-![Gen 2 prototype](media/20260925_164442.jpg)
+![Gen 2 prototype](../../../../../generations/gen2-st3215/media/20260925_164442.jpg)
 
-[Prototype gallery](media/README.md) · [Project history](../../README.md) ·
+[Prototype gallery](../../../../../generations/gen2-st3215/media/README.md) · [Project history](../../README.md) ·
 [Operating guide](../../docs/operations/1_APP_USAGE_MANUAL.md)
 
 ## Mechanics and power
 
 The chain generates a travelling wave through ten yaw joints. Body contact is
 part of the mechanism: the belly geometry is intended to resist lateral slip
-while allowing motion along the body. The [v6 segment notes](cad/segments/v6/README.md)
+while allowing motion along the body. The [v6 segment notes](../../../../../generations/gen2-st3215/cad/segments/v6/README.md)
 describe the yokes, motor mounting, ground-contact features and remaining fit checks.
 
 The servos share a 1 Mbps TTL data bus. The electrical design uses a 3S LiPo and
@@ -38,7 +38,7 @@ GND to the servo bus; its servo-port positive supply is isolated. See the
 
 These setups use different protocols. The transparent bridge for `main.py` is
 not the text-command receiver used by the Gen 2.1 apps. The
-[firmware guide](firmware/README.md) lists the build targets and their roles.
+[firmware guide](../../../../../generations/gen2-st3215/firmware/README.md) lists the build targets and their roles.
 
 ### Gen 2.1 apps
 
@@ -102,17 +102,17 @@ alone does not identify which side of the body met an obstacle.
 | `src/servo_driver.py`, `src/feetech_protocol.py` | Gen 2.0 raw servo-bus driver |
 | `src/snake_locomotion.py`, `src/robot_config.py` | Bench gait and settings |
 | `src/st3215_interface.py` | Compatibility import for the shared Gen 2.1 transport |
-| [Shared controller](../gen3-experimental-3d/backend/surge_control) | Gen 2.1 gait, runtime, serial and simulation interfaces |
-| [Firmware](firmware/README.md) | ESP32 programs for each control arrangement |
-| [CAD](cad) | Assembly, motor references and segment revisions |
-| [Media](media/README.md) | Physical prototype photos |
+| [Shared controller](../../../../../generations/gen3-experimental-3d/backend/surge_control) | Gen 2.1 gait, runtime, serial and simulation interfaces |
+| [Firmware](../../../../../generations/gen2-st3215/firmware/README.md) | ESP32 programs for each control arrangement |
+| [CAD](../../../../../generations/gen2-st3215/cad) | Assembly, motor references and segment revisions |
+| [Media](../../../../../generations/gen2-st3215/media/README.md) | Physical prototype photos |
 
 Waypoint tracking and trajectory reports currently run in simulation. The
 physical robot has no integrated localization for those features. The separate
 sensor node supplies readings, but does not by itself close that control loop.
 
-Earlier porting notes remain in [PORTING_STATUS.md](PORTING_STATUS.md); current
-entry points are listed in the [version map](../../docs/versions/VERSIONS.md).
+Earlier porting notes remain in [PORTING_STATUS.md](../../../../../generations/gen2-st3215/PORTING_STATUS.md); current
+entry points are listed in the [version map](../../../../versions/VERSIONS.md).
 
 ## Checking changes
 

@@ -27,7 +27,7 @@
   color: var(--color-carbon, #0f172a);
   background: rgba(255, 255, 255, 0.95);
   border: 1.5px solid var(--color-carbon, #0f172a);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   padding: 4px 14px;
   box-shadow: 2px 2px 0 var(--color-carbon, #0f172a);
   user-select: none;
@@ -40,7 +40,7 @@
   padding: 4px;
   max-width: 100%;
   border: 2px solid #0f172a;
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: #e9eef5;
   font: 650 14px/1.25 system-ui, sans-serif;
   isolation: isolate;
@@ -53,7 +53,7 @@
   min-height: 36px;
   min-width: 90px;
   padding: 6px 18px;
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   color: #475569;
   text-decoration: none;
   transition: color 150ms ease-out, background-color 150ms ease-out;
@@ -139,7 +139,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   border: 1px solid #0f172a;
   display: inline-block;
   line-height: 1.3;
@@ -158,7 +158,7 @@
 .gen-card-version {
   font-size: 9px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--color-text-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -304,7 +304,7 @@
   transform: translateX(-50%);
   padding: 12px 22px;
   border: 1.5px solid var(--color-carbon, #000);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--color-paper-white, #fff);
   white-space: nowrap;
 }
@@ -331,7 +331,7 @@
 .generation-recovery > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .generation-recovery a, .generation-recovery button {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 44px; padding: 10px 20px; border: 1.5px solid #000; border-radius: 999px;
+  min-height: 44px; padding: 10px 20px; border: 1.5px solid #000; border-radius: var(--radius-pills);
   background: #fff; color: #000; font: 700 14px/1.3 var(--font-aeonik-pro, sans-serif); text-decoration: none; cursor: pointer;
 }
 .generation-recovery button { background: var(--color-mint-pop, #55db9c); }
@@ -367,7 +367,6 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
 .surge-team-card:nth-child(2) .surge-team-avatar { background: var(--color-mint-pop); }
 .surge-team-card:nth-child(3) .surge-team-avatar { background: var(--color-lavender); }
 .surge-team-card h3 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; text-wrap: balance; overflow-wrap: anywhere; }
-.surge-team-tag { padding: 5px 10px; border: 1px solid var(--color-carbon); border-radius: var(--radius-pills); background: var(--color-sunburst); font-size: 11px; font-weight: 700; white-space: nowrap; }
 .surge-team-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: auto; }
 .surge-team .surge-team-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 8px; border: 1px solid var(--color-carbon); border-radius: var(--radius-buttons); background: var(--color-paper-white); color: var(--color-carbon); font: inherit; font-size: 13px; font-weight: 600; line-height: 1.2; text-transform: none; letter-spacing: normal; text-decoration: none; transition: background-color 150ms ease-out, transform 150ms ease-out; }
 .surge-team-action svg { flex-shrink: 0; }
@@ -390,7 +389,7 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
 
 /* asset: halo-select.css */
 /* Native semantics preserve form values, keyboard navigation and touch pickers. */
-.gen3 select {
+:is(.gen3, .gen21) select {
   min-height: 44px;
   padding: 10px 36px 10px 12px;
   border: 1px solid #94a3b8;
@@ -401,37 +400,37 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
   cursor: pointer;
   transition: border-color 150ms ease-out, background-color 150ms ease-out;
 }
-.gen3 select:hover:not(:disabled) { border-color: #1d4ed8; background-color: #eff6ff; }
-.gen3 select:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
-.gen3 select:disabled { cursor: not-allowed; background-color: #e2e8f0; color: #475569; opacity: 1; }
-.gen3 select[aria-busy="true"] { border-color: #2563eb; cursor: progress; }
-.gen3 select option { background: #fff; color: #0f172a; }
-.gen3 select option:disabled { color: #64748b; }
+:is(.gen3, .gen21) select:hover:not(:disabled) { border-color: #1d4ed8; background-color: #eff6ff; }
+:is(.gen3, .gen21) select:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+:is(.gen3, .gen21) select:disabled { cursor: not-allowed; background-color: #e2e8f0; color: #475569; opacity: 1; }
+:is(.gen3, .gen21) select[aria-busy="true"] { border-color: #2563eb; cursor: progress; }
+:is(.gen3, .gen21) select option { background: #fff; color: #0f172a; }
+:is(.gen3, .gen21) select option:disabled { color: var(--color-text-muted); }
 
 /* Unsupported browsers keep a fully functional native popup. */
 @supports (appearance: base-select) {
-  .gen3 select, .gen3 select::picker(select) { appearance: base-select; }
-  .gen3 select { padding-right: 12px; gap: 12px; }
-  .gen3 select::picker-icon { color: #475569; transition: rotate 150ms ease-out; }
-  .gen3 select:open::picker-icon { rotate: 180deg; }
-  .gen3 select:open { border-color: #2563eb; background: #eff6ff; }
-  .gen3 select::picker(select) {
+  :is(.gen3, .gen21) select, :is(.gen3, .gen21) select::picker(select) { appearance: base-select; }
+  :is(.gen3, .gen21) select { padding-right: 12px; gap: 12px; align-items: center; }
+  :is(.gen3, .gen21) select::picker-icon { color: #475569; transition: rotate 150ms ease-out; }
+  :is(.gen3, .gen21) select:open::picker-icon { rotate: 180deg; }
+  :is(.gen3, .gen21) select:open { border-color: #2563eb; background: #eff6ff; }
+  :is(.gen3, .gen21) select::picker(select) {
     padding: 6px; margin-top: 8px;
     border: 1px solid #cbd5e1; border-radius: 12px;
     background: rgb(248 250 252 / 96%); backdrop-filter: blur(12px);
     box-shadow: 0 12px 28px rgb(15 23 42 / 14%);
     max-height: min(360px, 60vh); max-width: calc(100vw - 24px); overflow-y: auto;
   }
-  .gen3 select option {
+  :is(.gen3, .gen21) select option {
     min-height: 44px; padding: 10px 12px; border-radius: 6px;
     background: transparent; white-space: normal; overflow-wrap: anywhere;
   }
-  .gen3 select option:hover:not(:disabled), .gen3 select option:focus { background: #dbeafe; }
-  .gen3 select option:checked { background: #e0eaff; color: #1e40af; font-weight: 600; }
-  .gen3 select option::checkmark { color: #1d4ed8; }
+  :is(.gen3, .gen21) select option:hover:not(:disabled), :is(.gen3, .gen21) select option:focus { background: #dbeafe; }
+  :is(.gen3, .gen21) select option:checked { background: #e0eaff; color: #1e40af; font-weight: 600; }
+  :is(.gen3, .gen21) select option::checkmark { color: #1d4ed8; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gen3 select, .gen3 select::picker-icon { transition: none; }
+  :is(.gen3, .gen21) select, :is(.gen3, .gen21) select::picker-icon { transition: none; }
 }
 /* endasset: halo-select.css */
 
@@ -609,14 +608,7 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
  * to create organic liquid glass refraction, specular sheen, and headlight lens flares.
  */
 
-:root {
-  --glass-bg: rgba(255, 255, 255, 0.42);
-  --glass-bg-dark: rgba(15, 23, 42, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.75);
-  --glass-highlight: rgba(255, 255, 255, 0.9);
-  --glass-shadow: rgba(0, 0, 0, 0.08);
-  --headlight-glow: rgba(2, 132, 199, 0.55);
-}
+/* Tokens moved to tokens.css. */
 
 /* Hidden SVG container holding the filter defs */
 .distorted-glass-defs {
@@ -768,33 +760,6 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
   z-index: 1;
 }
 
-/* Headlight active beam glow */
-.headlight-beacon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #38bdf8 40%, #0284c7 100%);
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 
-    0 0 12px 2px var(--headlight-glow),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95);
-  animation: headlight-pulse 3s ease-in-out infinite alternate;
-}
-
-@keyframes headlight-pulse {
-  0% {
-    box-shadow: 0 0 8px 1px rgba(2, 132, 199, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.8);
-    transform: scale(0.98);
-  }
-  100% {
-    box-shadow: 0 0 16px 4px rgba(2, 132, 199, 0.75), inset 0 1px 3px rgba(255, 255, 255, 1);
-    transform: scale(1.02);
-  }
-}
-
 /* Logo Badge with Distorted Glass Lens */
 .logo-badge.distorted-glass-logo {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(224, 242, 254, 0.7) 100%);
@@ -806,11 +771,8 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
     inset 0 1px 2px rgba(255, 255, 255, 1);
 }
 
-/* Prefers-reduced-motion: disable pulse animation */
+/* Keep glass text still for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
-  .headlight-beacon {
-    animation: none;
-  }
   .display-headline.distorted-glass-headline {
     transition: none;
   }
@@ -905,7 +867,7 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 9999px;
+  border-radius: var(--radius-pills);
   border: none;
   background-color: #F4F4F4;
   color: #18181B;
@@ -1116,9 +1078,8 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
   z-index: 4;
 }
 
-/* Fixed Action Dock: STOP/TORQUE + CUSTOM button in bottom right */
-.floating-action-dock,
-.floating-custom-btn {
+/* Fixed action dock at the bottom right. */
+.floating-action-dock {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
@@ -1130,252 +1091,9 @@ img.surge-team-avatar { object-fit: cover; object-position: center 35%; }
   user-select: none !important;
 }
 
-/* Shader Lens Blur Configuration Pill */
-.shader-blur-pill {
-  position: relative;
-  z-index: 10;
-}
-
-.shader-blur-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border-radius: var(--radius-pills, 1600px);
-  border: 1.5px solid var(--color-carbon, #000000);
-  background-color: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: var(--color-carbon, #000000);
-  font-family: var(--font-aeonik-pro, 'Inter', sans-serif);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16), 2px 2px 0 var(--color-carbon, #000000);
-  transition: all 0.15s ease;
-}
-
-.shader-blur-toggle-btn:hover {
-  background-color: var(--color-sunburst, #ffd731);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 2px 3px 0 var(--color-carbon, #000000);
-}
-
-.shader-blur-toggle-btn:focus-visible {
-  outline: 2px solid var(--color-brand-blue, #1d4ed8);
-  outline-offset: 2px;
-}
-
-.shader-blur-pill-icon {
-  width: 15px;
-  height: 15px;
-  stroke: currentColor;
-}
-
-/* Configuration Popover Card (anchors upwards from bottom) */
-.shader-blur-popover {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  right: 0;
-  width: 320px;
-  max-height: 84vh;
-  overflow-y: auto;
-  background-color: #ffffff;
-  border: 1.5px solid var(--color-carbon, #000000);
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: shader-popover-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.shader-blur-popover[hidden] {
-  display: none !important;
-}
-
-@keyframes shader-popover-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.shader-popover-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--color-border-dark, #e5e5e5);
-  padding-bottom: 8px;
-}
-
-.shader-popover-title {
-  font-family: var(--font-aeonik-pro, 'Inter', sans-serif);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #111111;
-}
-
-.shader-popover-close {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666666;
-  border-radius: 4px;
-}
-
-.shader-popover-close:hover {
-  color: #000000;
-  background-color: #f0f0f0;
-}
-
-.shader-popover-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.shader-section-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #555555;
-}
-
-/* Shape Variation Selector Grid */
-.shader-variation-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.shader-variation-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 4px;
-  border: 1px solid #d4d4d4;
-  border-radius: 8px;
-  background-color: #fafafa;
-  font-size: 10px;
-  font-weight: 600;
-  color: #222222;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.shader-variation-btn:hover {
-  background-color: #efefef;
-  border-color: #000000;
-}
-
-.shader-variation-btn.active {
-  background-color: var(--color-sunburst, #ffd731);
-  border-color: #000000;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  font-weight: 800;
-}
-
-.shader-variation-icon {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
-}
-
-/* Palette Presets */
-.shader-palette-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.shader-palette-btn {
-  height: 24px;
-  border-radius: 6px;
-  border: 1.5px solid #cccccc;
-  cursor: pointer;
-  display: flex;
-  overflow: hidden;
-  padding: 0;
-  transition: transform 0.12s ease, border-color 0.12s ease;
-}
-
-.shader-palette-btn:hover {
-  transform: scale(1.04);
-  border-color: #000000;
-}
-
-.shader-palette-btn.active {
-  border-color: #000000;
-  outline: 2px solid var(--color-sunburst, #ffd731);
-  outline-offset: 1px;
-}
-
-.shader-palette-stripe {
-  flex: 1;
-  height: 100%;
-}
-
-/* Controls & Sliders */
-.shader-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  color: #333333;
-}
-
-.shader-toggle-switch {
-  cursor: pointer;
-}
-
-.shader-slider-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.shader-slider-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  font-weight: 600;
-  color: #666666;
-}
-
-.shader-range-input {
-  width: 100%;
-  accent-color: var(--color-sunburst, #ffd731);
-  cursor: pointer;
-}
-
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .shader-lens-blur-wrapper {
-    display: none !important;
-  }
-  .shader-blur-pill {
     display: none !important;
   }
 }
@@ -1442,7 +1160,6 @@ footer,
 }
 
 /* Popovers and modals sit on top of everything */
-.shader-blur-popover,
 .modal-overlay,
 .dialog-content {
   z-index: 100 !important;
@@ -1530,49 +1247,6 @@ footer,
   stroke: currentColor;
 }
 
-.grid-beam-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.grid-beam-pill {
-  border-radius: var(--radius-pills, 1600px);
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  background: transparent;
-  color: #555555;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  line-height: 1;
-}
-
-.grid-beam-pill:hover {
-  background-color: var(--color-soft-mist, #e9e9e9);
-  color: #000000;
-  border-color: #000000;
-}
-
-.grid-beam-pill.active {
-  background-color: var(--color-sunburst, #ffd731);
-  color: #000000;
-  border-color: #000000;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.grid-beam-divider-v {
-  width: 1px;
-  height: 16px;
-  background-color: rgba(0, 0, 0, 0.15);
-  margin: 0 2px;
-}
-
 /* Headless Metrics Strip: 2 Rows x 3 Cols */
 .grid-beam-metrics-grid {
   display: grid;
@@ -1611,21 +1285,6 @@ footer,
   color: var(--color-carbon, #000000);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-}
-
-.grid-beam-metric-delta {
-  font-size: 11.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #16a34a;
-}
-
-.grid-beam-metric-delta.warning {
-  color: #eab308;
-}
-
-.grid-beam-metric-delta.danger {
-  color: #ef4444;
 }
 
 /* Internal Grid Divider Lines */
@@ -1824,11 +1483,11 @@ body .btn:not(:disabled):active, body.gen3 button:not(:disabled):active { transf
   margin: 16px 0;
   background: var(--color-paper-white, #ffffff);
   border: 1.5px solid var(--color-carbon, #000000);
-  border-radius: var(--radius-pills, 9999px);
+  border-radius: var(--radius-pills);
   box-shadow: 3px 3px 0 var(--color-carbon, #000000);
 }
 .cockpit-tabs.moving-background::before, .tab-nav.moving-background::before {
-  border-radius: var(--radius-pills, 9999px) !important;
+  border-radius: var(--radius-pills) !important;
 }
 .cockpit-tabs [role="tab"], .gen3 .tab-nav .tab-btn {
   border: 1px solid var(--color-carbon);
@@ -1843,34 +1502,10 @@ body .btn:not(:disabled):active, body.gen3 button:not(:disabled):active { transf
   color: var(--color-carbon);
 }
 .cockpit-tabs [role="tab"]:focus-visible, .gen3 .tab-nav .tab-btn:focus-visible,
-#btn-stop:focus-visible, #floating-stop-btn:focus-visible, .tab-stop-action-btn:focus-visible {
+#btn-stop:focus-visible, #floating-stop-btn:focus-visible {
   outline: 3px solid var(--color-electric-blue);
   outline-offset: 3px;
 }
-.tab-stop-action-btn {
-  background-color: #dc2626 !important;
-  color: #ffffff !important;
-  font-weight: 800 !important;
-  border: 1.5px solid var(--color-carbon, #000000) !important;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35) !important;
-  padding: 6px 18px !important;
-  border-radius: var(--radius-pills, 9999px) !important;
-  cursor: pointer;
-  display: inline-flex !important;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  text-transform: uppercase;
-  margin-left: auto;
-}
-.tab-stop-action-btn:hover:not(:disabled) {
-  background-color: #b91c1c !important;
-  transform: translateY(-1px);
-}
-.tab-stop-action-btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
 #btn-stop, #floating-stop-btn {
   width: 210px;
   min-height: 48px;
@@ -1906,13 +1541,7 @@ html { scroll-padding-bottom: 90px; }
 /* endasset: unified-cockpit.css */
 
 /* asset: motion-state.css */
-:root {
-  --motion-idle: var(--color-soft-mist);
-  --motion-running: var(--color-mint-pop);
-  --motion-stopping: var(--color-sunburst);
-  --motion-stopped: var(--color-paper-white);
-  --motion-unknown: var(--color-soft-mist);
-}
+/* Tokens moved to tokens.css. */
 .motion-state[data-motion-state] {
   background-color: var(--motion-fill) !important;
   color: var(--color-carbon) !important;
@@ -2127,7 +1756,7 @@ html { scroll-padding-bottom: 90px; }
 .controller-block > p, .controller-block details > p { margin: 0 0 8px; font-size: 13px; line-height: 1.4; }
 .controller-block .controller-state { margin: 6px 0 0; font-size: 13px; }
 .controller-block .controller-state + .controller-state { margin-top: 2px; color: #475569; }
-.controller-block .phone-link a { overflow-wrap: anywhere; font-weight: 650; }
+.controller-block .phone-link a { overflow-wrap: anywhere; font-weight: 600; }
 .controller-block .controller-settings label.check { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 12px; line-height: 1.35; }
 .controller-block .controller-settings label.check input { flex-shrink: 0; margin-top: 2px; }
 .controller-block details { margin-top: 4px; }
@@ -2149,3 +1778,199 @@ html { scroll-padding-bottom: 90px; }
 /* Every box takes its own content height: grid rows never stretch a box to match a neighbour. */
 .main-content, .gen3 .presets-container, .diagnostics-layout, .surge-team-board,
 .telemetry-grid, .texture-cards-grid { align-items: start; }
+
+/* Changing counters and rates keep their width while digits update. */
+#path-progress, #reopen-result-timer, #dashboard-update-rate, .report-stats .stat .value,
+#speed-deg-equiv, #btn-apply, #runs-visible-count { font-variant-numeric: tabular-nums; }
+
+/* Busy button: set by SurgeBusy in components/button-busy.js while the request it started is pending. */
+button[aria-busy="true"] { cursor: progress; }
+button[aria-busy="true"]::after {
+  content: ''; display: inline-block; width: 0.85em; height: 0.85em; margin-left: 8px;
+  vertical-align: -0.125em; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: button-busy-spin 700ms linear infinite;
+}
+@keyframes button-busy-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  button[aria-busy="true"]::after { animation: none; border-right-color: currentColor; opacity: 0.5; }
+}
+
+/* Request acknowledgement: one short cue on the button that sent it (see SurgeBusy). */
+button[data-ack="ok"] { animation: ack-ok 600ms ease-out; }
+button[data-ack="fail"] { animation: ack-fail 320ms ease-in-out; outline: 2px solid #dc2626; outline-offset: 2px; }
+@keyframes ack-ok {
+  from { outline: 2px solid rgb(22 163 74 / 90%); outline-offset: 0; }
+  to { outline: 2px solid rgb(22 163 74 / 0%); outline-offset: 5px; }
+}
+@keyframes ack-fail {
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+/* Error banners rise in so a new failure is noticed. */
+.gen3 #error:not([hidden]) { animation: feedback-in 150ms ease-out; }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  button[data-ack="ok"] { animation: none; outline: 2px solid rgb(22 163 74 / 60%); outline-offset: 2px; }
+  button[data-ack="fail"], .gen3 #error:not([hidden]) { animation: none; }
+}
+
+/* Headings split into even lines instead of leaving one word alone; paragraphs avoid
+   a single-word last line. The pixel-snake title keeps its own letter layout. */
+h2, h3, .gen-card-title { text-wrap: balance; }
+p, .gen-card-desc { text-wrap: pretty; }
+
+/* Icon scale: line icons share a 1.75 stroke; 16 px inside compact controls, 18 px elsewhere.
+   They take the colour of the text beside them. */
+.morphing-icon, .gen3 .morphing-icon, .morphing-eye-btn svg, .grid-beam-icon {
+  width: 16px !important; height: 16px !important;
+}
+.gen3 .halo-field > svg, .gen3 #console-search-clear svg { width: 18px; height: 18px; }
+.gen3 .halo-field > svg { color: var(--color-text-muted); }
+
+/* Nested corners: inner radius = outer radius − border − gap (never under 4 px), so the
+   curves of a box and the box inside it stay concentric. */
+#sim-telemetry-grid .telem-box { border-radius: 24px; } /* in a 40 px hub, 16 px in */
+.safety-limits-card .map-settings { border-radius: 4px; } /* in a 20 px card, 16 px in */
+#gamepad-card .qr-card, .qr-card .qr-panel { border-radius: 4px; } /* 20 px card, 16 px in */
+
+/* Operator-only buttons explain themselves. For a viewer, hovering a disabled operator-only
+   button flips it to a back face that says why; moving away flips it back. The back face is a
+   pseudo-element, so button labels the code rewrites keep working. data-operator-required is
+   set by setViewerMode (gen3.js) and the gamepad controller (components/controller-input.js). */
+button[data-operator-required="true"]:disabled {
+  position: relative;
+  perspective: 600px;
+  transition: color 120ms ease-out, opacity 120ms ease-out;
+}
+button[data-operator-required="true"]:disabled::before {
+  content: 'Operator mode required';
+  position: absolute; inset: -1px; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 8px; border-radius: inherit;
+  background: #0f172a; color: #f8fafc;
+  font-size: 11px; font-weight: 600; line-height: 1.15; letter-spacing: 0.02em;
+  text-align: center; text-wrap: balance; white-space: normal;
+  transform: rotateX(-90deg); transform-origin: 50% 50%;
+  backface-visibility: hidden; opacity: 0; pointer-events: none;
+  transition: transform 140ms cubic-bezier(0.4, 0, 1, 1), opacity 0s linear 140ms;
+}
+button[data-operator-required="true"]:disabled:hover { opacity: 1; color: transparent; }
+button[data-operator-required="true"]:disabled:hover::before {
+  transform: rotateX(0deg); opacity: 1;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0s;
+}
+/* Small buttons are too narrow for the full sentence. */
+button.btn-sm[data-operator-required="true"]:disabled::before { content: 'Operator only'; }
+@media (prefers-reduced-motion: reduce) {
+  button[data-operator-required="true"]:disabled::before,
+  button[data-operator-required="true"]:disabled:hover::before {
+    transform: none; transition: opacity 120ms ease-out;
+  }
+}
+
+/* Gen 2.1 had no disabled look; match Gen 3 so locked buttons read as unavailable before hover. */
+.gen21 button[data-operator-required="true"]:disabled:not(:hover) { opacity: 0.55; cursor: not-allowed; }
+.gen21 button[data-operator-required="true"]:disabled { cursor: not-allowed; }
+
+/* Group spacing (4 px grid): items in one group sit closer together than the groups do.
+   Page: tabs and search are one navigation group; the search hint belongs to its field;
+   the workspace status line belongs to the panel below it. */
+.gen3 .tab-nav { margin-bottom: 12px; }
+.gen3 .console-search { margin: 0 0 32px; }
+.gen3 .console-search .search-meta { margin-top: 8px; }
+.gen3 .tab-panel > .workspace-status { margin: 0 0 8px; }
+/* Simulation tab: cards sit further apart than their 16 px padding. */
+.gen3 #sim-hub { gap: 24px; }
+.gen3 #sim-hub .card > h2, .gen3 #sim-hub .card-header-row { margin: 0 0 12px; }
+/* 3D view card: [title, camera] · view · [route tools, help, status, map] · [run bar, model]. */
+#sim-hub #sim-canvas-hub > * { margin-top: 0; margin-bottom: 0; }
+#sim-hub #sim-canvas-hub > .canvas-toolbar { margin-bottom: 12px; }
+#sim-hub #sim-canvas-hub > .sim-view-toolbar { margin-bottom: 8px; }
+#sim-hub #sim-canvas-hub > .canvas-wrapper { margin-bottom: 16px; }
+#sim-hub #sim-canvas-hub > .sim-route-toolbar { margin-bottom: 8px; }
+#sim-hub #sim-canvas-hub > #sim-route-help { margin-bottom: 4px; }
+#sim-hub #sim-canvas-hub > #sim-route-status { margin-bottom: 8px; }
+#sim-hub #sim-canvas-hub > .sim-map-details { margin-bottom: 16px; }
+#sim-hub #sim-canvas-hub > .canvas-controls-footer { margin-bottom: 8px; }
+/* Gait preset card: the description belongs to its picker; the button follows the pair. */
+#sim-hub #sim-gait-card > .input-group { margin-bottom: 8px; }
+#sim-hub #sim-gait-card > .gait-preset-details { margin-top: 0 !important; margin-bottom: 12px; }
+#sim-hub #sim-gait-card > #btn-load-3d-preset { margin-top: 0 !important; }
+/* Settings card: the intro line belongs to the heading; actions stand apart. */
+#sim-hub #sim-3d-physics-card > .card-header-row { margin-bottom: 4px; }
+#sim-hub #sim-3d-physics-card > .physics-help { margin: 0 0 16px; }
+#sim-hub #sim-3d-physics-card > .sim-settings-actions { margin-top: 16px; }
+#sim-hub #sim-3d-physics-card > .physics-help + .sim-physics-group { margin-top: 0; }
+#sim-hub .simulation-controller > #copy-to-hardware { margin-top: 16px; }
+
+/* Gen 2.1 group spacing: the status line belongs to the panel below it; cards sit further
+   apart than their own padding; card internals use the 4 px grid. */
+.gen21 #gen21-workspace-status { margin: 16px 0 0; }
+/* .app-container is a flex column with a 16 px gap; pull the panel up to 8 px under its status line. */
+.gen21 #gen21-workspace-status + .main-content { margin-top: -8px; }
+.gen21 .main-content, .gen21 .main-content > .control-panel { gap: 24px; }
+.gen21 #math-path-card > .input-group, .gen21 #math-path-card > .input-row { margin: 0 0 8px; }
+.gen21 #gamepad-card > .gamepad-layout { margin-top: 16px; }
+.gen21 #gamepad-card > .qr-card { margin-top: 16px !important; }
+
+/* Group spacing, Gen 3 Hardware / Calibration / Runs tabs. Cards sit 24 px apart with 16 px
+   padding. Inside a card, children only use margin-bottom (so block and flex cards behave the
+   same): 8 px between related lines, 12 px under the heading, 16 px around tables and between
+   groups. */
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card { padding: 16px; }
+.gen3 #panel-operate > .workspace-status { margin: 0 0 8px; }
+.gen3 #panel-operate > #copy-from-simulation { margin: 0 0 16px; }
+.gen3 #panel-operate > section + section, .gen3 #panel-runs > * + * { margin-top: 24px; }
+.gen3 #panel-calibration, .gen3 #panel-calibration .diagnostics-layout { gap: 24px; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > * { margin-top: 0; margin-bottom: 8px; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > :last-child { margin-bottom: 0; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > :is(h2:first-child, .gait-card-header) { margin-bottom: 12px; }
+.gen3 #panel-runs .runs-journal > .runs-journal-header { margin-bottom: 4px; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > :is(.table-scroll, .pose-preset-desc, .texture-cards-grid, .runs-journal-help, .presets-container + *),
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > :has(+ :is(.table-scroll, .pose-preset-row, .texture-cards-grid)) { margin-bottom: 16px; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > .pose-preset-row { margin-bottom: 4px; }
+.gen3 :is(#panel-operate, #panel-calibration, #panel-runs) .card > .table-scroll:last-child { margin-bottom: 0; }
+
+/* Gait presets: three visible at a time, the rest scroll inside the list (sizePresetList in
+   gen3.js sets the height). The edges fade while more presets sit beyond them. */
+.gen3 #presets-list { gap: 8px; }
+.gen3 #presets-list.is-scroll-list {
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; padding-right: 4px;
+}
+.gen3 #presets-list.has-more-below { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent); }
+.gen3 #presets-list.has-more-above { -webkit-mask-image: linear-gradient(to top, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to top, #000 calc(100% - 32px), transparent); }
+.gen3 #presets-list.has-more-above.has-more-below { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
+
+/* Runs Journal: three rows visible, older runs scroll inside the table box (sizeRunsTable in
+   gen3.js sets the height); the header stays pinned and the bottom edge fades while more runs
+   sit below. */
+.gen3 .runs-journal .table-scroll.is-scroll-list { scrollbar-width: thin; }
+.gen3 .runs-journal .table-scroll.has-more-below { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent); }
+
+/* Helper and status lines removed from view at the user's request (10 Nov 2026). They are
+   hidden rather than deleted because the scripts still write to most of them; delete a
+   selector here to bring that line back. */
+.gen3 .search-meta,                                   /* "Results open controls without running them." */
+.gen3 #simulation-workspace-status,                   /* "PyBullet disconnected" */
+.gen3 #hardware-workspace-status,                     /* "No port selected · viewer · stopped" */
+.gen3 #sim-route-help,                                /* "10 × 10 m grid · blue: planned …" */
+.gen3 #sim-model-status,                              /* "SolidWorks prototype · 1 head …" */
+.gen3 .motion-permission-hint,                        /* "Log in as Operator to start" */
+.gen3 #bus-refresh-status,                            /* "Stopped Hardware refreshes every 3 s …" */
+.gen3 .joint-control-card > h2 + p,                   /* "Pose moves each joint to its angle …" */
+.gen3 #pose-preset-desc,                              /* "Loads angles into the sliders only …" */
+.gen3 #pose-preset-desc + p,                          /* "Select a saved pose, press STOP …" */
+.gen3 #pose-preset-desc + p + p,                      /* "To teach a shape …" */
+.gen3 #joint-control-summary,                         /* "Gait: all joints follow the shared waveform." */
+.gen3 #calibration-state,                             /* "Saved map: NOT CALIBRATED …" */
+.gen3 .concurrency-note,                              /* "Revision … Conflicting saves …" */
+.gen3 .runs-journal-footer,                           /* "50 runs · scroll the table for older runs" */
+.controller-block > [data-gamepad="status"],          /* "Log in as operator to enable the controller." */
+.controller-block > [data-gamepad="preset"] {        /* "Controller stopped" */
+  display: none !important;
+}
+/* With its description hidden, the shape-preset row needs the group gap itself. */
+.gen3 #panel-operate .joint-control-card > .pose-preset-row { margin-bottom: 16px; }

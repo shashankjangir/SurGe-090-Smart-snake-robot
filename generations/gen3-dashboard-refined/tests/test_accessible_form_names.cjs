@@ -28,7 +28,7 @@ rows.forEach((row, index) => {
 });
 const runsStart = source.indexOf('async function loadRuns()');
 const templateStart = source.indexOf('    tr.innerHTML = `', runsStart);
-const templateEnd = source.indexOf("    tr.querySelector('.btn-save-ann')", templateStart);
+const templateEnd = source.indexOf("    tr.querySelector('.run-annotations')", templateStart);
 for (const runID of ['12', 'run-42', 'run-"quoted"']) {
   const tr = {};
   vm.runInNewContext(source.slice(templateStart, templateEnd), {tr, r: {run_id: runID}, ann: {}, dateStr: '', escapeHTML});

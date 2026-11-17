@@ -4,16 +4,13 @@ Importing this module never opens serial ports.
 """
 import copy
 import csv
-import hashlib
 import functools
 import importlib.util
 import json
 import math
-import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 
@@ -22,10 +19,14 @@ ROOT = _p2 if _p2.name == 'gen3-experimental-3d' else _p2 / 'gen3-experimental-3
 spec = importlib.util.spec_from_file_location('surge_gen3_runner', ROOT / 'test_3d_snake.py')
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
-from gait import validate_map, validate_gait, validate_overrides, validate_pose, joint_wave, calc_peak_speed, envelope, COUNTS_PER_RADIAN
+from gait import GAIT_ANGLE_LIMIT_DEG, NUM_JOINTS, JOINT_IDS, validate_map, validate_gait, validate_overrides, validate_pose, joint_wave, envelope, COUNTS_PER_RADIAN
+from surge_control.data import calibration, gait_presets, pose_presets, run_journal
+from surge_control.data.atomic_json import atomic_json
+from surge_control.data.gait_presets import DEFAULT_PRESETS
 from surge_control.session import SessionManager
 from surge_control.spatial_route import SpatialRoute
 from surge_control.manual import ManualController, Localization
+from surge_control.steering import joint_offsets, body_pose
 
 # PyBullet comes from the conda `surge` environment (pip wheels fail to build on Windows).
 SIMULATION_AVAILABLE = importlib.util.find_spec('pybullet') is not None
@@ -34,176 +35,6 @@ SIMULATION_UNAVAILABLE_MESSAGE = (
     '`conda run --no-capture-output -n surge python generations/gen3-experimental-3d/backend/web_dashboard/web_app.py`.')
 
 ALLOWED_FIRMWARE_ENVS = ('receiver_gen2_1', 'transmitter_gen2_1')
-DEFAULT_PRESETS = [
-    {
-        "name": "Pitch wave 5°",
-        "description": "5° pitch commissioning wave, 0.1 Hz, 10s duration",
-        "mode": "gait",
-        "yaw": 0.0,
-        "pitch": 5.0,
-        "bias": 0.0,
-        "frequency": 0.1,
-        "lag": 90.0,
-        "offset": 90.0,
-        "speed": 100,
-        "ramp": 2.0,
-        "duration": 10.0
-    },
-    {
-        "name": "Pitch wave 10°",
-        "description": "10° pitch wave with extended 8s ramp within 100 counts/s limit",
-        "mode": "gait",
-        "yaw": 0.0,
-        "pitch": 10.0,
-        "bias": 0.0,
-        "frequency": 0.1,
-        "lag": 90.0,
-        "offset": 90.0,
-        "speed": 100,
-        "ramp": 8.0,
-        "duration": 30.0
-    },
-    {
-        "name": "Turning yaw trial 5°",
-        "description": "5° yaw wave with 5° bias and 4s ramp for turning assessment",
-        "mode": "gait",
-        "yaw": 5.0,
-        "pitch": 0.0,
-        "bias": 5.0,
-        "frequency": 0.1,
-        "lag": 90.0,
-        "offset": 90.0,
-        "speed": 100,
-        "ramp": 4.0,
-        "duration": 10.0
-    },
-    {
-        "name": "Caterpillar crawl 10° (commissioning)",
-        "description": "Pitch-only travelling wave, lag -72°; crawled backward in the 3 Nov 2026 PyBullet check (lag +72° crawls forward). 8s ramp keeps peak demand under 100 counts/s",
-        "mode": "gait",
-        "yaw": 0.0,
-        "pitch": 10.0,
-        "bias": 0.0,
-        "frequency": 0.1,
-        "lag": -72.0,
-        "offset": 0.0,
-        "speed": 100,
-        "ramp": 8.0,
-        "duration": 30.0
-    },
-    {
-        "name": "Caterpillar crawl 20°",
-        "description": "Pitch-only travelling wave at 0.25 Hz, lag -72°; peak demand ~477 counts/s. Crawled backward in the 3 Nov 2026 PyBullet check; lag +72° crawls forward",
-        "mode": "gait",
-        "yaw": 0.0,
-        "pitch": 20.0,
-        "bias": 0.0,
-        "frequency": 0.25,
-        "lag": -72.0,
-        "offset": 0.0,
-        "speed": 500,
-        "ramp": 3.0,
-        "duration": 24.0
-    },
-    {
-        "name": "Serpenoid combined 5°/5°",
-        "description": "Alternating yaw/pitch serpenoid locomotion trial",
-        "mode": "gait",
-        "yaw": 5.0,
-        "pitch": 5.0,
-        "bias": 0.0,
-        "frequency": 0.1,
-        "lag": 90.0,
-        "offset": 90.0,
-        "speed": 100,
-        "ramp": 2.0,
-        "duration": 15.0
-    },
-    {
-        "name": "Lateral undulation 30°",
-        "description": "Yaw-only serpenoid wave; ~60 cm forward in PyBullet. Needs side friction on real floors. Peak ~643 counts/s",
-        "mode": "gait",
-        "yaw": 30.0,
-        "pitch": 0.0,
-        "bias": 0.0,
-        "frequency": 0.2,
-        "lag": 90.0,
-        "offset": 0.0,
-        "speed": 900,
-        "ramp": 2.5,
-        "duration": 30.0
-    },
-    {
-        "name": "Lateral undulation 30° reverse",
-        "description": "Same wave tail-to-head (negative frequency); ~66 cm backward in PyBullet. Peak ~643 counts/s",
-        "mode": "gait",
-        "yaw": 30.0,
-        "pitch": 0.0,
-        "bias": 0.0,
-        "frequency": -0.2,
-        "lag": 90.0,
-        "offset": 0.0,
-        "speed": 900,
-        "ramp": 2.5,
-        "duration": 30.0
-    },
-    {
-        "name": "Sidewinding 30°/10° right",
-        "description": "Yaw and pitch waves 90° apart (Gong 2016); ~40 cm sideways in PyBullet. Peak ~643 counts/s",
-        "mode": "gait",
-        "yaw": 30.0,
-        "pitch": 10.0,
-        "bias": 0.0,
-        "frequency": 0.2,
-        "lag": 96.0,
-        "offset": 90.0,
-        "speed": 900,
-        "ramp": 2.5,
-        "duration": 30.0
-    },
-    {
-        "name": "Sidewinding 30°/10° left",
-        "description": "Offset -90° mirrors sidewinding; ~45 cm sideways in PyBullet. Peak ~643 counts/s",
-        "mode": "gait",
-        "yaw": 30.0,
-        "pitch": 10.0,
-        "bias": 0.0,
-        "frequency": 0.2,
-        "lag": 96.0,
-        "offset": -90.0,
-        "speed": 900,
-        "ramp": 2.5,
-        "duration": 30.0
-    },
-    {
-        "name": "Lateral rolling 25°",
-        "description": "Lag 0, offset 90°: the arced body rolls sideways (Tesch 2009); ~48 cm in PyBullet. If it rocks without rolling, raise amplitude toward 35°. Peak ~417 counts/s",
-        "mode": "gait",
-        "yaw": 25.0,
-        "pitch": 25.0,
-        "bias": 0.0,
-        "frequency": 0.15,
-        "lag": 0.0,
-        "offset": 90.0,
-        "speed": 900,
-        "ramp": 3.0,
-        "duration": 30.0
-    },
-    {
-        "name": "Caterpillar crawl 20° forward",
-        "description": "Pitch-only wave, lag +72°; ~22 cm forward in PyBullet. Peak ~429 counts/s",
-        "mode": "gait",
-        "yaw": 0.0,
-        "pitch": 20.0,
-        "bias": 0.0,
-        "frequency": 0.2,
-        "lag": 72.0,
-        "offset": 0.0,
-        "speed": 900,
-        "ramp": 2.5,
-        "duration": 30.0
-    }
-]
 
 
 def locked(method):
@@ -212,20 +43,6 @@ def locked(method):
         with self.lock:
             return method(self, *args, **kwargs)
     return call
-
-
-def atomic_json(path, value):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    name = None
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent, delete=False) as stream:
-            name = stream.name
-            json.dump(value, stream, indent=2, allow_nan=False)
-            stream.write('\n')
-        os.replace(name, path)
-    finally:
-        if name and Path(name).exists():
-            Path(name).unlink()
 
 
 class GaitMotionGenerator:
@@ -291,6 +108,9 @@ class GaitMotionGenerator:
                 center, amplitude = joint_wave(override, current_params['bias'] if axis == "yaw" else 0.0,
                                                current_params['yaw'] if axis == "yaw" else current_params['pitch'])
                 shift = override['phase'] if override else 0.0
+                if self.manual and self.manual.steer3d:
+                    center += self.manual.steer3d.angle(j['id'])
+                    amplitude *= self.manual.steer3d.wave_scale(j['id'])
                 angle = scale * (center + amplitude *
                                  math.sin(self.phase - k * current_params['lag'] + (current_params['offset'] if axis == "pitch" else 0.0) + shift))
                 if self.manual and self.manual.inspection:
@@ -330,9 +150,9 @@ class GaitMotionGenerator:
                 raise ValueError("Cannot update settings during final return/shutdown ramp")
 
             candidate_deg = {
-                'yaw': runner.number(candidate_settings.get('yaw', math.degrees(self.applied_settings['yaw'])), 'yaw', 0, 90),
-                'pitch': runner.number(candidate_settings.get('pitch', math.degrees(self.applied_settings['pitch'])), 'pitch', 0, 90),
-                'bias': runner.number(candidate_settings.get('bias', math.degrees(self.applied_settings['bias'])), 'bias', -90, 90),
+                'yaw': runner.number(candidate_settings.get('yaw', math.degrees(self.applied_settings['yaw'])), 'yaw', 0, GAIT_ANGLE_LIMIT_DEG),
+                'pitch': runner.number(candidate_settings.get('pitch', math.degrees(self.applied_settings['pitch'])), 'pitch', 0, GAIT_ANGLE_LIMIT_DEG),
+                'bias': runner.number(candidate_settings.get('bias', math.degrees(self.applied_settings['bias'])), 'bias', -GAIT_ANGLE_LIMIT_DEG, GAIT_ANGLE_LIMIT_DEG),
                 'frequency': runner.number(candidate_settings.get('frequency', self.applied_settings['frequency']), 'frequency', -0.6, 0.6),
                 'lag': runner.number(candidate_settings.get('lag', math.degrees(self.applied_settings['lag'])), 'lag', -360, 360),
                 'offset': runner.number(candidate_settings.get('offset', math.degrees(self.applied_settings['offset'])), 'offset', -360, 360),
@@ -507,7 +327,7 @@ class Gen3Control:
     def __init__(self, lock, map_path=ROOT / 'joint_map.json', hardware_factory=None):
         self.lock = lock
         self.map_path = Path(map_path)
-        self.hardware_factory = hardware_factory or runner.ST3215Interface
+        self.hardware_factory = hardware_factory or functools.partial(runner.ST3215Interface, num_motors=NUM_JOINTS)
         self.thread = None
         self.cancel = threading.Event()
         self.sessions = SessionManager()
@@ -605,8 +425,7 @@ class Gen3Control:
             )
 
     def get_map_revision(self):
-        content = self.map_path.read_text(encoding='utf-8')
-        return hashlib.sha256(content.encode('utf-8')).hexdigest()[:16]
+        return calibration.revision(self.map_path)
 
     def load_map_with_revision(self):
         with self.lock:
@@ -620,37 +439,8 @@ class Gen3Control:
         if self.state['busy'] or self.firmware.snapshot()['is_busy']:
             raise RuntimeError('Stop the Gen 3 job before saving calibration')
 
-        original = self.map_path.read_text(encoding='utf-8')
-        current_rev = hashlib.sha256(original.encode('utf-8')).hexdigest()[:16]
-        if expected_revision and expected_revision != current_rev:
-            raise ValueError("Calibration map was modified externally (stale revision). Reload and re-verify before saving.")
-
-        backups = self.map_path.parent / 'runs'
-        backups.mkdir(exist_ok=True)
-        backup_name = f'calibration-before-{time.time_ns()}.json'
-        (backups / backup_name).write_text(original, encoding='utf-8')
-        audit_file = backups / 'calibration_audit.jsonl'
-        try:
-            with audit_file.open('a', encoding='utf-8') as f:
-                f.write(json.dumps({
-                    'timestamp': time.time(),
-                    'event': 'calibration_save',
-                    'operator': operator_name or (self.sessions.active_operator['name'] if self.sessions.active_operator else None),
-                    'backup': backup_name,
-                    'revision': current_rev
-                }) + '\n')
-        except Exception:
-            pass
-        name = None
-        try:
-            with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=self.map_path.parent, delete=False) as stream:
-                name = stream.name
-                json.dump(config, stream, indent=2)
-                stream.write('\n')
-            os.replace(name, self.map_path)
-        finally:
-            if name and Path(name).exists():
-                Path(name).unlink()
+        operator = self.sessions.active_operator if not operator_name else None
+        calibration.save(self.map_path, config, expected_revision, operator_name or (operator['name'] if operator else None))
 
     @locked
     def connect_simulation(self):
@@ -804,13 +594,13 @@ class Gen3Control:
         if mode == 'jog':
             sid = data.get('id')
             ticks = data.get('ticks')
-            if type(sid) is not int or sid not in range(1, 11) or type(ticks) is not int or not 1 <= abs(ticks) <= 57:
-                raise ValueError('Jog requires ID 1–10 and nonzero ticks between -57 and 57')
+            if type(sid) is not int or sid not in JOINT_IDS or type(ticks) is not int or not 1 <= abs(ticks) <= 57:
+                raise ValueError(f'Jog requires ID 1–{NUM_JOINTS} and nonzero ticks between -57 and 57')
             config = dict(speed=100, tracking_error=25, tracking_timeout=.5)
         elif mode == 'center':
             sid = data.get('id')
-            if type(sid) is not int or sid not in range(1, 11) or not data.get('free_shaft'):
-                raise ValueError('Centering requires single ID 1..10 and explicit free_shaft confirmation')
+            if type(sid) is not int or sid not in JOINT_IDS or not data.get('free_shaft'):
+                raise ValueError(f'Centering requires single ID 1..{NUM_JOINTS} and explicit free_shaft confirmation')
             config = dict(speed=100, tracking_error=25, tracking_timeout=.5)
         elif mode == 'align':
             config = runner.load_map(self.map_path)
@@ -819,7 +609,7 @@ class Gen3Control:
             config = runner.load_map(self.map_path, require_calibrated=execution == 'hardware')
             apply_simulation_tracking(config)
             overrides = validate_overrides(data.get('joints'))
-            fields = [('yaw', 5, 0, 90), ('pitch', 5, 0, 90), ('bias', 0, -90, 90),
+            fields = [('yaw', 5, 0, GAIT_ANGLE_LIMIT_DEG), ('pitch', 5, 0, GAIT_ANGLE_LIMIT_DEG), ('bias', 0, -GAIT_ANGLE_LIMIT_DEG, GAIT_ANGLE_LIMIT_DEG),
                       ('frequency', .1, -.6, .6), ('lag', 90, -360, 360), ('offset', 90, -360, 360)]
             numbers = [runner.number(data.get(k, default), k, low, high) for k, default, low, high in fields]
             run_speed = runner.number(run_speed, 'speed', 1, 3000)
@@ -839,6 +629,10 @@ class Gen3Control:
             }
             self.motion_generator = GaitMotionGenerator(config, initial_rad, duration, ramp, overrides)
             self.motion_generator.manual = manual
+            if manual and manual.steering == '3d':
+                if execution == 'hardware':
+                    raise ValueError('3D Motions steering is simulation and dry-run only until trialled on the robot')
+                manual.attach_steering(config['joints'], joint_offsets(config['joints']))
         elif mode == 'pose':
             # Every joint goes to its own angle, holds for `duration`, then returns to neutral.
             config = runner.load_map(self.map_path, require_calibrated=execution == 'hardware')
@@ -848,8 +642,11 @@ class Gen3Control:
             config = None
 
         if request_id:
+            # Keep the most recent 1,000 starts as the retry window.
             if len(self.start_requests) >= 1000:
-                raise RuntimeError('Request history full; restart the stopped server')
+                oldest = next(iter(self.start_requests))
+                del self.start_requests[oldest]
+                self.start_run_ids.pop(oldest, None)
             self.start_requests[key] = copy.deepcopy(data)
         self.owner_session = session_id
         self.manual = manual
@@ -971,7 +768,7 @@ class Gen3Control:
                     latency = time.monotonic() - started
                     if latency > runner.MAX_GAP:
                         raise RuntimeError('Telemetry deadline exceeded')
-                    for motor in range(1, 11):
+                    for motor in JOINT_IDS:
                         row = telemetry.get(motor, {})
                         position = row.get('position')
                         row['valid'] = bool(row.get('valid')) and type(position) is int and 0 <= position <= 4095
@@ -1023,8 +820,7 @@ class Gen3Control:
 
     @locked
     def get_pose_presets(self):
-        path = self.map_path.parent / 'runs' / 'pose_presets.json'
-        return json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+        return pose_presets.load(self.map_path.parent / 'runs')
 
     @locked
     def save_pose_preset(self, data):
@@ -1036,24 +832,9 @@ class Gen3Control:
             raise ValueError('Joint calibration changed; capture the pose again')
         pose = data.get('pose')
         if not isinstance(pose, dict) or set(pose) != {str(j['id']) for j in config['joints']}:
-            raise ValueError('A complete pose for all ten joints is required')
+            raise ValueError('A complete pose for every joint is required')
         validate_pose(config, pose)
-        presets = self.get_pose_presets()
-        previous = next((p for p in presets if p['name'] == name.strip()), None)
-        if 'expected' in data:
-            if previous is None or data['expected'] != previous:
-                raise RuntimeError('Saved pose changed; reload the presets and re-calibrate again')
-        elif previous is not None:
-            raise ValueError('A pose with this name already exists; choose another name')
-        updated = dict(name=name.strip(), pose=pose, joints=config['joints'])
-        if previous is None:
-            presets.append(updated)
-        else:
-            presets[presets.index(previous)] = updated
-        path = self.map_path.parent / 'runs' / 'pose_presets.json'
-        path.parent.mkdir(exist_ok=True)
-        atomic_json(path, presets)
-        return presets
+        return pose_presets.save(self.map_path.parent / 'runs', name, data, pose, config['joints'])
 
     def _run(self, mode, execution, port, config, values, duration, ramp, run_speed, sid, ticks):
         iface = self.simulation if execution == 'simulation' else None
@@ -1079,6 +860,8 @@ class Gen3Control:
                             else:
                                 pose = self.localization.pose()
                             self.motion_generator.manual_pose = pose
+                        if self.manual.steer3d and execution == 'simulation':
+                            self.manual.pose3d = body_pose(iface.link_poses())
                         if execution != 'preview':
                             age = time.time() - self.state.get('feedback_at', 0)
                             self.manual.feedback(self.state['telemetry'] if age <= .5 else {}, job_config['tracking_error'], runner.PERIOD)
@@ -1108,7 +891,7 @@ class Gen3Control:
                 if owner.cancel.is_set():
                     return True
                 with owner.lock:
-                    if owner.owner_session and not owner.sessions.is_operator(owner.owner_session):
+                    if owner.owner_session and not owner.sessions.is_driving(owner.owner_session):
                         owner.stop()
                     if owner.manual:
                         try:
@@ -1124,7 +907,7 @@ class Gen3Control:
                 stream.flush()
                 if len(row) == 8 and isinstance(row[3], int):
                     with owner.lock:
-                        if execution == 'simulation' and row[3] == 10:
+                        if execution == 'simulation' and row[3] == NUM_JOINTS:
                             owner.state['simulation_links'] = iface.link_positions()
                             owner.state['simulation_poses'] = iface.link_poses()
                             owner.state['simulation_head'] = iface.head_pose()
@@ -1226,7 +1009,7 @@ class Gen3Control:
                         state = iface.read_telemetry()
                         if time.monotonic() - started > runner.MAX_GAP:
                             raise RuntimeError('Telemetry deadline exceeded')
-                        for motor in range(1, 11):
+                        for motor in JOINT_IDS:
                             row = state.get(motor, {})
                             position = row.get('position')
                             row['valid'] = bool(row.get('valid')) and type(position) is int and 0 <= position <= 4095
@@ -1310,13 +1093,7 @@ class Gen3Control:
 
     @locked
     def get_presets(self):
-        preset_file = self.map_path.parent / 'runs' / 'presets.json'
-        if preset_file.exists():
-            try:
-                return json.loads(preset_file.read_text(encoding='utf-8'))
-            except Exception:
-                pass
-        return DEFAULT_PRESETS
+        return gait_presets.load(self.map_path.parent / 'runs')
 
     @locked
     def save_preset(self, preset, expected=...):
@@ -1332,69 +1109,19 @@ class Gen3Control:
             runner.number(preset.get(key), key, -10000, 10000)
         config = runner.load_map(self.map_path)
         validate_gait(config, *(math.radians(preset[k]) for k in ('yaw', 'pitch', 'bias')), preset['frequency'], math.radians(preset['lag']), math.radians(preset['offset']), preset['duration'], preset['ramp'], speed=preset['speed'])
-        presets = self.get_presets()
-        existing_preset = next((p for p in presets if p['name'] == preset['name']), None)
-        if expected is not ... and expected != existing_preset:
-            raise RuntimeError('Preset changed; reload the presets before saving')
-        # Replace if name exists, else append
-        existing = [p for p in presets if p['name'] != preset['name']]
-        existing.append(preset)
-        preset_file = self.map_path.parent / 'runs' / 'presets.json'
-        preset_file.parent.mkdir(exist_ok=True)
-        atomic_json(preset_file, existing)
-        return existing
+        return gait_presets.save(self.map_path.parent / 'runs', preset, expected)
 
     @locked
     def delete_preset(self, name):
-        presets = self.get_presets()
-        updated = [p for p in presets if p['name'] != name]
-        preset_file = self.map_path.parent / 'runs' / 'presets.json'
-        preset_file.parent.mkdir(exist_ok=True)
-        atomic_json(preset_file, updated)
-        return updated
+        return gait_presets.delete(self.map_path.parent / 'runs', name)
 
     @locked
     def list_runs(self):
-        runs_dir = self.map_path.parent / 'runs'
-        if not runs_dir.exists():
-            return []
-        items = []
-        for json_file in sorted(runs_dir.glob('web-*.json'), key=lambda p: p.stat().st_mtime, reverse=True)[:50]:
-            try:
-                data = json.loads(json_file.read_text(encoding='utf-8'))
-                csv_file = json_file.with_suffix('.csv')
-                items.append({
-                    'run_id': json_file.stem,
-                    'timestamp': data.get('timestamp', json_file.stat().st_mtime),
-                    'mode': data.get('mode'),
-                    'execution': data.get('execution'),
-                    'duration': data.get('duration'),
-                    'speed': data.get('speed'),
-                    'has_csv': csv_file.exists(),
-                    'annotations': data.get('annotations', {})
-                })
-            except Exception:
-                continue
-        return items
+        return run_journal.list_runs(self.map_path.parent / 'runs')
 
     @locked
     def annotate_run(self, run_id, displacement_cm=None, surface=None, notes=None):
-        if not isinstance(run_id, str) or not run_id.startswith('web-') or not run_id[4:].isdigit():
-            raise ValueError('Invalid run ID')
-        json_file = self.map_path.parent / 'runs' / f'{run_id}.json'
-        if not json_file.exists():
-            raise ValueError(f"Run {run_id} not found")
-        data = json.loads(json_file.read_text(encoding='utf-8'))
-        annotations = data.get('annotations', {})
-        if displacement_cm is not None:
-            annotations['displacement_cm'] = runner.number(displacement_cm, 'displacement_cm', -10000, 10000)
-        if surface is not None:
-            annotations['surface'] = str(surface).strip()[:100]
-        if notes is not None:
-            annotations['notes'] = str(notes).strip()[:1000]
-        data['annotations'] = annotations
-        atomic_json(json_file, data)
-        return annotations
+        return run_journal.annotate(self.map_path.parent / 'runs', run_id, displacement_cm, surface, notes)
 
     def close(self):
         self.cancel.set()

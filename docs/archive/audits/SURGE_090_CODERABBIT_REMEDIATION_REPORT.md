@@ -1,9 +1,9 @@
 # SURGE 090 — CodeRabbit Findings: Security & Reliability Remediation Report
 
-**Date:** 2026-10-30  
-**Baseline Scanned Revision:** `863aa5109a1629597fc8b4db88d830797357e4c5`  
-**Remediation Branch:** `main`  
-**Scope:** Gen 2 / Gen 2.1 ST3215 Radio & Servo Firmware, Gen 3 Web Dashboard, Operator Authentication, Session Transport, Watchdog Correctness, Reporting Pipeline.  
+**Date:** 2026-10-30\
+**Baseline Scanned Revision:** `863aa5109a1629597fc8b4db88d830797357e4c5`\
+**Remediation Branch:** `main`\
+**Scope:** Gen 2 / Gen 2.1 ST3215 Radio & Servo Firmware, Gen 3 Web Dashboard, Operator Authentication, Session Transport, Watchdog Correctness, Reporting Pipeline.\
 **Execution Constraints Enforced:** Mock/isolated tests only; zero live-hardware transmission, zero servo bus actuation, zero firmware flashing to connected hardware, zero EEPROM writes to physical boards.
 
 ---
@@ -266,8 +266,8 @@ A  tests/test_coderabbit_remediation.py
 An independent revalidation audit was performed on the remediations in Sections 1–3 to eliminate non-cryptographic algorithms and address residual exposure in realistic deployment scenarios:
 
 1. **Standard RFC 2104 HMAC-SHA256 Upgrade (CR-01, CR-10):**
-   - The initial keyed FNV-1a hash was replaced with standard **FIPS 180-4 SHA-256** and **RFC 2104 HMAC-SHA256** implemented in [`gen2-st3215/firmware/common/surge_auth.h`](../../gen2-st3215/firmware/common/surge_auth.h).
-   - Binary command packet [`AuthRobotCommand`](../../gen2-st3215/firmware/common/surge_auth.h) expanded to 28 bytes with a 128-bit truncated HMAC tag over `(magic, version, opcode, seq, epoch)`.
+   - The initial keyed FNV-1a hash was replaced with standard **FIPS 180-4 SHA-256** and **RFC 2104 HMAC-SHA256** implemented in [`gen2-st3215/firmware/common/surge_auth.h`](../../../generations/gen2-st3215/firmware/common/surge_auth.h).
+   - Binary command packet [`AuthRobotCommand`](../../../generations/gen2-st3215/firmware/common/surge_auth.h) expanded to 28 bytes with a 128-bit truncated HMAC tag over `(magic, version, opcode, seq, epoch)`.
    - Text command protocol upgraded to `AUTH,<seq>,<tag_hex_16>,<raw_command>`, where `<tag_hex_16>` is an 8-byte HMAC-SHA256 calculated over `<seq>:<raw_command>`.
    - Monotonic sequence freshness verification ensures stale or replayed frames are rejected. Epoch nonce handling permits clean sequence resets after transmitter reboot.
 
@@ -277,7 +277,7 @@ An independent revalidation audit was performed on the remediations in Sections 
    - Emergency stop (`STOP`) is accepted immediately from any source (authenticated or unauthenticated) without cryptographic dependencies, prioritizing life safety (Category 0 / torque cutoff) over denial-of-service per IEC 61508 / ISO 13849.
 
 3. **Telemetry Provenance & Freshness (CR-05):**
-   - Implemented [`AuthRobotTelemetry`](../../gen2-st3215/firmware/common/surge_protocol.h) (82 bytes) with 128-bit HMAC-SHA256 tag protecting timestamp, sequence number, and all 10 servo feedback records.
+   - Implemented [`AuthRobotTelemetry`](../../../generations/gen2-st3215/firmware/common/surge_protocol.h) (82 bytes) with 128-bit HMAC-SHA256 tag protecting timestamp, sequence number, and all 10 servo feedback records.
    - Base station validates telemetry MAC, HMAC-SHA256 signature, and monotonic sequence counter to prevent replay and false joint-angle feedback.
 
 4. **Remote Access & Reverse Proxy Security (CR-08):**
@@ -291,8 +291,8 @@ An independent revalidation audit was performed on the remediations in Sections 
    - Maintained 10,000 maximum error sample computation budget and 20-entry cache clearing limit.
 
 6. **Credential Isolation (No Production Secrets in Git):**
-   - Production radio authentication key isolated in gitignored header [`gen2-st3215/firmware/common/surge_credentials.h`](../../gen2-st3215/firmware/common/surge_credentials.h).
-   - Clean template committed as [`gen2-st3215/firmware/common/surge_credentials.h.example`](../../gen2-st3215/firmware/common/surge_credentials.h.example).
+   - Production radio authentication key isolated in gitignored header `gen2-st3215/firmware/common/surge_credentials.h` (local configuration, `surge_credentials.h`).
+   - Clean template committed as [`gen2-st3215/firmware/common/surge_credentials.h.example`](../../../generations/gen2-st3215/firmware/common/surge_credentials.h.example).
 
 ### 7.2 Updated Automated Verification Results
 

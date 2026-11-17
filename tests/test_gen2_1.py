@@ -177,13 +177,30 @@ class RuntimeTests(unittest.TestCase):
         self.assertLess(self.c.manual.yaw, .8)
         self.assertEqual(self.c.state['params']['amp'], .8)
 
-    def test_controller_timeout_stops(self):
+    def test_configured_controller_timeout_stops(self):
         import time
         self.c.pause()
-        self.c.controller(dict(btn_start=True, sequence=0, captured_at=time.time(), deadman=True, throttle=1), now=1)
-        self.c.tick(.02, now=2)
+        with patch('surge_control.manual.ManualController.timeout', .5):
+            self.c.controller(dict(btn_start=True, sequence=0, captured_at=time.time(), deadman=True, throttle=1), now=1)
+            self.c.tick(.02, now=2)
         self.assertTrue(self.c.state['is_paused'])
         self.assertFalse(self.f.sent)
+
+    def test_default_controller_keeps_running_until_release_or_stop(self):
+        import time
+        for stop_input in ({'deadman': False}, {'btn_stop': True}):
+            with self.subTest(stop_input=stop_input):
+                self.c.pause()
+                self.c.controller(dict(btn_start=True, sequence=0, captured_at=time.time(), deadman=True, throttle=1), now=1)
+                self.assertIsNone(self.c.manual.timeout)
+                self.c.tick(.02, now=2)
+                self.assertFalse(self.c.state['is_paused'])
+                writes = len(self.f.sent)
+                self.assertGreater(writes, 0)
+                self.c.controller(stop_input, now=2)
+                self.c.tick(.02, now=2.02)
+                self.assertTrue(self.c.state['is_paused'])
+                self.assertEqual(len(self.f.sent), writes)
 
     def test_reverse_advances_negative_phase(self):
         self.c.state["is_reversed"] = True
@@ -206,7 +223,7 @@ class RuntimeTests(unittest.TestCase):
         ticks, angles = gait.calculate_positions(.5, 1)
         self.assertEqual(len(ticks), 10)
         for i in ticks:
-            self.assertTrue(1252 <= ticks[i] <= 2844)
+            self.assertTrue(796 <= ticks[i] <= 3300)
             self.assertAlmostEqual(angles[i], (ticks[i]-2048)*2*math.pi/4096)
 
     def test_clear_path_resets_pose_and_pauses(self):
@@ -455,8 +472,8 @@ class PreservationTests(unittest.TestCase):
     def test_gen3_dry_run_targets_are_bounded(self):
         module = load("experimental", "generations/gen3-experimental-3d/test_3d_snake.py")
         targets = module.positions_at(.4)
-        self.assertEqual(len(targets),10)
-        self.assertTrue(all(1252 <= v <= 2844 for v in targets.values()))
+        self.assertEqual(len(targets), module.NUM_JOINTS)
+        self.assertTrue(all(796 <= v <= 3300 for v in targets.values()))
 
 
 class BenchLauncherTests(unittest.TestCase):

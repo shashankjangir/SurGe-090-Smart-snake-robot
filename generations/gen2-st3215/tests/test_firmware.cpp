@@ -24,7 +24,7 @@ int main() {
   assert(millis() - g_gait_t0 < 100);
   for (auto goal:Serial1.goals) assert(std::abs((int)goal - 2048) <= 10);
   for (int i=0;i<200;++i) loop();
-  for (auto goal:Serial1.goals) assert(goal >= 1252 && goal <= 2844);
+  for (auto goal:Serial1.goals) assert(goal >= 796 && goal <= 3300);
 
   Serial1.respond = false;
   for (int i=0;i<100 && g_mode != MODE_IDLE;++i) loop();

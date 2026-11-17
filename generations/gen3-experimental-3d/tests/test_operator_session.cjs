@@ -27,9 +27,13 @@ const context = {
 };
 const settle = () => new Promise(resolve => setImmediate(resolve));
 (async () => {
-    const html = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/templates/index.html', 'utf8');
-    assert(/src="\/static\/common\.js(\?v=[^"]*)?"/.test(html), 'Dashboard must load session handler');
-    vm.runInNewContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/operator-session.js', 'utf8'), context);
+    const html = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html', 'utf8');
+    const shared = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/templates/components/dashboard-scripts.html');
+    assert(html.includes("{% include 'components/dashboard-scripts.html' %}"));
+    assert(shared.includes('src="/static/components/operator-login.js?'), 'Dashboard must load session handler');
+    vm.createContext(context);
+    vm.runInContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/data/operator-session.js', 'utf8'), context);
+    vm.runInContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/components/operator-login.js'), context);
     await settle();
     assert.equal(elements['mode-badge'].textContent, 'Viewer');
     assert.equal(elements['user-badge'].style.display, 'none');

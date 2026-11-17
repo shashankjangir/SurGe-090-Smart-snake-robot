@@ -19,7 +19,7 @@ assert(cssContent.includes('#distorted-glass-filter'), 'Must reference distorted
 assert(cssContent.includes('#headlight-glass-filter'), 'Must reference headlight-glass-filter SVG');
 
 // 2. Verify JS component logic and SVG filter generation
-const { createDistortedGlassDefs, initDistortedGlass, DISTORTED_GLASS_SVG_ID } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/distorted-glass.js'));
+const { createDistortedGlassDefs, initDistortedGlass, DISTORTED_GLASS_SVG_ID } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/distorted-glass.js'));
 
 // Mock a lightweight DOM environment for testing
 class MockElement {

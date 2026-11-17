@@ -87,7 +87,7 @@ global.window = {
   listeners: {},
 };
 
-const PixelSnakeHeading = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pixel-snake-heading.js'));
+const PixelSnakeHeading = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/pixel-snake-heading.js'));
 
 async function runTests() {
   console.log('--- Testing PixelSnakeHeading Component ---');
@@ -217,16 +217,18 @@ async function runTests() {
   // Test 6: Template Integration Check
   {
     console.log('Test 6: Template links check (gen3.html & index.html)...');
-    const gen3Path = path.resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html');
-    const indexPath = path.resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/index.html');
+    const gen3Path = path.resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html');
+    const indexPath = path.resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html');
 
     const gen3Html = readAsset(gen3Path, 'utf8');
     const indexHtml = readAsset(indexPath, 'utf8');
 
     assert(gen3Html.includes('components.css'), 'gen3.html must include pixel-snake-heading.css');
-    assert(gen3Html.includes('common.js'), 'gen3.html must include pixel-snake-heading.js');
+    assert(gen3Html.includes("{% include 'components/dashboard-scripts.html' %}"));
     assert(indexHtml.includes('components.css'), 'index.html must include pixel-snake-heading.css');
-    assert(indexHtml.includes('common.js'), 'index.html must include pixel-snake-heading.js');
+    assert(indexHtml.includes("{% include 'components/dashboard-scripts.html' %}"));
+    const shared = readAsset(path.resolve(__dirname, '../backend/web_dashboard/templates/components/dashboard-scripts.html'));
+    assert(shared.includes('src="/static/components/pixel-snake-heading.js?'));
 
     console.log('  PASS: Template integration verified for both Gen 3 and Gen 2.1');
   }

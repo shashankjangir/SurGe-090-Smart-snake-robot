@@ -1,22 +1,26 @@
 #pragma once
+#include <cassert>
 #include "Arduino.h"
 #define SMS_STS_TORQUE_ENABLE 40
 #define SMS_STS_GOAL_POSITION_L 42
 #define SMS_STS_GOAL_SPEED_L 46
 struct SMS_STS {
+  static constexpr int maxID = 12;
   HardwareSerial *pSerial = nullptr;
   int IOTimeOut = 0, Error = 0, failID = 0, torqueFailID = 0, torqueOffFailID = 0;
   int lostWriteAckID = 0, lostTorqueAckID = 0, failedReadID = 0;
-  int goal[11] = {}, speed[11] = {};
-  bool torque[11] = {};
+  int goal[maxID + 1] = {}, speed[maxID + 1] = {};
+  bool torque[maxID + 1] = {};
   std::vector<int> targets;
   int EnableTorque(int id,int on) {
+    assert(id >= 1 && id <= maxID);
     Error = 0;
     if (on && id==torqueFailID) { Error = 32; return 0; }
     if (!on && id==torqueOffFailID) return 0;
     torque[id]=on; return id==lostTorqueAckID ? 0 : 1;
   }
   int WritePosEx(int id,int pos,int velocity,int) {
+    assert(id >= 1 && id <= maxID);
     Error = 0;
     if (id==failID) return 0;
     goal[id]=pos; speed[id]=velocity; targets.push_back(pos);
@@ -30,11 +34,13 @@ struct SMS_STS {
   int ReadTemper(int) { return 30; }
   int Ping(int id) { return id; }
   int readByte(int id,int address) {
+    assert(id >= 1 && id <= maxID);
     Error = 0;
     if (id==failedReadID) return -1;
     return address==SMS_STS_TORQUE_ENABLE ? torque[id] : 1;
   }
   int readWord(int id,int address) {
+    assert(id >= 1 && id <= maxID);
     Error = 0;
     if (id==failedReadID) return -1;
     return address==SMS_STS_GOAL_POSITION_L ? goal[id] : speed[id];

@@ -3,13 +3,13 @@ const assert = require('assert');
 const vm = require('vm');
 const path = require('path');
 
-const source = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3.js'), 'utf8');
+const source = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-status.js'), 'utf8');
 const pollSource = source.slice(source.indexOf('async function poll()'), source.indexOf('async function pollSystemStats()'));
 const elements = {};
 function element(id) {
-  return elements[id] ||= { textContent: '', innerHTML: '', hidden: false, disabled: false, className: '', dataset: {}, classList: { add() {}, toggle() {}, remove() {} } };
+  return elements[id] ||= { value: '', textContent: '', innerHTML: '', hidden: false, disabled: false, className: '', dataset: {}, classList: { add() {}, toggle() {}, remove() {} } };
 }
-const rows = Array.from({ length: 10 }, () => ({ cells: [{}, {}, { textContent: 'Valid' }] }));
+const rows = Array.from({ length: 12 }, () => ({ cells: [{}, {}, { textContent: 'Valid' }] }));
 element('telemetry-body').children = rows;
 const jobs = [{ disabled: false }];
 let fail = true;
@@ -23,15 +23,17 @@ const context = {
   document: { getElementById: element, querySelector: () => element('timers'), querySelectorAll: () => jobs },
   showError: error => { element('error').textContent = error ? error.message : ''; },
   formatRunTime: () => '00:00', checkDraftDifferences() {}, currentIsOperator: true,
+  refreshHardwareMetrics: async () => {}, capturedPose: null,
   pendingAction: false, currentConfig: null, currentRunId: null, appliedSettings: null,
-  lastKnownOperator: undefined, statusOnline: true, Date, Math, Boolean, Error,
+  lastKnownOperator: undefined, statusOnline: true, JOINT_COUNT: 12, Date, Math, Boolean, Error,
 };
 vm.createContext(context);
 context.window = {};
-vm.runInContext(readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/motion-state.js'), 'utf8'), context);
+vm.runInContext(readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/motion-state.js'), 'utf8'), context);
 context.MotionState = context.window.MotionState;
 // poll() renders bus metrics; load that helper the way the page does.
-vm.runInContext(source.slice(source.indexOf('function renderBusMetrics('), source.indexOf('function renderDiagnostics(')), context);
+const hardware = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-hardware.js');
+vm.runInContext(hardware.slice(hardware.indexOf('function renderBusMetrics('), hardware.indexOf('function renderDiagnostics(')), context);
 // Telemetry table helpers sit just above poll().
 vm.runInContext(source.slice(source.indexOf('function countsToDegrees('), source.indexOf('async function poll()')), context);
 vm.runInContext(pollSource, context);
@@ -45,7 +47,7 @@ vm.runInContext(pollSource, context);
   assert(!element('floating-stop-btn').disabled);
   fail = false;
   await context.poll();
-  assert.equal(element('status').textContent, 'idle');
+  assert.equal(element('status').textContent, 'idle', element('error').textContent);
   assert.equal(element('feedback-age').textContent, 'Feedback: not sampled');
   assert(!jobs[0].disabled && !element('btn-start').disabled);
   context.currentIsOperator = false;

@@ -1,5 +1,7 @@
 # Snake gait presets from primary sources (SURGE 090 Gen 3)
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Researched 3 November 2026. Scope: map the published gaits for modular snake robots onto
 the SURGE 090 gait generator (`generations/gen3-experimental-3d/gait.py`, `targets_at`).
 No hardware was commanded for this note. Anything marked **unverified** was not confirmed
@@ -210,7 +212,7 @@ Other caveats:
 - With 5 samples per axis, waves are coarse (see the aliasing note in §0).
 - Marvi reports that the robot's open-loop sidewinding failed on sand slopes until contact length
   was increased. Our presets are for hard, level ground.
-- Joint limits are about ±70° (counts 1252–2844), so keep `A + |bias| ≤ 60°` for margin.
+- Joint limits are about ±110° (counts 796–3300; ±70° / 1252–2844 when these presets were scored), so keep `A + |bias| ≤ 60°` for margin.
 
 ## 3. Recommended presets
 
@@ -248,7 +250,7 @@ All simulation peaks are at or below 2011 counts/s, under 3000.
 | Lateral rolling | 25 | 25 | 0 | 0.15 | 0 | 90 | 3 | **417** |
 
 All hardware peaks are at or below 643 counts/s, which is 43 % of 1500. Every case keeps
-`A + |bias| ≤ 35°`, well inside ±70°. Helix and double linear progression are left off the
+`A + |bias| ≤ 35°`, well inside ±110°. Helix and double linear progression are left off the
 hardware list because they need a pipe or pole.
 
 Hardware notes:

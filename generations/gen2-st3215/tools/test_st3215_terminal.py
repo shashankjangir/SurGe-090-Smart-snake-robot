@@ -27,7 +27,7 @@ def main():
     ok, message = iface.connect()
     if not ok:
         raise RuntimeError(message)
-    print("p <id> <1252..2844> | c: center | t: feedback | i <new-id>: ONE servo only | q: quit")
+    print("p <id> <796..3300> | c: center | t: feedback | i <new-id>: ONE servo only | q: quit")
     try:
         while True:
             parts = input("> ").lower().split()
@@ -42,8 +42,8 @@ def main():
                     print(iface.read_telemetry())
                 elif len(parts) == 3 and parts[0] == "p":
                     sid, position = map(int, parts[1:])
-                    if not 1 <= sid <= 2 or not 1252 <= position <= 2844:
-                        raise ValueError("ID must be 1..2; position 1252..2844")
+                    if not 1 <= sid <= 2 or not 796 <= position <= 3300:
+                        raise ValueError("ID must be 1..2; position 796..3300")
                     move(iface, {sid: position})
                 elif len(parts) == 2 and parts[0] == "i":
                     sid = int(parts[1])

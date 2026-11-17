@@ -127,7 +127,7 @@ global.document = {
 global.window = {};
 
 // Load component code
-const code = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/morphing-button.js'), 'utf8');
+const code = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/morphing-button.js'), 'utf8');
 eval(code);
 
 const morphingBtn = global.window.morphingPasswordButton;

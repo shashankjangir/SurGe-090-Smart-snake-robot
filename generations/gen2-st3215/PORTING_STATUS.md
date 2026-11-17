@@ -1,12 +1,14 @@
 # PORTING STATUS: gen2-st3215
 
+This page preserves the September port and November follow-up log. Current dashboard setup is in the [setup guide](../../docs/START_HERE.md). Receiver installation and physical protections are in the [handoff](../../docs/GEN3_HANDOFF.md). The split-bus fuse layout below is a proposal. The last owner report says fuses are absent. Current host control uses the Gen 2.1 receiver/transmitter pair, with twelve-motor receiver source for Gen 3.
+
 > **Updated 24 Sep 2026.** What we did before and what we do now is recorded in [What changed](#what-changed) at the end of this file.
 
 Control code now targets **Waveshare ST3215 + Feetech STS @ 1 Mbps**, not Dynamixel.
 
 | Path | Role |
 |---|---|
-| `firmware/robot_esp32_v2` | **Field master (current)**: gait, stall FSM, MPU6050, ESP-NOW, limp boot, per-group soft start, ±70° limits, low-battery/over-temp stop |
+| `firmware/robot_esp32_v2` | **Field master (current)**: gait, stall FSM, MPU6050, ESP-NOW, limp boot, per-group soft start, ±110° limits, low-battery/over-temp stop |
 | `firmware/robot_esp32` | *Superseded* by `robot_esp32_v2` |
 | `firmware/base_esp32` | ESP32 #2: ESP-NOW → USB serial for Pi 5 |
 | `firmware/usb_servo_bridge` | USB CDC @ 1 Mbps ↔ servo UART (Python bench) |

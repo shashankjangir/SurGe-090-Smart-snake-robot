@@ -6,9 +6,13 @@ I use the simulator to see whether the control calculation produces the intended
 
 Start the dashboard using [the setup guide](../START_HERE.md), open /gen3 and log in. Select Simulation, choose a gait preset or set the gait sliders, and connect PyBullet. Simulation runs use the widest limits the server accepts (speed 3000 counts/s, tracking error 796 counts, tracking timeout 2 s); there is no limits card to verify. Joint position limits still come from the joint map. Hardware is a separate workspace with its own Dry run setting.
 
+Shared yaw and pitch gait amplitudes are limited to 0–90° and shared bias to ±90°. Every generated joint target must also fit that joint's saved limits. The maintained map allows 796–3300 counts, or ±110° around neutral 2048. Hardware keeps its saved speed 2144 counts/s, tracking error 492 counts and timeout 0.5 seconds.
+
 Choose a short waveform first. The simulation panel also supports straight, broad-S and drawn routes. Stop before editing a route. Its controller can use the selected workspace route; it does not create a second route follower.
 
 ## Gait presets
+
+Since 7 November 2026 the simulation uses 12 joints / 13 links ([12-motor upgrade](../hardware/12_MOTOR_UPGRADE.md)). The travel figures below were measured with 10 joints and need a rerun.
 
 The simulation defaults are yaw 40°, pitch 25°, 0.5 Hz, lag 90°, offset 90°. Each preset below was run headless in PyBullet for 20 s with a 2 s ramp on 3 November 2026. Forward means toward the head. Flat-ground simulation is not physical proof; lateral undulation in particular depends on floor friction. Sources and the mapping from published gait equations are in [the gait preset research](../research/snake-gait-presets.md).
 
@@ -27,6 +31,16 @@ The simulation defaults are yaw 40°, pitch 25°, 0.5 Hz, lag 90°, offset 90°.
 | Helix / corkscrew | 30° / 30° | 0.4 | 108° | 90° | 0° | 63 cm sideways (meant for a pole or pipe) |
 | Lifted undulation | 25° / 30° | 0.4 | 90° | 0° | 0° | 100 cm, mostly sideways |
 
+### 3D Motions (controller steered)
+
+3D Motions is the first item in the Simulation preset list. Its wave is lateral undulation (yaw 40°, pitch 0°, 0.5 Hz, lag 90°) and only propels; the controller decides where the snake goes. Load the preset, then use the Simulation Gamepad card (hold LB, press A, hold RT). Left stick left/right moves the desired heading (up to 45°/s, never more than 60° ahead of the body). Up/down sets the desired head pitch (up to +30°, down to −15°). Every control update compares that direction with the body's measured heading and head pitch in PyBullet and recomputes all twelve servo targets.
+
+- Turning is follow-the-leader. The new yaw curvature is laid on the path at the head, and each yaw joint takes the curvature at its own place on that path. A turn therefore starts at the head and travels down the body at the wave speed, about 2.5 s from head to tail. Each yaw joint gets at most 25° of extra bend on top of the wave and stays inside the joint limits. Reversing the stick restarts from the current heading. Releasing it lets the body finish at most 10° more of the turn and then holds that heading.
+- Up/down drives a neck: ID 1 and ID 3 lift the front three links (about 7–8 cm at 30°), and ID 2 stops swinging while the head is up. The rest of the body stays on the floor and keeps pushing. A neck reaching to ID 5 was rolled over by the body's sideways swing, so it was not used. The head cannot go below the floor.
+- The 3D STEER line in the viewport HUD and the controller status show current → desired heading and head pitch.
+
+Measured in headless PyBullet on 4 November 2026: holding straight drifted ≤1.4° over 5.4 m. Full left turned the body about 20°/s, and releasing the stick held the new heading. Full up raised the head to 28–33°, and full down returned it to the floor. Turns with the head raised are slower, about 3–4°/s, because three fewer links touch the floor. 3D Motions is refused on hardware until it has been trialled; Dry run accepts it. It does not appear in the Hardware 3D Gait Preset menu.
+
 Lifted undulation only approximates sinus lifting: true sinus lifting needs the pitch wave at twice the yaw frequency, which the generator cannot produce. Concertina and two-half turning in place need per-joint overrides or scripting and are not presets.
 
 The same list fills the Hardware tab's 3D Gait Preset menu, which copies only the waveform; hardware speed, ramp and duration stay in the Hardware draft. Hardware Quick Presets are separate, hardware-sized versions (speed limit 900 counts/s, ramp 2.5–3 s, 30 s, peak demand 417–643 counts/s): lateral undulation 30° forward and reverse, sidewinding 30°/10° right and left, lateral rolling 25°, and caterpillar crawl 20° forward. They pass the map's speed and joint-limit checks but have not run on the robot.
@@ -37,7 +51,7 @@ The browser shows the intended ground route in blue, the head trail in orange an
 
 PyBullet integrates articulated bodies with gravity, joint motors and ground contact. The route controller changes joint targets. The robot's base is not teleported along the drawn route to make it look successful.
 
-The V2 assembly export supplies the head, nine middle bodies, tail and motor geometry. In the recorded CAD export, the first joint is about 20.61 mm from the head reference, with subsequent pivots about 58.37 mm apart. All neutral servo counts are 2048. The head reference is the rigid body upstream of servo 1, not the last link.
+The original V2 export supplies the head, nine middle bodies, tail and motor geometry. The current 12-joint web assets extend it to a head, eleven middle bodies and a tail. The extra middle modules are cloned placeholders pending a native 12-motor assembly export. In the recorded CAD export, the first joint is about 20.61 mm from the head reference, with subsequent pivots about 58.37 mm apart. All neutral servo counts are 2048. The head reference is the rigid body upstream of servo 1.
 
 The browser uses Three.js meshes. Collision geometry and inertia are simplified for PyBullet. Mass, friction and contact parameters remain illustrative; they have not been fitted to measured motion of the assembled robot.
 

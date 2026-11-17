@@ -1,5 +1,7 @@
 # SURGE 090: AI-look remediation plan
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Date: 2 November 2026  
 Status: Proposal only — no implementation authorized by this document.  
 Scope: Gen 2.1 `/`, Gen 3 `/gen3`, their shared chrome, and viewer presentation affected by shared changes.
@@ -273,7 +275,7 @@ After the UI is implemented, run the Impeccable detector on changed UI targets a
 - Assumption: repeated operation is the primary use, not a public product demonstration. Existing control structure and the handoff support this. Validate with a short operator walkthrough before adopting any broader redesign.
 - Assumption: removing decorative identity is acceptable when the robot, wordmark and restrained yellow remain. A future marketing surface can carry more expression without changing this console.
 - Assumption: annotation data can distinguish absent values from zero. Confirm actual API fixtures; if it cannot, report that contract gap rather than infer measurements.
-- Keep current map values: pitch ID 1 `+1`, pitch IDs 3/5/7/9 `-1`, all yaw IDs `+1`, zero `2048`, min/max `1252/2844`, speed `1500`, tracking error `216`, timeout `0.5`, calibrated `true`. These are the inspected JSON values, not replacement defaults. Older handoff paragraphs mentioning speed 500/error 25 do not override the file.
+- The map inspected for this 2 November plan had: pitch ID 1 `+1`, pitch IDs 3/5/7/9 `-1`, all yaw IDs `+1`, zero `2048`, min/max `796/3300`, speed `1500`, tracking error `216`, timeout `0.5`, calibrated `true`. These are the values inspected during that session. Use the maintained map, now twelve joints with speed 2144 and tracking error 492, for any current review. Older handoff paragraphs mentioning speed 500/error 25 do not override the file.
 - Simulation geometry/contact and loaded locomotion remain limited by measured evidence. Styling must not imply a validated digital twin, autonomous navigation or field safety. Preserve those distinctions.
 - No new framework, styling system, GSAP installation, icon library, chart library, universal motion catalog, dark-theme redesign, synthetic telemetry, generated robot imagery, new route, or commissioning wizard.
 - No hardware connection, serial query, motion trial, firmware upload, calibration edit, API/security relaxation, stored-data migration, commit or deployment is part of this plan.

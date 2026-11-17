@@ -247,14 +247,14 @@
               <div class="sim-group-content">
                 <div class="input-group">
                   <label for="sim-param-yaw-amp">Yaw amplitude (°): <span id="val-sim-yaw-amp" style="font-family: monospace;">40</span>°</label>
-                  <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="110" step="1" value="40" aria-describedby="help-sim-yaw">
-                  <span class="physics-help" id="help-sim-yaw">Yaw IDs 2/4/6/8/10/12 · max ±110°.</span>
+                  <input type="range" id="sim-param-yaw-amp" class="sim-param" min="0" max="{{ gait_angle_limit }}" step="1" value="40" aria-describedby="help-sim-yaw">
+                  <span class="physics-help" id="help-sim-yaw">Yaw IDs 2/4/6/8/10/12 · amplitude up to {{ gait_angle_limit }}°.</span>
                 </div>
 
                 <div class="input-group">
                   <label for="sim-param-pitch-amp">Pitch amplitude (°): <span id="val-sim-pitch-amp" style="font-family: monospace;">25</span>°</label>
-                  <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="110" step="1" value="25" aria-describedby="help-sim-pitch">
-                  <span class="physics-help" id="help-sim-pitch">Pitch IDs 1/3/5/7/9/11 · max ±110°.</span>
+                  <input type="range" id="sim-param-pitch-amp" class="sim-param" min="0" max="{{ gait_angle_limit }}" step="1" value="25" aria-describedby="help-sim-pitch">
+                  <span class="physics-help" id="help-sim-pitch">Pitch IDs 1/3/5/7/9/11 · amplitude up to {{ gait_angle_limit }}°.</span>
                 </div>
 
                 <div class="input-group">
@@ -365,15 +365,15 @@
             <div class="gait-params-grid">
               <div class="control-group" title="Horizontal amplitude">
                 <label for="yaw">Yaw Amp (°)</label>
-                <input id="yaw" type="number" min="0" max="110" step="0.5" value="5" required>
+                <input id="yaw" type="number" min="0" max="{{ gait_angle_limit }}" step="0.5" value="5" required>
               </div>
               <div class="control-group" title="Vertical amplitude">
                 <label for="pitch">Pitch Amp (°)</label>
-                <input id="pitch" type="number" min="0" max="110" step="0.5" value="5" required>
+                <input id="pitch" type="number" min="0" max="{{ gait_angle_limit }}" step="0.5" value="5" required>
               </div>
               <div class="control-group" title="Steering offset">
                 <label for="bias">Yaw Bias (°)</label>
-                <input id="bias" type="number" min="-110" max="110" step="0.5" value="0" required>
+                <input id="bias" type="number" min="-{{ gait_angle_limit }}" max="{{ gait_angle_limit }}" step="0.5" value="0" required>
               </div>
               <div class="control-group" title="Wave speed">
                 <label for="frequency">Freq (Hz)</label>
@@ -584,11 +584,11 @@
             <div class="controls-grid" style="grid-template-columns: 1fr 1fr; gap: 8px;">
               <div class="control-group">
                 <label for="runs-sim-yaw">Yaw Amp (°)</label>
-                <input id="runs-sim-yaw" type="number" min="0" max="110" step="1" value="30">
+                <input id="runs-sim-yaw" type="number" min="0" max="{{ gait_angle_limit }}" step="1" value="30">
               </div>
               <div class="control-group">
                 <label for="runs-sim-pitch">Pitch Amp (°)</label>
-                <input id="runs-sim-pitch" type="number" min="0" max="110" step="1" value="25">
+                <input id="runs-sim-pitch" type="number" min="0" max="{{ gait_angle_limit }}" step="1" value="25">
               </div>
               <div class="control-group">
                 <label for="runs-sim-freq">Freq (Hz)</label>

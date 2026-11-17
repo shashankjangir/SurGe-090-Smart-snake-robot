@@ -1,5 +1,7 @@
 # Implementation Plan: Separate Simulation and Hardware Workspaces
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Date: 3 November 2026 · Status: **implemented and verified offline; supervised hardware trial pending** · Branch: `codex/controller-upgrades`
 
 ## Implementation record — 3 November 2026

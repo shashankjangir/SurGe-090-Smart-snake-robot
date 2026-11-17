@@ -173,7 +173,7 @@ class RoutePhysicsTest(unittest.TestCase):
             self.assertEqual(snapshot['simulation_state'], 'connected', snapshot['status'])
             self.assertEqual(snapshot['simulation_route']['state'], 'completed', snapshot['status'])
             self.assertTrue(snapshot['status'].startswith('Completed route'))
-            self.assertEqual(len(snapshot['simulation_poses']), 11)
+            self.assertEqual(len(snapshot['simulation_poses']), 13)
             self.assertEqual(snapshot['simulation_head']['position'], snapshot['simulation_links'][0])
             trace_file = map_path.parent / 'runs/routes' / (snapshot['run_id'] + '.json')
             self.assertGreater(len(json.loads(trace_file.read_text())['actual_path']), 20)

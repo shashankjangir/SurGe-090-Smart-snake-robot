@@ -8,7 +8,7 @@ Tags in comments:
   [PROV]     provisional Phase 1 proposal from section 1d (not a verified fit)
   [ASSUMED]  not in the register; needed for a calculation; labelled as an assumption
   [DERIVED]  computed here from other parameters
-  [MAP]      read from gen3-experimental-3d/joint_map.json (read only)
+  [MAP]      read from generations/gen3-experimental-3d/joint_map.json (read only)
 BLOCKS RELEASE marks values that must be measured before Phase 2.
 
 All lengths in millimetres, angles in degrees, masses in grams.
@@ -20,9 +20,9 @@ PROTOTYPE_LABEL = "PROTOTYPE: fit and load validation required"
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[2]
-SERVO_STEP = REPO / ".scratch/waveshare-research/ST3215-3D/ST3215.step"
-BOARD_STEP = REPO / ".scratch/waveshare-research/board-3D/Servo Driver with ESP32_STEP/Servo Driver with ESP32.step"
-JOINT_MAP = REPO / "gen3-experimental-3d/joint_map.json"
+SERVO_STEP = REPO / "generations/gen3-experimental-3d/cad/ST3215.step"
+BOARD_STEP = REPO / "generations/gen3-experimental-3d/cad/Servo Driver with ESP32.step"
+JOINT_MAP = REPO / "generations/gen3-experimental-3d/joint_map.json"
 OUT = ROOT / "out"
 REPORTS = ROOT / "reports"
 CACHE = ROOT / "out" / "_cache"

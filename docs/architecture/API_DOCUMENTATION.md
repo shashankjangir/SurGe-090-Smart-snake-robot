@@ -12,15 +12,17 @@ The implementation is [hardware.py](../../generations/gen3-experimental-3d/backe
 | --- | --- |
 | HELLO | Identification reply SURGE,2.1 |
 | RUN | Arms target acceptance; OK,RUN or OK,RUN,ALREADY_ARMED |
-| STOP | Disarms and requests torque-off on all ten motors; OK,STOP only when confirmed |
-| P,id:position:speed,... | Validates the whole target frame, clamps position to 1252–2844 and writes the servos |
+| STOP | Disarms and requests torque-off on all twelve motors; OK,STOP only when confirmed |
+| P,id:position:speed,... | Validates the whole target frame, clamps position to 796–3300 (±110°) and writes the servos |
 | T | Motor feedback as T,id:load:velocity:position,... |
 | D | Stopped-only diagnostic registers, torque, voltage, temperature and status |
 | MAINT,UNLOCK,CONFIRM | Opens the stopped EEPROM maintenance window for 15 seconds |
 | I,new_id | One-servo ID programming, allowed only after maintenance unlock; relocks afterward |
 | OTA | Local USB maintenance entry on the receiving board itself |
 
-Omitting speed in P uses the receiver default 2400. The protocol permits speeds 1–3400; Gen 3 validates its own 1–3000 command envelope and the current map saves 1500. Those are three different settings.
+Omitting speed in P uses the receiver default 2400. The protocol permits speeds 1–3400; Gen 3 validates its own 1–3000 command envelope and the current map saves 2144. Those are three different settings.
+
+The table describes the current receiver source. The [handoff](../GEN3_HANDOFF.md) records the last flashed pair and the outstanding reflash for the widened joint limits. Verify the installed build before relying on its position range.
 
 Unarmed position frames are ignored. Duplicate IDs, invalid targets or servo faults stop the receiver. Missing acknowledgements are checked against fresh register read-back where supported; failed or mismatched reads do not count as success.
 
@@ -49,3 +51,5 @@ The Flask routes are defined in [web_app.py](../../generations/gen3-experimental
 The route families above describe source organisation, not interchangeable request payloads. Read the matching route function and tests before writing an API client. Mutations need the appropriate operator/session checks; public Stop remains available. Do not replace the browser's ownership and confirmation sequence with an unauthenticated script.
 
 See [software](../SOFTWARE.md) for runtime ownership and [OTA](../operations/FIRMWARE_OTA.md) for update commands.
+
+The maintained browser's saved-record calls are in [gen3-records.js](../../generations/gen3-experimental-3d/backend/web_dashboard/static/data/gen3-records.js). Server persistence is in [surge_control/data/](../../generations/gen3-experimental-3d/backend/surge_control/data/), with validation and locking retained in `Gen3Control`. Shared gait amplitudes are capped at 90° and shared bias at ±90°. Per-joint travel follows the saved map, currently ±110°.

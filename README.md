@@ -1,30 +1,33 @@
-# SURGE-090: my smart snake robot
+# SURGE-090 smart snake robot
 
-I am Shashank Jangir. This repository contains our snake robot's CAD, firmware, control software and experiment records. The project is part of SURGE 2026 at IIT Delhi, supervised by Prof. Amartansh Dubey.
+SURGE-090 contains the CAD, ESP32 firmware, browser dashboard, Python controls and experiment records for a snake robot developed during SURGE 2026 at IIT Delhi under Prof. Amartansh Dubey. Shashank Jangir, Bhavesh Bansiwal and Mahima Chotiya are the named dashboard operators.
 
-We started with a Dynamixel prototype, moved to a planar ST3215 chain, and are now working on an alternating pitch/yaw robot. I use simulation to develop the controls and small physical trials to check the real mechanism. Reliable forward travel and physical autonomous navigation are still work in progress.
+The maintained Gen 3 robot has 12 ST3215 joints that alternate pitch and yaw. This checkout includes a planar Gen 2.1 simulator, a Gen 3 PyBullet simulator and hardware commissioning tools. Repeatable physical travel and autonomous navigation remain experimental.
 
-This guide describes the checkout on **3 November 2026**.
+Documentation reviewed on **17 November 2026**.
 
-| What you want to understand | Read |
+| Start with… | Guide |
 | --- | --- |
-| The idea, design and development | [My project story](docs/PROJECT.md) |
-| Installation and first run | [Start here](docs/START_HERE.md) |
-| Parts, assembly, wiring and calibration | [Hardware](docs/hardware/README.md) |
-| How the software works | [Software](docs/SOFTWARE.md) |
-| Connecting and operating the robot | [Operating guide](docs/operations/1_APP_USAGE_MANUAL.md) |
-| What we changed and what remains open | [Current status](docs/CURRENT_STATUS.md) |
-| Source locations and verification | [Folder guide](docs/REPOSITORY_LAYOUT.md) |
-| Earlier versions of these guides | [Dated archive](docs/archive/2026-11-03/README.md) |
+| Installation and first simulation | [Start here](docs/START_HERE.md) |
+| The robot's development | [Project story](docs/PROJECT.md) |
+| Parts, wiring and calibration | [Hardware](docs/hardware/README.md) |
+| Frontend and backend structure | [Software](docs/SOFTWARE.md) |
+| Physical operation | [Operating guide](docs/operations/1_APP_USAGE_MANUAL.md) |
+| Verification and remaining work | [Current status](docs/CURRENT_STATUS.md) |
+| Source folders and checks | [Repository layout](docs/REPOSITORY_LAYOUT.md) |
 
-From the repository root on our development PC:
+After installing the dependencies, run this command from the repository root.
 
-```powershell
+~~~powershell
 conda run --no-capture-output -n surge python generations/gen3-experimental-3d/backend/web_dashboard/web_app.py
-```
+~~~
 
-Open [Gen 2.1](http://127.0.0.1:5000/) or [Gen 3](http://127.0.0.1:5000/gen3). Start in Simulation. The setup guide covers a fresh environment and operator login.
+Open [Gen 2.1](http://127.0.0.1:5000/) or [Gen 3](http://127.0.0.1:5000/gen3). The setup guide explains operator access and the first simulation.
 
-Before physical work, read the [handoff](docs/GEN3_HANDOFF.md) and current [joint map](generations/gen3-experimental-3d/joint_map.json). The last confirmed ports were COM6 for the receiver and COM7 for the PC transmitter. Identify the boards again if the USB setup changes.
+The [refined dashboard](generations/gen3-dashboard-refined/README.md) is an independent copy on port 5001. The [Raspberry Pi package](generations/rasp_pi/README.md) contains the older 10-joint code and map. Use the maintained Gen 3 code and matching map for the current robot.
 
-The OTA implementation has passed software checks but has not been physically installed or verified in this work. Releasing motor torque can let the pitch links fall, so the real robot needs support.
+Read the [handoff](docs/GEN3_HANDOFF.md) and [joint map](generations/gen3-experimental-3d/joint_map.json) before physical work. The last confirmed USB setup, recorded on 3 November, used COM6 for the receiver and COM8 for the transmitter. The OTA-capable pair was installed that day. The later 12-motor, wider-limit and Stop fixes still need a firmware installation and physical check. Support the pitch links when releasing torque.
+
+The 17 November checks passed in a publication-only export using the existing Windows development environment. [Current status](docs/CURRENT_STATUS.md) records the Python, Node, layout and documentation results. The [offline CI workflow](.github/workflows/python-package.yml) repeats these checks on GitHub with Python 3.11 and Node 22. Its GitHub run remains pending.
+
+Earlier guides remain in the [dated archive](docs/archive/2026-11-03/README.md).

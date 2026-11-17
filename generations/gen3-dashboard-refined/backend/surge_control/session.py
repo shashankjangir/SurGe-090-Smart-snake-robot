@@ -45,6 +45,7 @@ def load_operators_config(config_path=None):
 
 
 class SessionManager:
+    VIEWER_IDLE_TIMEOUT = 30 * 60.0
     HEARTBEAT_INTERVAL = 1.0
     LEASE_TIMEOUT = 30 * 60.0
     MOTION_TIMEOUT = None  # Owner request: motion does not stop when dashboard heartbeats pause.
@@ -59,16 +60,29 @@ class SessionManager:
         self.allowed_operators = tuple(self._config['operators'])
         self.canonical_map = {n.lower(): n for n in self.allowed_operators}
         self.sessions = {}
+        self.next_session_cleanup = 0.
         self.active_operator = None
         self.on_operator_leave = []
+
+    def prune_viewers(self, now):
+        if now < self.next_session_cleanup:
+            return
+        self.next_session_cleanup = now + 60
+        active_id = self.active_operator['session_id'] if self.active_operator else None
+        for session_id, session in list(self.sessions.items()):
+            if (session_id != active_id and session['role'] == 'viewer'
+                    and now - session['last_seen'] >= self.VIEWER_IDLE_TIMEOUT):
+                del self.sessions[session_id]
 
     def get_or_create(self, session_id=None):
         now = time.monotonic()
         if session_id and session_id in self.sessions:
             session = self.sessions[session_id]
             session['last_seen'] = now
+            self.prune_viewers(now)
             return session
 
+        self.prune_viewers(now)
         new_id = f"s_{uuid.uuid4().hex[:16]}"
         session = {
             'session_id': new_id,
@@ -191,9 +205,10 @@ class SessionManager:
 
     def check_lease_expiry(self):
         """Returns (is_expired, expired_operator_info)."""
+        now = time.monotonic()
+        self.prune_viewers(now)
         if self.lease_timeout is None:
             return False, None
-        now = time.monotonic()
         if self.active_operator and now >= self.active_operator['expires_at']:
             expired = self.active_operator
             self.active_operator = None

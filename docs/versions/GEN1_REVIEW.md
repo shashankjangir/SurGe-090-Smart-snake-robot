@@ -1,5 +1,7 @@
 # Gen 1 review — 16 October 2026
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 The Gen 1 overview now follows the same project-history style as the main README.
 It presents the original ten-motor architecture, explains the move to ST3215,
 and links the original reports, CAD and media. Procurement and test history
@@ -29,7 +31,7 @@ or controller retrofit.
 - The full regression suite was not rerun.
 
 The original overview is at
-[removed/pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md](../../removed/pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md).
+`removed/pre-gen1-docs-2026-10-16/gen1-dynamixel/README.md` (historical file unavailable in this checkout).
 Original baseline manifests remain unchanged. The preservation test now explicitly
 checks that archived overview alongside the unchanged original project files.
 

@@ -1,7 +1,7 @@
 const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/gen3-sim.js', 'utf8');
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-sim.js', 'utf8');
 const elements = {};
 const $ = id => elements[id] ||= {value: '', textContent: '', disabled: false, handlers: {}, style: {},
   clientWidth: 700, clientHeight: 500, addEventListener(type, fn) {this.handlers[type] = fn;},

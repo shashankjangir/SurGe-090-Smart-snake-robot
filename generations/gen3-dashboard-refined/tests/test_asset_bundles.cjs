@@ -14,14 +14,17 @@ for (const name of ['index.html', 'gen3.html', '3d_viewer.html']) {
   for (const asset of assets) assert(fs.existsSync(path.join(web, 'static', asset)), `${name}: missing ${asset}`);
   if (name === '3d_viewer.html') continue;
   const scripts = [...html.matchAll(/<script src="\/static\/([^"?]+)\?[^\"]*"([^>]*)><\/script>/g)];
-  assert.equal(scripts[0][1], 'generation-transition.js');
-  assert(!scripts[0][2].includes('defer'), 'Navigation bootstrap runs before parsing the body');
-  assert(scripts.slice(1).every(m => m[2].includes('defer')), 'Application bundles run after parsing, in order');
-  assert.equal(scripts[1][1], 'common.js');
-  assert.equal(scripts[2][1], name === 'index.html' ? 'gen21.js' : 'gen3.js');
+  assert(scripts.every(m => m[2].includes('defer')), 'Application bundles run after parsing, in order');
+  assert.equal(scripts[0][1], 'common.js');
+  assert.equal(scripts[1][1], name === 'index.html' ? 'gen21.js' : 'gen3.js');
+  assert(assets.indexOf('vendor/gsap-3.13.0.min.js') < assets.indexOf('refined.js'));
   if (name === 'gen3.html') {
     assert(assets.indexOf('gen3.css') < assets.indexOf('components.css'));
     assert(assets.indexOf('vendor/three-r128.min.js') < assets.indexOf('gen3-sim.js'));
   }
+}
+const common = fs.readFileSync(path.join(web, 'static/common.js'), 'utf8');
+for (const effect of ['shader-lens-blur.js', 'liquid-grid.js', 'pixel-snake-heading.js', 'hero-fluid-trail.js', 'hero-snake-motion.js']) {
+  assert(!common.includes(`/* asset: ${effect} */`), `Unused ${effect} must stay out of the refined bundle`);
 }
 console.log('Whole bundles parse; templates load existing assets once in dependency order');

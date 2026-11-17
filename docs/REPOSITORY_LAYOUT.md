@@ -1,62 +1,55 @@
-# Where I keep the project files
+# Repository layout
 
-I keep each robot generation together so an old motor interface or mechanical assumption does not get mistaken for the current one.
+The maintained dashboard and simulation live together under `generations/gen3-experimental-3d/`. Preserve that folder structure when exporting the runtime.
 
 | Location | Contents |
 | --- | --- |
-| generations/gen1-dynamixel/ | Original Dynamixel source, CAD and reports |
-| generations/gen2-st3215/ | Planar ST3215 code, maintained ESP32 firmware, bench tools and CAD |
-| generations/gen3-experimental-3d/ | Alternating-axis runner, map, simulation, shared backend and recorded runs |
-| docs/ | Current guides, decisions, research, proposals and archived records |
-| tests/ | Cross-generation offline tests |
-| tools/ | Repository verification |
-| artifacts/ | Preserved generated output; the old graph is not a current source index |
-| platformio.ini | Firmware source root and individual build environments |
+| `generations/gen1-dynamixel/` | Original Dynamixel code, CAD, media and records |
+| `generations/gen2-st3215/` | Planar code, maintained ESP32 firmware, bench tools, CAD and media |
+| `generations/gen3-experimental-3d/` | Current 12-joint map, runners, backend, CAD and recorded runs |
+| `generations/gen3-dashboard-refined/` | Independent refined dashboard, default port 5001 |
+| `generations/rasp_pi/` | Legacy 10-joint Pi distribution |
+| `gen3-experimental-3d/cad/segments_v1/` | Active segment CAD generator retained at the root |
+| `docs/` | Guides, research, decisions, presentations and historical records |
+| `tests/` and `tools/` | Cross-generation tests and repository checks |
+| `artifacts/` | Generated outputs and an older Graphify index |
+| `platformio.ini` | Firmware source root and build environments |
 
-Both dashboard generations use generations/gen3-experimental-3d/backend/. The source is shared; there is no maintained root shared/desktop-app folder in this checkout.
+Both pages of the maintained app use `generations/gen3-experimental-3d/backend/`. Templates and scripts use `pages/` and `components/` folders. Browser data code lives in `static/data/` and server persistence in `surge_control/data/`. See [the asset guide](../generations/gen3-experimental-3d/backend/web_dashboard/static/README.md).
 
-## Files I keep local
+## Export the current runtime
 
-Git ignores operator credentials, OTA credentials, the transmitter-port hint, Python environments, PlatformIO output and scratch work. I do not publish those by force-adding the whole folder. The measured joint map and run records need deliberate review because they are project data rather than disposable build output.
+Keep the complete `backend/` folder and these files together inside `generations/gen3-experimental-3d/`.
 
-The earlier layout record is in [the archive](archive/2026-11-03/docs/REPOSITORY_LAYOUT.md). The [move manifest](reorganization/moves.csv) maps older paths to current destinations. The three merged bench launchers share one recorded consolidation destination.
+- `gait.py`
+- `simulation.py`
+- `test_3d_snake.py`, which the server imports
+- `joint_map.json`
 
-## Check the software
+The backend includes local fonts, images, JavaScript vendors, browser meshes and the planar URDF. Keep `runs/` if you want saved presets, poses and run history. Add the generation CAD and media folders and `docs/` for the project record. The root CAD generator has its own [guide](../gen3-experimental-3d/cad/segments_v1/README.md).
 
-From the repository root:
+Recreate Python dependencies on the destination. Configure fresh operator credentials for a shared export. Keep private operator and OTA credentials, transmitter-port hints, local environments, scratch work and build output outside Git. Firmware builds additionally need `platformio.ini` and `generations/gen2-st3215/firmware/`. [Setup](START_HERE.md)
 
-```powershell
+## Run checks
+
+From the repository root, choose the checks for the code you changed.
+
+~~~powershell
 python tools/verify_layout.py
+python tools/verify_docs.py
 conda run --no-capture-output -n surge python -B -m unittest discover -s tests
 conda run --no-capture-output -n surge python -B -m unittest discover -s generations/gen3-experimental-3d/tests
 conda run --no-capture-output -n surge python -B -m unittest discover -s generations/gen2-st3215/tests -p test_offline.py
 Get-ChildItem generations/gen3-experimental-3d/tests/test_*.cjs | ForEach-Object { node $_.FullName }
 pio run -e receiver_gen2_1 -e transmitter_gen2_1
-```
+~~~
 
-The Python and Node commands are offline checks. Browser-specific checks need their browser/test dependencies. The firmware command builds; it does not upload. Live serial tests must be selected deliberately, not mixed into software verification.
+Python and Node commands above use offline checks. Browser scripts may need Playwright and an installed browser. PlatformIO builds firmware without uploading. Native C++ instructions are in [the Gen 2 test guide](../generations/gen2-st3215/tests/README.md).
 
-Native C++ checks are described in [the Gen 2 test notes](../generations/gen2-st3215/tests/README.md). This machine also has a compiler under C:/Strawberry/c/bin; its runtime DLL directory must be on PATH when running those executables.
+The layout checker accepts the intentional root CAD folder. It checks historical move records for uniqueness and containment, without requiring private settings or caches from those records to be present. Runtime files and dashboard asset paths must exist. The documentation checker validates portable local Markdown links. [Current status](CURRENT_STATUS.md) records the passing publication-export checks and their environment. The [offline CI workflow](../.github/workflows/python-package.yml) runs the suites with Python 3.11 and Node 22.
 
-## Build and install firmware
+## Firmware installation
 
-The maintained environments are receiver_gen2_1 and transmitter_gen2_1. The retained esp32_st3215_receiver and esp_now_transmitter environment names select those same CPP implementations.
+`receiver_gen2_1` and `transmitter_gen2_1` are the maintained environments. The retained `esp32_st3215_receiver` and `esp_now_transmitter` aliases select the same implementations.
 
-```powershell
-pio run -e receiver_gen2_1 -e transmitter_gen2_1
-```
-
-Only after identifying the board, disconnecting servo power and supporting the robot do I run an upload. These are separate, physical actions:
-
-```powershell
-pio run -e receiver_gen2_1 -t upload --upload-port COM6
-pio run -e transmitter_gen2_1 -t upload --upload-port COM7
-```
-
-The port numbers are the last confirmed mapping, not automatic board detection. Use [the OTA guide](operations/FIRMWARE_OTA.md) for subsequent Wi-Fi transfers. Never upload a transmitter application to the robot receiver.
-
-## What the documentation rewrite changed
-
-Thirty-one earlier project-facing guides are under [docs/archive/2026-11-03](archive/2026-11-03/README.md), with SHA256 values in its manifest. Original guide paths are retained for replacement guides or short links to the current explanation. Agent conventions, ADRs, research and proposal records stay in their existing folders.
-
-The rewrite changes documentation and the stale bench entries in the move manifest. It does not change motor settings, firmware, CAD, credentials or run data.
+The last confirmed installation used COM6 receiver and COM8 transmitter on 3 November 2026. Identify the boards again before installation, disconnect servo power and support the robot. Current receiver source expects 12 motors. Follow [the firmware guide](../generations/gen2-st3215/firmware/README.md), [the OTA guide](operations/FIRMWARE_OTA.md) and [the handoff](GEN3_HANDOFF.md) for the physical procedure.

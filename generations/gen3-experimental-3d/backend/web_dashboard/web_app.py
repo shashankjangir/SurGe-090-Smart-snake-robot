@@ -13,9 +13,10 @@ import zlib
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from flask import Flask, jsonify, request, render_template, send_from_directory, abort, g
+from flask import Flask, jsonify, request, render_template, send_from_directory, g
+from gait import GAIT_ANGLE_LIMIT_DEG
 from surge_control.runtime import ControlRuntime
-from surge_control.gen3 import Gen3Control, runner
+from surge_control.gen3 import Gen3Control
 
 
 import os
@@ -164,7 +165,7 @@ def create_app(runtime=None):
 
     @app.get('/gen3')
     def gen3_page():
-        return render_template('gen3.html')
+        return render_template('pages/gen3.html', gait_angle_limit=GAIT_ANGLE_LIMIT_DEG)
 
     @app.get('/api/gen3/status')
     def gen3_status():
@@ -175,6 +176,7 @@ def create_app(runtime=None):
         session = get_current_session(create_if_missing=True)
         return jsonify(gen3.sessions.status(current_session_id=session['session_id']))
 
+    @app.post('/api/gen3/session/claim')
     @app.post('/api/gen3/session/login')
     def gen3_session_login():
         is_loopback = request.remote_addr in ('127.0.0.1', '::1', 'localhost', None)
@@ -209,19 +211,6 @@ def create_app(runtime=None):
                     if control.state.get('is_running') and control.state.get('engine') == 'SIM':
                         control.disconnect()
         return jsonify(success=True)
-
-    @app.post('/api/gen3/session/claim')
-    def gen3_session_claim():
-        data = request.get_json(silent=True) or {}
-        name = data.get('name')
-        password = data.get('password', '')
-        session = get_current_session(create_if_missing=True)
-        with control.lock:
-            busy = gen3.state['busy'] or (control.state['is_running'] and not control.state['is_paused'])
-            res = gen3.sessions.login(session['session_id'], name=name, password=password, busy_with_motion=busy)
-        if not res.get('success'):
-            return jsonify(error=res.get('error', 'Authentication failed')), 401
-        return jsonify(res)
 
     @app.post('/api/gen3/session/release')
     def gen3_session_release():
@@ -442,16 +431,7 @@ def create_app(runtime=None):
 
     @app.post('/api/gen3/firmware/upload')
     def gen3_firmware_upload():
-        data = request.get_json() or {}
-        if not data.get('confirm_board') or not data.get('confirm_power') or not data.get('confirm_risk'):
-            raise ValueError("All safety confirmation checkboxes must be verified before upload")
-        env = data.get('env')
-        port = data.get('port')
-        with control.lock:
-            if gen3.state['busy']:
-                raise RuntimeError("Stop active motion before uploading firmware")
-            raise ValueError('Firmware upload is unavailable; no board will be flashed. Use the documented owner-operated upload procedure.')
-        return jsonify(success=True)
+        raise ValueError('Firmware upload is unavailable; no board will be flashed. Use the documented owner-operated upload procedure.')
 
     @app.get('/api/gen3/firmware/status')
     def gen3_firmware_status():
@@ -488,7 +468,7 @@ def create_app(runtime=None):
 
     @app.get('/phone')
     def phone_page():
-        return render_template('phone.html')
+        return render_template('pages/phone.html')
 
     @app.get('/api/phone/link')
     def phone_link():
@@ -539,12 +519,12 @@ def create_app(runtime=None):
 
     @app.get("/")
     def index():
-        return render_template("index.html")
+        return render_template("pages/index.html")
 
     @app.get("/3d")
     @app.get("/3d_viewer")
     def viewer():
-        return render_template("3d_viewer.html", embedded=request.args.get("embedded") == "1")
+        return render_template("pages/3d_viewer.html", embedded=request.args.get("embedded") == "1")
 
     @app.post("/api/connect")
     def connect():
@@ -665,16 +645,8 @@ def create_app(runtime=None):
             cpu, ram = 0., 0.
         return jsonify(cpu=cpu, ram=ram, temp="N/A", battery=gen3.battery_snapshot())
 
-    report_cache = {}
-
     def report_data(force=False):
         progress, revision = control.state["path_progress"], control.path_revision
-        actual_len = len(control.state["actual_path"])
-        target_len = len(control.state["target_path"])
-        cache_key = (revision, target_len, actual_len, progress, force)
-        if cache_key in report_cache:
-            return report_cache[cache_key]
-
         target, actual = copy.deepcopy((control.state["target_path"], control.state["actual_path"]))
         errors = list(control.report_errors)
         if len(target) < 2 or progress < .2 - 1e-9 or len(errors) < 2:
@@ -702,9 +674,6 @@ def create_app(runtime=None):
                    sample_count=len(bounded_errors), trace_sample_count=len(actual), path_progress=progress, path_revision=revision,
                    target_path=target, actual_path=actual,
                    duration_s=round(control.state.get("sim_time", 0.0), 2))
-        if len(report_cache) > 20:
-            report_cache.clear()
-        report_cache[cache_key] = res
         return res
 
     @app.get("/api/report")

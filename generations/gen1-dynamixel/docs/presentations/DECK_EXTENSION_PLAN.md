@@ -1,5 +1,7 @@
 # SURGE-090 Progress Review Deck — Extension Plan
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../../docs/START_HERE.md) and [hardware guide](../../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 **Source deck:** `Smart_Snake_Robot_SURGE090_Progress_Review  -  Repaired.pptx` (15 slides)
 **Output deck:** `Smart_Snake_Robot_SURGE090_Progress_Review_v2.pptx` (29 slides)
 **Plan date:** 30 August 2026 · **Revised:** 3 September 2026

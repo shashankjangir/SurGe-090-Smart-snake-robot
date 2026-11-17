@@ -2,7 +2,7 @@
 .gen3 .run-timers { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; }
 .gen3 .run-timers > div { display: flex; flex-direction: column; }
 .gen3 .timer-label { font-size: 12px; color: #475569; line-height: 1.4; }
-.gen3 #run-elapsed, .gen3 #run-duration { font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.4; }
+.gen3 #run-elapsed, .gen3 #run-duration { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.4; }
 .gen3 .run-clock { width: 24px; height: 24px; color: #475569; flex-shrink: 0; }
 .gen3 .run-timers.is-running .run-clock { color: #1d4ed8; }
 .gen3 .run-timers.is-running { border-color: #1d4ed8; }
@@ -33,19 +33,19 @@
   padding: 12px 4px; color: var(--color-text-main); font: inherit;
   caret-color: var(--color-brand-blue); box-shadow: none;
 }
-.gen3 #console-search-input::placeholder { color: #526176; opacity: 1; }
+.gen3 #console-search-input::placeholder { color: var(--color-text-muted); opacity: 1; }
 .gen3 #console-search-input::-webkit-search-cancel-button { display: none; }
 .gen3 .halo-field button { flex-shrink: 0; min-height: 44px; }
 .gen3 #console-search-clear { width: 44px; padding: 10px; border: 0; background: transparent; color: var(--color-text-muted); }
 .gen3 #console-search-clear[hidden], .gen3 .search-results[hidden] { display: none; }
 .gen3 .search-submit { background: var(--color-brand-blue); color: white; border: 0; border-radius: 6px; }
-.gen3 .search-meta { display: flex; align-items: center; justify-content: flex-start; gap: 12px; font-size: 12px; color: #526176; }
+.gen3 .search-meta { display: flex; align-items: center; justify-content: flex-start; gap: 12px; font-size: 12px; color: var(--color-text-muted); }
 .gen3 .search-results { margin-top: 8px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-card-bg); }
-.gen3 #console-search-status { padding: 12px 16px; margin: 0; font-size: 13px; color: #526176; }
+.gen3 #console-search-status { padding: 12px 16px; margin: 0; font-size: 13px; color: var(--color-text-muted); }
 .gen3 #console-search-list { list-style: none; margin: 0; padding: 0 8px 8px; }
 .gen3 #console-search-list button { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; padding: 12px 8px; background: transparent; border: 0; color: var(--color-text-main); white-space: normal; overflow-wrap: anywhere; }
 .gen3 #console-search-list button:hover, .gen3 #console-search-list button:focus-visible { background: #eff6ff; }
-.gen3 #console-search-list span { font-size: 12px; color: #526176; }
+.gen3 #console-search-list span { font-size: 12px; color: var(--color-text-muted); }
 @keyframes search-halo { 50% { background-position: 100% 50%; } }
 @media (max-width: 600px) {
   .gen3 .halo-field { padding: 6px; gap: 4px; }
@@ -58,23 +58,7 @@
   .gen3 .halo-field::before { animation: none; transition: none; }
 }
 
-:root {
-  --color-brand-blue: #1d4ed8;
-  --color-brand-dark: #0f172a;
-  --color-border: #cbd5e1;
-  --color-border-dark: #64748b;
-  --color-bg-light: #f8fafc;
-  --color-card-bg: #ffffff;
-  --color-text-main: #1e293b;
-  --color-text-muted: #64748b;
-  --color-success: #15803d;
-  --color-success-bg: #dcfce7;
-  --color-danger: #b91c1c;
-  --color-danger-bg: #fee2e2;
-  --color-warning: #b45309;
-  --color-warning-bg: #fef3c7;
-  --color-focus: #3b82f6;
-}
+/* Tokens moved to tokens.css. */
 
 .gen3 {
   margin: 0;
@@ -107,7 +91,7 @@
 }
 
 .gen3 .top-nav .nav-pill {
-  border-radius: var(--radius-pills, 1600px);
+  border-radius: var(--radius-pills);
   border: 1px solid var(--color-carbon, #000000);
   background-color: var(--color-paper-white, #ffffff);
   color: var(--color-carbon, #000000);
@@ -150,7 +134,7 @@
 
 .gen3 .console-title {
   font-size: 18px;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--color-brand-dark);
   letter-spacing: -0.01em;
 }
@@ -202,7 +186,7 @@
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   background: #e2e8f0;
   color: #334155;
 }
@@ -232,7 +216,7 @@
 }
 
 .gen3 .tab-btn {
-  border-radius: var(--radius-pills, 1600px);
+  border-radius: var(--radius-pills);
   border: 1px solid var(--color-carbon, #000000);
   background-color: var(--color-paper-white, #ffffff);
   color: var(--color-carbon, #000000);
@@ -289,7 +273,7 @@
 }
 .gen3 h3 {
   font-size: 16px;
-  font-weight: 650;
+  font-weight: 600;
   margin: 0 0 10px;
 }
 .gen3 p {
@@ -332,17 +316,10 @@
 
 .gen3 .gait-heading {
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 700;
   margin: 0;
   color: #0f172a;
   letter-spacing: -0.01em;
-}
-
-.gen3 .gait-sub-badge {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.01em;
 }
 
 /* Mode toggles in header */
@@ -420,10 +397,10 @@
 
 .gen3 .gait-fieldset legend {
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: var(--color-text-muted);
   padding: 0 6px;
 }
 
@@ -468,7 +445,7 @@
 .gen3 .label-with-equiv .unit-equiv {
   font-size: 12px;
   font-weight: 700;
-  color: #0284c7;
+  color: #0369a1;
 }
 
 .gen3 .gait-params-grid input,
@@ -516,7 +493,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .gen3 .dock-val-wrap {
@@ -535,9 +512,10 @@
 .gen3 .dock-val-wrap .texture-card-unit {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
+.gen3 .badge[hidden] { display: none; }
 .gen3 .dock-metric-pill .badge {
   font-size: 12px;
   font-weight: 800;
@@ -559,7 +537,7 @@
 .gen3 .dock-metric-pill #demand-readout {
   margin: 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
   display: none; /* Active in DOM for calculations, visually clean in compact dock */
 }
 
@@ -656,7 +634,7 @@
 }
 .gen3 .control-group label {
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   color: #334155;
 }
 .gen3 .field-hint {
@@ -738,7 +716,7 @@
   min-height: 26px !important;
   max-height: 26px !important;
   border: none !important;
-  border-radius: 9999px !important;
+  border-radius: var(--radius-pills) !important;
   background-color: #f4f4f4 !important;
   color: #18181b !important;
   padding: 2px 12px !important;
@@ -915,7 +893,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 .gen3 .state-column p {
   margin: 0;
@@ -930,7 +908,7 @@
 /* Buttons */
 .gen3 button {
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -995,7 +973,7 @@
   color: #ffffff;
   border: 2px solid #b91c1c;
   min-width: 180px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.02em;
 }
 .gen3 .stop:hover { background: #991b1b; }
@@ -1079,7 +1057,7 @@
 }
 .gen3 th {
   background: #f1f5f9;
-  font-weight: 650;
+  font-weight: 600;
   color: #334155;
 }
 .gen3 tr:hover { background: #f8fafc; }
@@ -1119,7 +1097,7 @@
 }
 .compact-preset-card .preset-specs-compact {
   font-size: 12px;
-  color: var(--color-text-muted, #526176);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 .gen3 .compact-preset-card .preset-description {
@@ -1143,10 +1121,10 @@
 .gen3 .preset-choice { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0; min-height: 44px; }
 .gen3 .preset-choice input[type="radio"] { flex: 0 0 18px; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--color-brand-blue); }
 .gen3 .preset-choice-content { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
-.gen3 .preset-description { font-size: 13px; font-weight: 400; color: #526176; }
-.gen3 .preset-choice .preset-specs { margin: 0; color: #526176; font-weight: 400; }
+.gen3 .preset-description { font-size: 13px; font-weight: 400; color: var(--color-text-muted); }
+.gen3 .preset-choice .preset-specs { margin: 0; color: var(--color-text-muted); font-weight: 400; }
 .gen3 .preset-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.gen3 .preset-footer p { flex: 1 1 180px; margin: 0; font-size: 13px; color: #526176; overflow-wrap: anywhere; }
+.gen3 .preset-footer p { flex: 1 1 180px; margin: 0; font-size: 13px; color: var(--color-text-muted); overflow-wrap: anywhere; }
 .gen3 .preset-footer button { min-height: 44px; }
 .gen3 .preset-actions { justify-content: flex-end; margin-top: 8px; }
 .gen3 .preset-specs {
@@ -1173,47 +1151,6 @@
 @media (min-width: 801px) and (max-width: 1100px) {
   .gen3 .presets-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gen3 .preset-picker { grid-column: 1 / -1; }
-}
-
-/* Terminal output for firmware */
-.gen3 .terminal-container {
-  border: 1px solid #1e293b;
-  border-radius: 6px;
-  background: #0f172a;
-  color: #38bdf8;
-  margin: 16px 0;
-  overflow: hidden;
-}
-.gen3 .terminal-header {
-  background: #1e293b;
-  color: #94a3b8;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-family: monospace;
-}
-.gen3 .terminal-body {
-  margin: 0;
-  padding: 12px;
-  font-family: monospace;
-  font-size: 12px;
-  line-height: 1.45;
-  max-height: 220px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-}
-
-.gen3 .upload-safety-box {
-  border: 2px dashed #fca5a5;
-  background: #fff5f5;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-}
-.gen3 .safety-checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 12px 0 16px;
 }
 
 .gen3 .text-danger { color: var(--color-danger); }
@@ -1597,9 +1534,8 @@ body.gen3 { display: block; min-width: 0; width: 100%; height: auto; overflow: a
 .gen3 td input:not([type="checkbox"]), .gen3 td select { min-height: 32px; padding: 4px 8px; }
 .gen3 td input[type="checkbox"] { min-height: 0; }
 .gen3 .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
-.gen3 .controls > label:not(.check) { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 650; color: #334155; }
+.gen3 .controls > label:not(.check) { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: #334155; }
 .gen3 .controls > label:not(.check) input { width: 10rem; }
-.gen3 .upload-safety-box .check { margin: 6px 0; }
 .calibration-split-layout .controls > label:not(.check) input { width: 100%; }
 @media (max-width: 600px) {
   .gen3 .controls { flex-direction: column; align-items: stretch; }

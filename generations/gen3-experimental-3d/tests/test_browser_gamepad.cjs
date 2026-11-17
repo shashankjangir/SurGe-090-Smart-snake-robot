@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const path = require('node:path');
 const {readAsset} = require('./asset-source.cjs');
-const source = readAsset(path.resolve(__dirname, '../backend/web_dashboard/static/controller-input.js'));
+const source = readAsset(path.resolve(__dirname, '../backend/web_dashboard/static/components/controller-input.js'));
 
 function setup(generation = '3') {
   const defaults = {deadzone: [.15, .05, .4], sensitivity: [1, .2, 1]};
@@ -27,7 +27,9 @@ function setup(generation = '3') {
     setInterval: fn => { tick = fn; return 1; }, clearInterval() {},
     fetch: async (url, options) => { calls.push({url, body: JSON.parse(options.body)}); return {ok: true, json: async () => ({success: true})}; }
   };
-  vm.runInNewContext(source, context);
+  vm.createContext(context);
+  vm.runInContext(readAsset(path.resolve(__dirname, '../backend/web_dashboard/static/data/browser-preferences.js')), context);
+  vm.runInContext(source, context);
   elements['controller-panel'].querySelector = selector => elements[`gamepad-${selector.match(/"(.*?)"/)[1]}`];
   context.window.SurgeGamepad.mount(elements['controller-panel'], {generation, visible: () => visible,
     start: async (options, fresh) => { starts.push({options, input: fresh()}); return {run_id: 'run-1'}; }});
@@ -53,7 +55,8 @@ for (const generation of ['2.1', '3']) {
     assert(h.calls[1].body.sequence > h.calls[0].body.sequence);
     await h.press();
     assert.equal(h.calls.at(-1).url, '/api/stop');
-    assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'false');
+    assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'true');
+    await h.press(); await h.press(0, 4); assert.equal(h.starts.length, 2);
   });
 }
 
@@ -64,19 +67,28 @@ test('buttons initially held cannot start; B overrides simultaneous A', async ()
   assert.equal(h.starts.length, 0); assert.equal(h.calls.at(-1).url, '/api/stop');
 });
 
-for (const reason of ['viewer', 'offline', 'hidden', 'tab', 'blur', 'disconnect', 'mapping']) {
-  test(`active controller stops on ${reason} and needs explicit enable`, async () => {
+for (const reason of ['offline', 'hidden', 'tab', 'blur']) {
+  test(`no automatic stop on ${reason}`, async () => {
     const h = setup(); await h.enable(); await h.press(0, 4);
-    if (reason === 'viewer') h.events['surge-session']({detail: {is_current_operator: false}});
     if (reason === 'offline') h.age();
     if (reason === 'hidden') h.context.document.hidden = true;
     if (reason === 'tab') h.hideTab();
-    if (reason === 'blur') h.events.blur();
+    if (reason === 'blur') h.events.blur?.();
+    await h.press(0, 4);
+    assert.notEqual(h.calls.at(-1)?.url, '/api/stop');
+    assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'true');
+  });
+}
+
+for (const reason of ['viewer', 'disconnect', 'mapping']) {
+  test(`active controller stops on ${reason}; only losing operator disables it`, async () => {
+    const h = setup(); await h.enable(); await h.press(0, 4);
+    if (reason === 'viewer') h.events['surge-session']({detail: {is_current_operator: false}});
     if (reason === 'disconnect') h.pad.connected = false;
     if (reason === 'mapping') h.pad.mapping = '';
     await h.tick(); await h.press(0, 4);
     assert.equal(h.starts.length, 1); assert.equal(h.calls.at(-1).url, '/api/stop');
-    assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'false');
+    assert.equal(h.elements['gamepad-enable']['aria-pressed'], reason === 'viewer' ? 'false' : 'true');
   });
 }
 
@@ -87,7 +99,7 @@ test('centring persists per controller and setup changes invalidate enable', asy
   await h.enable(); await h.press(0, 4);
   assert.equal(h.starts[0].input.stick_x, 0);
   h.docEvents['panel-change']({target: {matches: () => true}});
-  assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'false');
+  assert.equal(h.elements['gamepad-enable']['aria-pressed'], 'true');
   assert.equal(h.calls.at(-1).url, '/api/stop');
 });
 
@@ -97,7 +109,7 @@ test('route options are passed explicitly; out-of-range setup rejected', async (
   await h.enable(); await h.press(0, 4);
   assert.equal(h.starts[0].options.path.length, 2);
   const bad = setup(); await bad.enable(); bad.elements['gamepad-deadzone'].value = .9;
-  await bad.tick(); assert.equal(bad.elements['gamepad-enable']['aria-pressed'], 'false');
+  await bad.tick(); assert.match(bad.elements['gamepad-status'].textContent, /Invalid deadzone/);
 });
 
 test('slow input requests never overlap and bumper release still sends Stop', async () => {

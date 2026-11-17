@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
-const source = readAsset(path.join(root, 'backend/web_dashboard/static/gen3.js'), 'utf8');
+const source = readAsset(path.join(root, 'backend/web_dashboard/static/pages/gen3-joints.js'), 'utf8');
 const config = JSON.parse(readAsset(path.join(root, 'joint_map.json'), 'utf8'));
 const context = {};
 vm.createContext(context);

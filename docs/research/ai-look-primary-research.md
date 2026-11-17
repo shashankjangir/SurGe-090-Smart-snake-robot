@@ -1,5 +1,7 @@
 # Dashboard audit remediation: primary-source research
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Date: 2026-11-02. Scope: research and source inspection only. Companion plan: [AI-look remediation](../ideas/ai-look-remediation-plan.md).
 
 ## Findings and corrections
@@ -24,7 +26,7 @@ All frontend paths below are under `generations/gen3-experimental-3d/backend/web
 - `static/gen3-sim.js:205` labels unsampled angles as neutral; line 213 creates a half-filled bar despite unsampled counts. This substantiates F08 independently of screenshot interpretation. Preserve the distinction between valid zero, missing sample, stale sample and simulation values.
 - `DESIGN.md:15` says violet is supporting/decorative and must not become the primary CTA. Yet lines 90 and 150 prescribe violet CTAs and exclusively interactive use. The plan must declare which rule wins instead of claiming the document is consistent. Its font substitutes include **Inter** as well as Manrope; retaining Inter is permitted (`DESIGN.md:26`).
 - Do not assume named design tokens are accessible combinations: Ash helper text and Slate backgrounds still require contrast calculation. Borderless content cards do not justify removing control boundaries needed for identification.
-- Current `joint_map.json` has speed **1500**, tracking error **216**, timeout **0.5**, all zero positions **2048**, pitch ID 1 sign **1**, pitch IDs 3/5/7/9 **-1**, all yaw signs **1**. These live file values supersede older narrative snapshots. No visual remediation should write them.
+- The map inspected on 2 November had speed **1500**, tracking error **216**, timeout **0.5**, all zero positions **2048**, pitch ID 1 sign **1**, pitch IDs 3/5/7/9 **-1**, all yaw signs **1**. Those were the inspected values for that session. The maintained map now has twelve joints, speed 2144, tracking error 492, and timeout 0.5. Visual changes should preserve the actual map.
 
 ## GSAP necessity decision
 

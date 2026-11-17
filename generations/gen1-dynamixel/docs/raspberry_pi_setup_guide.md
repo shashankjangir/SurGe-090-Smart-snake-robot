@@ -1,5 +1,7 @@
 # SURGE-SNAKE: Raspberry Pi Setup & Execution Guide
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../docs/START_HERE.md) and [hardware guide](../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 This guide will walk you through flashing the OS, deploying this code to your Raspberry Pi, and running the physical robot.
 
 ## Phase 1: Burning the Raspberry Pi OS

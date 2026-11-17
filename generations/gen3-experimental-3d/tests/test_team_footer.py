@@ -31,7 +31,7 @@ class TeamFooterTests(unittest.TestCase):
                           autoescape=select_autoescape())
         for template in ('index.html', 'gen3.html'):
             with self.subTest(template=template):
-                parsed = Elements(env.get_template(template).render())
+                parsed = Elements(env.get_template('pages/' + template).render())
                 links = [attrs for tag, attrs in parsed.actions if tag == 'a']
                 buttons = [attrs for tag, attrs in parsed.actions if tag == 'button']
                 self.assertEqual(len(parsed.actions), 12)

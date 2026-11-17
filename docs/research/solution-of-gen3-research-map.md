@@ -1,5 +1,7 @@
 # Solution of Gen 3 research map
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Work log for the Gen 3 research roadmap session, 1–2 November 2026.
 The roadmap itself is `docs/ideas/gen3-research-roadmap.md`. Nothing here was
 committed. Nothing was run on the physical robot; all motion checks used the
@@ -87,7 +89,7 @@ Changes made outside this chat, folded into the roadmap:
 
 **Per-joint gait settings.**
 - `gait.py` `validate_overrides()` / `joint_wave()`: per joint `enabled`
-  (disabled joints hold zero), `gain` 0–2, `phase` ±180° and `bias` ±70°.
+  (disabled joints hold zero), `gain` 0–2, `phase` ±180° and `bias` ±110°.
 - `validate_gait`, `calc_peak_speed` and `targets_at` take an `overrides`
   argument, so limit and speed-envelope checks include the overrides.
 - `GaitMotionGenerator` applies them on every tick and includes them in

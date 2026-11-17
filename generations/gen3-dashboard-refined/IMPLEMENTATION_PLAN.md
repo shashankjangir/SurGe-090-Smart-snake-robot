@@ -1,5 +1,9 @@
 # Gen 3: alternating-axis implementation plan
 
+This is the original October 2026 proposal and its dated implementation notes. The ten-joint assumptions, source paths and test counts below describe those sessions. Use the [current README](README.md), [joint map](joint_map.json) and [handoff](../../docs/GEN3_HANDOFF.md) for operation.
+
+This generation now has 12 calibrated joints, a saved speed of 2144 counts/s, tracking error of 492 counts and timeout of 0.5 seconds. Joint travel is ±110° and shared gait amplitudes are capped at 90°. The [dashboard file guide](backend/web_dashboard/static/README.md) records this copy's asset layout.
+
 Research date: 22 October 2026. Status: proposed implementation, not a hardware validation.
 
 Implementation update (22 October 2026): calibrated gait generation, finite runner,
@@ -32,7 +36,7 @@ Waveshare specifies 4096 encoder counts/revolution and speed commands in counts/
 | Shared planar gait/path controller | Do not feed its ten-yaw-joint output directly into alternating joints. |
 | Shared PyBullet model | Reuse tooling later, but supply a separate alternating-axis model. Current planar simulation cannot validate Gen 3. |
 
-Specific findings from the current source:
+Findings from the source assessed on 22 October 2026:
 
 - Yaw amplitude is 900 counts (79.1 degrees), but targets clamp to 2048 ±796 counts (approximately 70 degrees). The resulting waveform has flattened peaks.
 - Pitch amplitude is 700 counts (61.5 degrees). Neither this nor the yaw limit is a measured Gen 3 operating envelope.
@@ -97,7 +101,7 @@ CAD was neither inspected nor modified for this plan. No firmware was flashed an
 The web controller implementation has been completed and verified under `generations/gen3-dashboard-refined/backend/web_dashboard/web_app.py`.
 - **Launch Command**: `conda run --no-capture-output -n surge python generations/gen3-dashboard-refined/backend/web_dashboard/web_app.py --port 5001`
 - **Commissioning Route**: `http://127.0.0.1:5001/gen3`
-- **Status**: 10-joint spatial commissioning, physical-order calibration map, finite pitch/yaw trials, operator auth leases, and disarmed bus diagnostics verified. Test suite passes (30 Node suites, 39 Python unit tests).
+- **Recorded software checks** covered 10-joint spatial commissioning, the calibration map, finite pitch/yaw trials, operator leases and disarmed bus diagnostics. The session recorded 30 passing Node suites and 39 Python unit tests.
 
 
 ### Progress Update — 31 October 2026
@@ -113,7 +117,7 @@ The web controller implementation has been completed and verified under `generat
 
 ## Update — 2 November 2026
 
-**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
+**Recorded status on 2 November 2026.** The last commit was `fc24e4e` (31 October 2026: Gen 2.1 five-box
 dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
 2 November below is in the working tree and **not yet committed**. No hardware motion was
 commanded by the assistant during that work unless stated.

@@ -13,7 +13,6 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[3]
 GEN = ROOT / 'generations/gen3-experimental-3d'
 sys.path.insert(0, str(GEN / 'backend'))
-sys.path.insert(0, str(ROOT / 'shared'))
 from surge_control.manual import ManualController, Localization
 from surge_control.gen3 import Gen3Control, GaitMotionGenerator, runner
 from surge_control.runtime import ControlRuntime
@@ -28,10 +27,16 @@ class ManualTests(unittest.TestCase):
         c = ManualController(now=0)
         c.update(packet(), now=0)
         for data in (packet(), packet(1, stick_x=float('nan')), packet(1, reverse='yes'),
-                     dict(packet(1), deadman=1), dict(packet(1), captured_at=time.time() - 2)):
+                     dict(packet(1), deadman=1), dict(packet(1), captured_at='now')):
             with self.assertRaises(ValueError): c.update(data, now=.4)
         self.assertEqual(c.sequence, 0)
-        with self.assertRaises(InterruptedError): c.check(.51)
+        c.check(60)  # No input-gap stop (owner request); only releasing LB stops.
+
+    def test_accepts_input_from_a_browser_with_a_skewed_clock(self):
+        c = ManualController(now=0)
+        c.update(dict(packet(), captured_at=time.time() - 30), now=0)
+        c.update(dict(packet(1), captured_at=time.time() + 30), now=.1)
+        self.assertEqual(c.sequence, 1)
 
     def test_release_even_at_zero_stick_stops(self):
         c = ManualController(now=0)
@@ -55,7 +60,7 @@ class ManualTests(unittest.TestCase):
 
     def test_feedback_reduces_rate_recovers_slowly_and_preserves_shape(self):
         c = ManualController()
-        rows = {i: dict(valid=True, target=2048, position=2248) for i in range(1, 11)}
+        rows = {i: dict(valid=True, target=2048, position=2248) for i in range(1, 13)}
         for _ in range(10): c.feedback(rows, 216, .05)
         low = c.feedback_scale
         self.assertLess(low, 1)
@@ -124,7 +129,7 @@ class ControllerApiTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.c.map_path = Path(self.temp.name) / 'joint_map.json'
-        self.c.map_path.write_text(json.dumps(runner.load_map()))
+        self.c.map_path.write_text(json.dumps(dict(runner.load_map(), calibrated=True)))
         self.c.hardware_factory = lambda **kw: self.fail('Physical hardware opened')
         self.addCleanup(self.c.close)
         self.addCleanup(self.planar.close)
@@ -171,11 +176,13 @@ class ControllerApiTests(unittest.TestCase):
         stale = self.client.post('/api/gen3/controller', json=dict(packet(1), run_id=first), headers=self.headers)
         self.assertEqual(stale.status_code, 400)
 
-    def test_backend_stops_stale_input_without_status_poll(self):
+    def test_input_gap_does_not_stop_but_stop_does(self):
         self.start_preview()
+        self.c.thread.join(1.5)
+        self.assertTrue(self.c.state['busy'])
+        self.client.post('/api/gen3/stop', json={}, headers=self.headers)
         self.c.thread.join(2)
         self.assertFalse(self.c.state['busy'])
-        self.assertTrue(self.c.cancel.is_set())
 
     def test_physical_navigation_rejected_before_opening_hardware(self):
         response = self.client.post('/api/gen3/start', json=dict(mode='gait', execution='hardware', port='FAKE',
@@ -186,7 +193,7 @@ class ControllerApiTests(unittest.TestCase):
     def test_mocked_hardware_expiry_performs_disconnect_cleanup(self):
         class Hardware:
             def __init__(self):
-                self.positions = {i: 2048 for i in range(1, 11)}
+                self.positions = {i: 2048 for i in range(1, 13)}
                 self.closed = False
                 self.started = False
             def connect(self): return True, 'Offline hardware stub'
@@ -200,6 +207,8 @@ class ControllerApiTests(unittest.TestCase):
         response = self.client.post('/api/gen3/start', json=dict(mode='gait', execution='hardware', port='OFFLINE',
             request_id='mock', yaw=1, pitch=1, speed=100, ramp=1, duration=3, controller={}, input=packet()), headers=self.headers)
         self.assertEqual(response.status_code, 202, response.get_json())
+        self.c.thread.join(1)
+        self.client.post('/api/gen3/stop', json={}, headers=self.headers)
         self.c.thread.join(2)
         self.assertFalse(self.c.state['busy'])
         self.assertTrue(hardware.started)
@@ -218,7 +227,7 @@ class ControllerApiTests(unittest.TestCase):
 class PlanarManualTests(unittest.TestCase):
     class Fake:
         def __init__(self):
-            self.positions = {i: 2048 for i in range(1, 11)}
+            self.positions = {i: 2048 for i in range(1, 13)}
             self.writes = []
             self.stops = 0
             self.missing = False

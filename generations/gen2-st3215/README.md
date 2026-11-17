@@ -9,9 +9,9 @@ For the maintained host system, start with [software setup](../../docs/START_HER
 The planar bench command is:
 
 ```powershell
-python generations/gen2-st3215/tools/bench_gen2_1.py align --port COM7
+python generations/gen2-st3215/tools/bench_gen2_1.py align --port COM8
 ```
 
-Replace align with sine or spiral for a finite waveform trial. These commands move real motors. They retain measured alignment and torque-off cleanup. They are not the Gen 3 gait runner.
+Use the detected transmitter port for your USB setup. COM8 was the last recorded transmitter port on the original workstation. Replace align with sine or spiral for a finite waveform trial. These commands move real motors. They retain measured alignment and torque-off cleanup. They are not the Gen 3 gait runner.
 
 The [firmware guide](firmware/README.md) lists targets and fault handling. The [test notes](tests/README.md) describe offline and native C++ checks. CAD development remains under [cad](cad/). The [former overview](../../docs/archive/2026-11-03/generations/gen2-st3215/README.md) retains historical setup details.

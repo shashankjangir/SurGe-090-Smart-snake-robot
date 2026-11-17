@@ -1,5 +1,7 @@
 # SURGE-SNAKE Actuator Selection: ROBOTIS Dynamixel XL330
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../docs/START_HERE.md) and [hardware guide](../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 This document outlines the engineering rationale behind standardizing on the **ROBOTIS Dynamixel XL330-M288-T** smart servo motors for the SURGE-090 snake robot project.
 
 ---

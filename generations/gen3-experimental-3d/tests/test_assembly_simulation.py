@@ -17,8 +17,8 @@ class AssemblyTest(unittest.TestCase):
         model = json.loads((MODELS / 'gen3-cad.json').read_text())
         source = next(k for k in model['sources'] if k.endswith('.SLDASM'))
         self.assertEqual(hashlib.sha256((ROOT / source).read_bytes()).hexdigest(), model['sources'][source])
-        self.assertEqual(len(model['bodies']), 11)
-        for i in range(1, 11):
+        self.assertEqual(len(model['bodies']), 13)
+        for i in range(1, 13):
             case = next(m for m in model['meshes'] if m['name'] == f'servo_ID{i}_case_nominal_step')
             horn = next(m for m in model['meshes'] if m['name'] == f'servo_ID{i}_horn_and_rear_disc_step')
             self.assertEqual(case['body'], i)
@@ -35,9 +35,9 @@ class AssemblyTest(unittest.TestCase):
         self.addCleanup(sim.disconnect)
         sim.connect()
         model = json.loads((MODELS / 'gen3-cad.json').read_text())
-        for joint in range(10):
+        for joint in range(12):
             sim.p.resetJointState(sim.body, joint, .2)
-            for i in range(10):
+            for i in range(12):
                 # PyBullet link frame is the pivot, while published poses are COM frames.
                 child = sim.p.getLinkState(sim.body, i, computeForwardKinematics=True)
                 if i:

@@ -266,6 +266,3 @@ class PathEngine:
         pid_turn = kp * cross_track + ki * self.pid_integral + kd * derivative
         total_turn = curvature_turn + pid_turn
         return max(-self.max_turn_offset, min(self.max_turn_offset, total_turn))
-
-    def calculate_pure_pursuit(self, current_x, current_y, current_yaw, target_path):
-        return self.calculate_steering(current_x, current_y, current_yaw, target_path)

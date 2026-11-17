@@ -1,7 +1,7 @@
 # SURGE-090 Dashboard: Gen 2.1 vs Gen 3 Frontend Differences
 
-**Document Version:** 1.0  
-**Date:** 28 October 2026  
+**Document Version:** 1.0\
+**Date:** 28 October 2026\
 **Scope:** Frontend UI/UX, styling, layout architecture, transitions, and interactive effects between the Gen 2.1 Planar Dashboard (`/`) and the Gen 3 3D Locomotion Console (`/gen3`).
 
 ---
@@ -144,17 +144,17 @@ Gen 3 Console (Tabbed Engineering Suite):
 ## 7. Relevant Source Files
 
 - **Templates:**
-  - Gen 2.1: [`shared/web-dashboard/templates/index.html`](../../generations/gen3-experimental-3d/backend/web_dashboard/templates/index.html)
-  - Gen 3: [`shared/web-dashboard/templates/gen3.html`](../../generations/gen3-experimental-3d/backend/web_dashboard/templates/gen3.html)
-  - Footer: [`shared/web-dashboard/templates/team_footer.html`](../../generations/gen3-experimental-3d/backend/web_dashboard/templates/team_footer.html)
+  - Gen 2.1: [`shared/web-dashboard/templates/index.html`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html)
+  - Gen 3: [`shared/web-dashboard/templates/gen3.html`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html)
+  - Footer: [`shared/web-dashboard/templates/team_footer.html`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/templates/components/team_footer.html)
 - **Stylesheets:**
-  - Base: [`shared/web-dashboard/static/style.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/style.css)
-  - Gen 3 Theme: [`shared/web-dashboard/static/gen3.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.css)
-  - Switcher: [`shared/web-dashboard/static/generation-switch.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/components.css)
+  - Base: [`shared/web-dashboard/static/style.css`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/style.css)
+  - Gen 3 Theme: [`shared/web-dashboard/static/gen3.css`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.css)
+  - Switcher: [`shared/web-dashboard/static/generation-switch.css`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/components.css)
 - **Scripts:**
-  - Gen 2.1 Logic: [`shared/web-dashboard/static/script.js`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/gen21.js)
-  - Gen 3 Logic: [`shared/web-dashboard/static/gen3.js`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js)
-  - Search: [`shared/web-dashboard/static/gen3-search.js`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js)
+  - Gen 2.1 Logic: [`shared/web-dashboard/static/script.js`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js)
+  - Gen 3 Logic: [`shared/web-dashboard/static/gen3.js`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3.js)
+  - Search: [`shared/web-dashboard/static/gen3-search.js`](../../../../../generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3.js)
 
 ---
 

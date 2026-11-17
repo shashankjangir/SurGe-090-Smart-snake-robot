@@ -1,5 +1,7 @@
 # Feasibility assessment: Gen 3 segments v1 (Phase 1, revision 2)
 
+This saved report describes the original ten-joint CAD prototype. The generator's earlier checks/ scripts are absent from this checkout, so the recorded checks cannot be rerun from this folder. Physical fit and RF clearance still require verification.
+
 **PROTOTYPE: fit and load validation required.** Every dimension comes from section 1 of
 `docs/research/GEN3_WAVESHARE_HARDWARE_RESEARCH.md`, as a value or a named parameter in
 `params.py`. Nothing here is measured on the installed hardware.

@@ -141,7 +141,7 @@ class ControlTests(unittest.TestCase):
 
     def test_conversions(self):
         self.assertEqual(to_signed_current(0x8002), -13)
-        for tick in (1252, 2048, 2844):
+        for tick in (796, 2048, 3300):
             self.assertEqual(radians_to_encoder(encoder_to_radians(tick)), tick)
         with self.assertRaises(ValueError): radians_to_encoder(math.inf)
 

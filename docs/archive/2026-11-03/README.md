@@ -1,9 +1,9 @@
 # Documentation before the 3 November 2026 rewrite
 
-These are preserved versions of the guides before I rewrote the project documentation. Twenty-nine match their captured byte hashes. One snapshot had a local operator password redacted before publication. The root README text was restored from the pre-rewrite readout; its original byte hash and this exception are recorded in manifest.json.
+These snapshots preserve the guides from before the documentation rewrite. One snapshot had a local operator password redacted before publication. The root README text was restored from the pre-rewrite readout. The original hashes and these exceptions are recorded in manifest.json.
 They record earlier instructions and results. Use the [current documentation](../../README.md) for operation.
 
-Links inside these snapshots retain their original text and may refer to the old location.
+On 17 November 2026, local link targets were repaired for the current repository. Historical claims and trial values retain their original meaning. The manifest keeps the captured hashes and records a separate portable hash for snapshots whose navigation changed. Missing historical files are named in the text.
 
 | Original path | Archived copy |
 | --- | --- |

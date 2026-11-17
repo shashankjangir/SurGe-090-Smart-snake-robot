@@ -1,0 +1,44 @@
+name: Offline project checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install offline test dependencies
+        run: python -m pip install -r generations/gen3-experimental-3d/backend/web_dashboard/requirements.txt playwright
+      - name: Check repository layout and documentation
+        run: |
+          python -B tools/verify_layout.py
+          python -B tools/verify_docs.py
+      - name: Check shared Python behavior
+        run: python -B -m unittest discover -s tests
+      - name: Check maintained Gen 3 Python behavior
+        run: python -B -m unittest discover -s generations/gen3-experimental-3d/tests
+      - name: Check refined Python behavior
+        run: python -B -m unittest discover -s generations/gen3-dashboard-refined/tests
+      - name: Check Gen 2 offline behavior
+        run: python -B -m unittest discover -s generations/gen2-st3215/tests -p test_offline.py
+      - name: Check dashboard JavaScript
+        shell: bash
+        run: |
+          for generation in gen3-experimental-3d gen3-dashboard-refined; do
+            for test in generations/"$generation"/tests/test_*.cjs; do
+              node "$test"
+            done
+          done

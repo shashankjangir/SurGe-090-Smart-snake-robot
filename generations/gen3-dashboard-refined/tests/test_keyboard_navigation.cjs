@@ -2,7 +2,7 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const read = name => readAsset('generations/gen3-dashboard-refined/backend/web_dashboard/' + name, 'utf8');
-const panels = Array.from({length: 5}, () => ({classList: {add() {}, remove() {}}}));
+const panels = Array.from({length: 4}, () => ({classList: {add() {}, remove() {}}}));
 let focused = null;
 const tabs = panels.map((panel, index) => ({
   tabIndex: index === 0 ? 0 : -1,
@@ -28,10 +28,10 @@ function key(index, name, expected) {
     assert.equal(tab.attributes['aria-selected'], String(i === expected));
   });
 }
-key(0, 'ArrowLeft', 4);
-key(4, 'ArrowRight', 0);
-key(0, 'End', 4);
-key(4, 'Home', 0);
+key(0, 'ArrowLeft', 3);
+key(3, 'ArrowRight', 0);
+key(0, 'End', 3);
+key(3, 'Home', 0);
 tabs[2].click();
 assert.equal(tabs[2].tabIndex, 0);
 assert.equal(tabs[0].tabIndex, -1);
@@ -55,7 +55,7 @@ const html = read('templates/gen3.html');
 assert(html.includes('<section class="canvas-container" id="sim-canvas-hub" aria-label="Simulation viewport">'));
 assert.equal((html.match(/<main[\s>]/g) || []).length, 1);
 assert.equal((html.match(/role="tab" tabindex="0"/g) || []).length, 1);
-assert.equal((html.match(/role="tab" tabindex="-1"/g) || []).length, 4);
+assert.equal((html.match(/role="tab" tabindex="-1"/g) || []).length, panels.length - 1);
 for (const template of ['index', 'gen3']) {
   const markup = read('templates/' + template + '.html');
   assert(markup.includes('id="login-password" tabindex="-1"'));

@@ -11,8 +11,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'generations/gen3-experimental-3d/backend'))
-sys.path.insert(0, str(ROOT / 'shared'))
-DASHBOARD_DIR = ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard' if (ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard').exists() else DASHBOARD_DIR
+DASHBOARD_DIR = ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard'
 from surge_control.gen3 import Gen3Control, runner
 
 
@@ -79,15 +78,15 @@ class WebTests(unittest.TestCase):
             closed = False
             voltage = 119
             def connect(self): return True, 'Torque off'
-            def read_telemetry(self): return {i: dict(valid=True, position=2048) for i in range(1, 11)}
-            def read_diagnostics(self): return {i: dict(valid=True, voltage=self.voltage, temperature=30) for i in range(1, 11)}
+            def read_telemetry(self): return {i: dict(valid=True, position=2048) for i in range(1, 13)}
+            def read_diagnostics(self): return {i: dict(valid=True, voltage=self.voltage, temperature=30) for i in range(1, 13)}
             def disconnect(self): self.closed = True
         iface = Hardware()
         self.control.hardware_factory = lambda **kw: iface
         self.control.read_diagnostics('FAKE', sample_telemetry=True)
         first = self.control.snapshot()
         self.assertTrue(iface.closed)
-        self.assertEqual(len(first['telemetry']), 10)
+        self.assertEqual(len(first['telemetry']), 12)
         self.assertEqual(first['bus']['kind'], 'idle')
         self.assertGreaterEqual(first['bus']['latency_ms'], 0)
         self.assertEqual(self.control.battery_snapshot()['voltage'], 11.9)
@@ -122,10 +121,10 @@ class WebTests(unittest.TestCase):
     def test_recalibrate_saved_pose_preserves_name_and_rejects_stale_updates(self):
         original_map = self.path.read_text()
         joints = json.loads(original_map)['joints']
-        initial = dict(name='Hand shape', joints=joints, pose={str(i): 0 for i in range(1, 11)})
+        initial = dict(name='Hand shape', joints=joints, pose={str(i): 0 for i in range(1, 13)})
         self.control.save_pose_preset(initial)
         self.control.save_pose_preset(dict(initial, name='Other shape'))
-        replacement = dict(initial, pose={str(i): 1 for i in range(1, 11)}, expected=initial)
+        replacement = dict(initial, pose={str(i): 1 for i in range(1, 13)}, expected=initial)
         updated = self.control.save_pose_preset(replacement)
         self.assertEqual(len(updated), 2)
         self.assertEqual(updated[0]['name'], 'Hand shape')
@@ -140,9 +139,9 @@ class WebTests(unittest.TestCase):
 
     def test_capture_rejects_missing_invalid_and_out_of_range_feedback(self):
         for row in ({}, dict(valid=False, position=2048), dict(valid=True, position=True),
-                    dict(valid=True, position=4096), dict(valid=True, position=1000)):
+                    dict(valid=True, position=4096), dict(valid=True, position=700)):
             with self.subTest(row=row):
-                telemetry = {i: dict(valid=True, position=2048) for i in range(1, 11)}
+                telemetry = {i: dict(valid=True, position=2048) for i in range(1, 13)}
                 telemetry[4] = row
                 iface = self.pose_hardware(telemetry)
                 with self.assertRaises(ValueError):
@@ -178,7 +177,7 @@ class WebTests(unittest.TestCase):
             def connect(self): return True, 'OK'
             def read_telemetry(self):
                 time.sleep(.02)
-                return {i: dict(valid=True, position=2048, load=0, velocity=0) for i in range(1, 11)}
+                return {i: dict(valid=True, position=2048, load=0, velocity=0) for i in range(1, 13)}
             def disconnect(self): pass
         self.control.hardware_factory = lambda **kw: Hardware()
         self.assertIsNone(self.control.snapshot()['bus'])
@@ -255,7 +254,7 @@ class WebTests(unittest.TestCase):
         self.path.write_text(json.dumps(config))
         owner = self.control
         class Hardware:
-            def __init__(self): self.position = {i: 2048 for i in range(1, 11)}; self.history = []
+            def __init__(self): self.position = {i: 2048 for i in range(1, 13)}; self.history = []
             def connect(self): return True, 'OK'
             def start(self): pass
             def read_telemetry(self): return {i: dict(valid=True, position=p, load=0, velocity=0) for i, p in self.position.items()}
@@ -269,7 +268,7 @@ class WebTests(unittest.TestCase):
         sign3 = next(j['sign'] for j in config['joints'] if j['id'] == 3)
         self.assertIn(2048 + round(10 * 4096 / 360), [h[1] for h in iface.history])
         self.assertIn(2048 + sign3 * round(10 * 4096 / 360), [h[3] for h in iface.history])
-        self.assertEqual(iface.history[-1], {i: 2048 for i in range(1, 11)})
+        self.assertEqual(iface.history[-1], {i: 2048 for i in range(1, 13)})
         manifest = json.loads((self.path.parent / 'runs' / state['log']).with_suffix('.json').read_text())
         self.assertEqual(manifest['pose_targets']['1'], 2048 + round(10 * 4096 / 360))
 
@@ -288,7 +287,7 @@ class WebTests(unittest.TestCase):
 
     def test_pose_and_overrides_are_validated_before_start(self):
         with self.assertRaisesRegex(ValueError, 'outside its calibrated limits'):
-            self.control.start(dict(mode='pose', execution='preview', pose={'2': 80}))
+            self.control.start(dict(mode='pose', execution='preview', pose={'2': 115}))
         with self.assertRaisesRegex(ValueError, 'Unknown setting'):
             self.control.start(dict(mode='gait', execution='preview', joints={'2': {'turbo': 1}}))
         self.assertFalse(self.control.state['busy'])
@@ -303,7 +302,7 @@ class WebTests(unittest.TestCase):
         gen3 = app.config['GEN3']
         self.addCleanup(gen3.close)
         gen3.map_path = self.path
-        iface = self.pose_hardware({i: dict(valid=True, position=2048 + i) for i in range(1, 11)})
+        iface = self.pose_hardware({i: dict(valid=True, position=2048 + i) for i in range(1, 13)})
         gen3.hardware_factory = lambda **kw: iface
         client = app.test_client()
         self.assertEqual(client.post('/api/gen3/pose/capture', json={'port': 'FAKE'}).status_code, 403)

@@ -1,33 +1,38 @@
 # Project continuation
 
 For Gen 3 operation, calibration, firmware, dashboard or simulation work, first read
-`docs/GEN3_HANDOFF.md` and the current `generations/gen3-experimental-3d/joint_map.json`.
-They record the hardware setup, successful trials, and unresolved limits. The confirmed
-sign mapping (pitch ID 1 = 1, pitch IDs 3/5/7/9 = -1, all yaw IDs = 1) is saved in `joint_map.json`.
-Preserve current measured settings; do not substitute older chat examples.
+[the current handoff](docs/GEN3_HANDOFF.md) and
+[the measured joint map](generations/gen3-experimental-3d/joint_map.json).
+Use the live file for settings and preserve existing local edits.
 
-## Agent skills
+As reviewed on 17 November 2026, Gen 3 has 12 joints. Odd IDs are pitch, even IDs
+are yaw. Pitch ID 1 has sign +1, pitch IDs 3/5/7/9/11 have sign -1, and all yaw
+signs are +1. The user marked IDs 11/12 calibrated on 10 November. The map saves
+`calibrated: true`, zero 2048, bounds 796–3300, speed 2144,
+`tracking_error` 492 and `tracking_timeout` 0.5. Shared gait amplitude and bias
+use the separate 90-degree cap. Read the [upgrade note](docs/hardware/12_MOTOR_UPGRADE.md)
+for commissioning limits.
 
-### Issue tracker
+The maintained dashboard lives under `generations/gen3-experimental-3d/backend/`.
+Screens go in `web_dashboard/templates/pages/` and `web_dashboard/static/pages/`.
+Shared pieces go in the corresponding `components/` folders. Browser requests
+and storage go in `static/data/`; server record storage goes in
+`surge_control/data/`. Keep one job per file and search for existing behavior
+before adding code. See the [asset guide](generations/gen3-experimental-3d/backend/web_dashboard/static/README.md).
 
-Track issues in local Markdown under `.scratch/`. See `docs/agents/issue-tracker.md`.
+Keep the maintained dashboard's glass, pixel-snake headline, ticker, stickers and
+transitions. Design tokens live in `static/tokens.css`. Shared styling and the
+commented helper-text rules live in `static/components.css`. The
+[UI refresh record](docs/gen3/DASHBOARD_UI_REFRESH.md) explains the design.
 
-### Triage labels
+The refined dashboard is independent. The Pi package is a legacy 10-joint
+distribution. Check each copy's own map and dependencies when editing it.
+The last confirmed transmitter was COM8 on 3 November. OTA firmware was
+installed then; later receiver changes remain unflashed.
 
-Use the five default triage roles. See `docs/agents/triage-labels.md`.
+## Agent records
 
-### Domain docs
-
-Use a single-context glossary and ADR layout. See `docs/agents/domain.md`.
-
----
-
-## Update — 2 November 2026
-
-**Where the project stands.** The last commit is `fc24e4e` (31 October 2026: Gen 2.1 five-box
-dashboard layout, continuous path traversal, unified console UI). Everything dated 31 October –
-2 November below is in the working tree and **not yet committed**. No hardware motion was
-commanded by the assistant during that work unless stated.
-
-Current measured settings: speed 1500, `tracking_error` 216, `tracking_timeout` 0.5. Radio is now plain text;
-the PC transmitter is on COM7. Read the dated entries at the top of `docs/GEN3_HANDOFF.md` first.
+- Track issues locally under `.scratch/` using [the issue-tracker rules](docs/agents/issue-tracker.md).
+- Use [the five triage labels](docs/agents/triage-labels.md).
+- Use [the glossary and ADR conventions](docs/agents/domain.md) for domain documentation.
+- Follow [the repository guide](docs/REPOSITORY_LAYOUT.md) for verification commands.

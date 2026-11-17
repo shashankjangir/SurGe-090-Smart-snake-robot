@@ -26,8 +26,8 @@ static const uint8_t IMU_ADDR = 0x68;
 
 static const int NUM_JOINTS = SURGE_NUM_JOINTS;
 static const int ENC_CENTER = 2048;
-static const int ENC_MIN = 1252;
-static const int ENC_MAX = 2844;
+static const int ENC_MIN = 796;
+static const int ENC_MAX = 3300;
 static const int AMPLITUDE = 400;
 static const float FREQUENCY = 3.0f;
 static const float PHASE_SHIFT = 1.2f;

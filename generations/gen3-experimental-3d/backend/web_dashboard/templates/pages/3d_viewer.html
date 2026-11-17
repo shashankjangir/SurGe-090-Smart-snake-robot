@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SURGE 090 — 3D Snake Viewer</title>
+    <link rel="stylesheet" href="/static/fonts/fonts.css?v={{ asset_v }}">
+    <link rel="stylesheet" href="/static/tokens.css?v={{ asset_v }}">
+    <style>
+        /* Tokens come from tokens.css. */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--color-sky-wash);
+            color: var(--color-carbon);
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Slush Top HUD Overlay */
+        .hud-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-left, .hud-right {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 900px) {
+            .hud-overlay { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .hud-left, .hud-right { gap: 5px; }
+            .hud-pill { padding: 5px 8px; font-size: 10px; }
+            .hud-title { font-size: 11px; }
+            .hud-legend { display: none; }
+        }
+
+        .hud-pill {
+            background-color: var(--color-paper-white);
+            border: 1px solid var(--color-carbon);
+            border-radius: var(--radius-pills);
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.032em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .hud-title {
+            font-family: 'Bowlby One', 'Antonio', sans-serif;
+            font-size: 15px;
+            background-color: var(--color-sunburst);
+        }
+
+        .hud-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid var(--color-carbon);
+            background-color: var(--color-ember);
+        }
+
+        .hud-status-dot.active {
+            background-color: var(--color-mint-pop);
+        }
+
+        .hud-btn {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .hud-btn:hover {
+            transform: translateY(-1px);
+            background-color: var(--color-lavender);
+        }
+
+        [hidden] { display: none !important; }
+
+        /* Bottom Legend */
+        .hud-legend {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .legend-tag {
+            background-color: var(--color-paper-white);
+            border: 1px solid var(--color-carbon);
+            border-radius: var(--radius-pills);
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.032em;
+            text-transform: uppercase;
+        }
+        {% if embedded %}
+        body { display: flex; flex-direction: column; height: 100vh; }
+        .hud-overlay { position: static; flex: none; padding: 8px; flex-wrap: wrap; gap: 6px; }
+        .hud-left, .hud-right { gap: 5px; }
+        .hud-title { display: none; }
+        .hud-pill { padding: 6px 8px; font-size: 11px; }
+        .hud-legend { position: static; order: 2; transform: none; flex: none; flex-wrap: wrap; padding: 6px; }
+        #canvas-container { width: 100%; height: auto; flex: 1; min-height: 100px; }
+        {% endif %}
+    </style>
+</head>
+<body>
+    <div class="hud-overlay">
+        <div class="hud-left">
+            <div class="hud-pill hud-title">SURGE 090 • 3D ENVIRONMENT</div>
+            <div class="hud-pill" id="status-pill">
+                <span class="hud-status-dot" id="status-dot"></span>
+                <span id="status-text">Connecting to 3D Stream...</span>
+            </div>
+        </div>
+        <div class="hud-right">
+            <button class="hud-pill hud-btn" id="btn-draw">Draw path</button>
+            <button class="hud-pill hud-btn" id="btn-use-path" hidden>Use path</button>
+            <button class="hud-pill hud-btn" id="btn-cancel-path" hidden>Cancel</button>
+            <label class="hud-pill" id="waypoint-input" hidden>Waypoint x, y (m)
+                <input id="waypoint-x" type="number" step="any" aria-label="Waypoint X in meters" style="width:4em">
+                <input id="waypoint-y" type="number" step="any" aria-label="Waypoint Y in meters" style="width:4em">
+                <button id="add-waypoint" type="button">Add</button>
+            </label>
+            <button class="hud-pill hud-btn" id="btn-follow">Follow head: on</button>
+            <button class="hud-pill hud-btn" id="btn-reset-cam">Reset View</button>
+            {% if not embedded %}
+            <button class="hud-pill hud-btn" onclick="window.close()" style="background-color: var(--color-carbon); color: var(--color-paper-white);">Close</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="hud-legend">
+        <span class="legend-tag" style="background-color: var(--color-electric-blue); color: #fff;">● Inflatable Blue Body</span>
+        <span class="legend-tag" style="background-color: var(--color-ember); color: #fff;">● Ember Head</span>
+        <span class="legend-tag" style="background-color: var(--color-sunburst);">● Target Trajectory</span>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- Same vendored Three.js r128 as /gen3, so both pages share one cached copy -->
+    <script src="/static/vendor/three-r128.min.js?v={{ asset_v }}"></script>
+    <script src="/static/vendor/OrbitControls-r128.js?v={{ asset_v }}"></script>
+
+    <script src="/static/pages/3d-viewer.js?v={{ asset_v }}"></script>
+</body>
+</html>

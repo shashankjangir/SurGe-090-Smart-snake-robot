@@ -1,6 +1,8 @@
+This is a historical slide-text extraction. The extracted image files are unavailable in this checkout. Image filenames below identify the missing original media.
+
 <!-- Slide number: 1 -->
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 INSTITUTION
 
 GROUP CODE · SURGE 090
@@ -11,7 +13,7 @@ Professor Amartansh Dubey
 Smart Snake Robot
 with Dynamixel Smart Servo Motors
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
 Shashank Jangir
 Bhavesh Bansiwal
@@ -52,9 +54,9 @@ Reliable communication
 Real-time feedback
 Compact size & sufficient torque
 
-![](Picture10.jpg)
+Extracted image `Picture10.jpg` (file unavailable).
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 
 <!-- Slide number: 3 -->
 ARCHITECTURE & DECISION
@@ -100,11 +102,11 @@ What This Project Sets Out to Build
 02
 03
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 Modular Architecture
 Dynamixel Actuators
 Raspberry Pi Control
@@ -116,11 +118,11 @@ A single-board-computer control system.
 05
 06
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 Locomotion Algorithms
 Sensor Integration
 Scalable Platform
@@ -143,25 +145,25 @@ Literature review & project understanding
 Raspberry Pi setup & configuration
 25 %
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 
 Hardware selection & BOM preparation
 
 Wi-Fi connectivity testing on the Pi
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image6.jpg)
+Extracted image `Image6.jpg` (file unavailable).
 
 CAD design of snake-robot segment
 
 Basic Raspberry Pi lab projects executed
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
-![preencoded.png](Image7.jpg)
+Extracted image `Image7.jpg` (file unavailable).
 Phase 1 complete · Phase 2 underway
 
 Assembly sized to Dynamixel XL330 dims
@@ -172,9 +174,9 @@ GitHub repository created & maintained
 2
 1
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image8.jpg)
+Extracted image `Image8.jpg` (file unavailable).
 Tasks done
 Segments printed
 Pi configured
@@ -183,9 +185,9 @@ Pi configured
 
 Procurement process initiated
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 
-![preencoded.png](Image9.jpg)
+Extracted image `Image9.jpg` (file unavailable).
 
 ### Notes:
 About a quarter done: ten tasks closed across research, mechanical design, fabrication and the compute platform.
@@ -233,7 +235,7 @@ Controller at the centre. Solid cyan = implemented/in progress; dashed amber (se
 
 <!-- Slide number: 7 -->
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 ASSEMBLY FLOW
 ③ Full Assembly
 Motor → Segment Parts → Full Chain Assembly
@@ -241,33 +243,33 @@ CAD DESIGN DEVELOPMENT
 A Segment Designed Around the Motor
 The CAD model is built to the exact dimensions of the Dynamixel XL330-M288 servo, using a modular, segment-based architecture focused on manufacturability and scalability.
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 
-![The image depicts a simple, sturdy, black, rectangular wooden shelving unit with a rectangular shelf in the middle. AI-generated content may be incorrect.](Picture33.jpg)
+Extracted image `Picture33.jpg` (file unavailable).
 
-![The image depicts a simple, grey, rectangular, flat-sided, metallic-looking panel or bracket, likely with some sort of mechanical attachment or mounting hardware visible, placed on a plain, light-colored background. AI-generated content may be incorrect.](Picture35.jpg)
+Extracted image `Picture35.jpg` (file unavailable).
 
 DESIGN CONSIDERATIONS
 
-![The image depicts a gray, rectangular frame with an open, hinged structure, likely part of a larger assembly.](Picture43.jpg)
+Extracted image `Picture43.jpg` (file unavailable).
 
 Motor mounting  — Precise seats for XL330 servo bodies.
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![The image depicts a simple, abstract representation of a zigzag pattern or a wave-like structure, rendered in a monochromatic, minimalistic style. AI-generated content may be incorrect.](Picture41.jpg)
+Extracted image `Picture41.jpg` (file unavailable).
 
 Structural rigidity  — Stiff frame to resist motion loads.
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
 Cable routing  — Clean daisy-chain channels for wiring.
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
 Electronics ready  — Space reserved for future boards.
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
 ① Motor
 ② Segment Parts
@@ -282,13 +284,13 @@ From Model to Printed Hardware
 
 FABRICATION STATUS
 
-![The image shows a white, rectangular piece of furniture, possibly a desk or shelf, resting on a patterned carpet with a few scattered fabric scraps nearby.](Picture4.jpg)
+Extracted image `Picture4.jpg` (file unavailable).
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 Two prototype segments 3D printed
 DONE
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 Both segments produced from the CAD model.
 PRINTED SEGMENT — PHOTO 1
 
@@ -296,25 +298,25 @@ Initial dimensional verification done
 DONE
 Insert photo of the first 3D-printed segment
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 Printed parts measured against design specs.
 
-![The image shows a white, rectangular plastic structure lying flat on a patterned carpeted floor. AI-generated content may be incorrect.](Picture6.jpg)
+Extracted image `Picture6.jpg` (file unavailable).
 
 Physical validation of CAD initiated
 NEXT
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 Checking fit, tolerances and assembly.
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
 Preparing for motor-integration tests
 NEXT
 
 PRINTED SEGMENT — PHOTO 2
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 Next: seat XL330 servos into segments.
 Insert photo of the second segment / assembly
 
@@ -329,44 +331,44 @@ Development Environment Setup
 
 PROGRESS MILESTONES
 
-![The image shows a schematic diagram of the Raspberry Pi GPIO pinout, detailing the connections between various pins and components such as power, ground, and communication interfaces. AI-generated content may be incorrect.](Picture45.jpg)
+Extracted image `Picture45.jpg` (file unavailable).
 
-![The image shows a schematic diagram of the Raspberry Pi GPIO pinout, detailing the connections between various pins and components such as power, ground, and communication interfaces. AI-generated content may be incorrect.](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 Raspberry Pi 5 received & configured
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
 Raspberry Pi OS installation completed
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
 Raspberry Pi OS Desktop
 GPIO / Python Testing
 Wi-Fi connectivity established
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 
-![The image shows a Windows command prompt window, with a user logged into a remote Linux system via SSH, navigating through directories and listing files on a desktop. AI-generated content may be incorrect.](Picture4.jpg)
+Extracted image `Picture4.jpg` (file unavailable).
 
-![The image shows a purple rectangular device, presumably a Raspberry Pi E, with four black USB ports, placed on a wooden surface.](Picture6.jpg)
+Extracted image `Picture6.jpg` (file unavailable).
 
 SSH & remote access explored
 
-![preencoded.png](Image7.jpg)
+Extracted image `Image7.jpg` (file unavailable).
 
-![preencoded.png](Image6.jpg)
+Extracted image `Image6.jpg` (file unavailable).
 
 Basic GPIO & intro projects performed
 
-![preencoded.png](Image9.jpg)
+Extracted image `Image9.jpg` (file unavailable).
 
-![preencoded.png](Image8.jpg)
+Extracted image `Image8.jpg` (file unavailable).
 SSH Remote Access
 System Configuration
 
@@ -374,9 +376,9 @@ Raspberry Pi Platform Successfully Configured and Tested
 
 Linux environment & Python familiarity
 
-![preencoded.png](Image11.jpg)
+Extracted image `Image11.jpg` (file unavailable).
 
-![preencoded.png](Image10.jpg)
+Extracted image `Image10.jpg` (file unavailable).
 
 ### Notes:
 Control computer is live: OS installed, networked, remotely accessible, exercised with intro GPIO and Python. De-risks software before motors arrive.
@@ -454,7 +456,7 @@ Version Control From Day One
 
 GITHUB REPOSITORY SCREENSHOTS
 
-![Locomotion set too 2D forward sine curve movement. AI-generated content may be incorrect.](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 Repository created
 Central home for the whole project.
 
@@ -472,12 +474,12 @@ Design source committed to the repo.
 
 GitHub repository — project root & structure
 
-![The image shows a collection of text documents and files related to Raspberry Pi setup and testing, including installation guides, hardware documentation, and various scripts and manuals. AI-generated content may be incorrect.](Picture6.jpg)
+Extracted image `Picture6.jpg` (file unavailable).
 
 Design iterations documented
 Every revision captured in commits.
 
-![step AI-generated content may be incorrect.](Picture4.jpg)
+Extracted image `Picture4.jpg` (file unavailable).
 
 4
 
@@ -546,17 +548,17 @@ Eight-phase plan: Phase 1 complete, Phase 2 active, Phase 3 next — about 25%. 
 CURRENT ACHIEVEMENTS
 Concrete Wins in Quarter One
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 Architecture finalized
 CAD design completed
 Prototype fabrication started
@@ -564,17 +566,17 @@ System block diagram locked.
 Segment modelled to motor specs.
 Two segments printed & checked.
 
-![preencoded.png](Image7.jpg)
+Extracted image `Image7.jpg` (file unavailable).
 
-![preencoded.png](Image9.jpg)
+Extracted image `Image9.jpg` (file unavailable).
 
-![preencoded.png](Image11.jpg)
+Extracted image `Image11.jpg` (file unavailable).
 
-![preencoded.png](Image6.jpg)
+Extracted image `Image6.jpg` (file unavailable).
 
-![preencoded.png](Image8.jpg)
+Extracted image `Image8.jpg` (file unavailable).
 
-![preencoded.png](Image10.jpg)
+Extracted image `Image10.jpg` (file unavailable).
 Pi environment established
 GitHub workflow operational
 Procurement initiated
@@ -591,18 +593,18 @@ SIMULATION & VALIDATION
 
 Simulation-Based Validation of Control Architecture
 
-![](Picture1.jpg)
+Extracted image `Picture1.jpg` (file unavailable).
 SIMULATION OBJECTIVE
 A virtual testing platform to validate the control architecture before Dynamixel actuators and communication hardware arrive — enabling software development, algorithm verification, and sensor integration in parallel with procurement.
 COMPONENTS SIMULATED
 
-![Controller](Graphic14.jpg)
+Extracted image `Graphic14.jpg` (file unavailable).
 
-![Sensors](Graphic15.jpg)
+Extracted image `Graphic15.jpg` (file unavailable).
 
-![Display](Graphic16.jpg)
+Extracted image `Graphic16.jpg` (file unavailable).
 
-![Actuators](Graphic17.jpg)
+Extracted image `Graphic17.jpg` (file unavailable).
 Controller
 Sensors
 Display
@@ -652,17 +654,17 @@ Testing & Optimization
 
 6
 
-![Hardware arrival](Graphic247.jpg)
+Extracted image `Graphic247.jpg` (file unavailable).
 
-![Mechanical assembly](Graphic248.jpg)
+Extracted image `Graphic248.jpg` (file unavailable).
 
-![Communication setup](Graphic249.jpg)
+Extracted image `Graphic249.jpg` (file unavailable).
 
-![Locomotion development](Graphic250.jpg)
+Extracted image `Graphic250.jpg` (file unavailable).
 
-![Sensor integration](Graphic251.jpg)
+Extracted image `Graphic251.jpg` (file unavailable).
 
-![Testing and optimization](Graphic252.jpg)
+Extracted image `Graphic252.jpg` (file unavailable).
 Receive Dynamixel XL330 motors
 Receive U2D2 interface
 Verify purchased components
@@ -702,7 +704,7 @@ Goal: ~60–70% project completion
 
 <!-- Slide number: 16 -->
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 
 WHAT CHANGED SINCE THIS REVIEW
 Generation 2 — Corrections & Cause
@@ -752,9 +754,9 @@ Built-in controller, no external driver per joint
 Scalable to 10 coordinated joints
 Procurable in India, in quantity
 
-![](Picture10.jpg)
+Extracted image `Picture10.jpg` (file unavailable).
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 
 ### Notes:
 The Gen 1 trade study is not invalidated - its conclusion was smart bus servos, and that is what we still run. Only the vendor changed, and it changed for supply reasons, not engineering ones. The torque column is the favourable consequence: 5.7x more joint torque at the same joint count. The voltage change from 5 V to 12 V is what forced the power architecture rework on slide 24.
@@ -885,9 +887,9 @@ Parameters  address, then data bytes
 Checksum  bitwise NOT of the byte sum
 Multi-byte fields are little-endian
 
-![](Picture10.jpg)
+Extracted image `Picture10.jpg` (file unavailable).
 
-![](Picture8.jpg)
+Extracted image `Picture8.jpg` (file unavailable).
 
 ### Notes:
 This is the whole interface. Two register facts matter downstream: GOAL_POSITION is little-endian and 0-4095 with centre 2048, which is a 4x scale difference from the SC-series servos the Waveshare board ships configured for; and PRESENT_CURRENT at address 69 is how we detect a stall, at 6.5 mA per count with the sign in bit 15. The 1200 mA threshold in robot_config.py is still a placeholder and needs calibrating against a real stall.
@@ -1077,17 +1079,17 @@ The resolved part is the robot rail: a 3S pack sits inside the ST3215's 6.0 to 1
 SAFETY ARCHITECTURE & CRITICAL GAPS
 Five Protection Parts the Robot Does Not Yet Have
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 Inline fuse — MISSING
 Loop-key disconnect — MISSING
 LiPo alarm / BMS — MISSING
@@ -1095,17 +1097,17 @@ Nothing limits fault current on a 27 A-capable pack.
 No safe way to isolate the battery from the bus.
 No cell-level undervoltage protection below 3.0 V.
 
-![preencoded.png](Image7.jpg)
+Extracted image `Image7.jpg` (file unavailable).
 
-![preencoded.png](Image9.jpg)
+Extracted image `Image9.jpg` (file unavailable).
 
-![preencoded.png](Image11.jpg)
+Extracted image `Image11.jpg` (file unavailable).
 
-![preencoded.png](Image6.jpg)
+Extracted image `Image6.jpg` (file unavailable).
 
-![preencoded.png](Image8.jpg)
+Extracted image `Image8.jpg` (file unavailable).
 
-![preencoded.png](Image10.jpg)
+Extracted image `Image10.jpg` (file unavailable).
 Bulk capacitor — MISSING
 Balance charger & bag — MISSING
 Current-stall limit — IN FIRMWARE
@@ -1159,17 +1161,17 @@ The gait is a central pattern generator - a travelling sine wave with a fixed ph
 VERIFICATION & MOCK-MODE RESULTS
 What Has Been Proven Without Hardware
 
-![preencoded.png](Image1.jpg)
+Extracted image `Image1.jpg` (file unavailable).
 
-![preencoded.png](Image3.jpg)
+Extracted image `Image3.jpg` (file unavailable).
 
-![preencoded.png](Image5.jpg)
+Extracted image `Image5.jpg` (file unavailable).
 
-![preencoded.png](Image0.jpg)
+Extracted image `Image0.jpg` (file unavailable).
 
-![preencoded.png](Image2.jpg)
+Extracted image `Image2.jpg` (file unavailable).
 
-![preencoded.png](Image4.jpg)
+Extracted image `Image4.jpg` (file unavailable).
 v6 CAD self-check
 Mock mode — SURGE_MOCK=1
 Wokwi simulation
@@ -1177,17 +1179,17 @@ Model refuses to export if its assumptions break.
 Full gait stack runs with no servos attached.
 ESP32, servos, IMU and display validated virtually.
 
-![preencoded.png](Image7.jpg)
+Extracted image `Image7.jpg` (file unavailable).
 
-![preencoded.png](Image9.jpg)
+Extracted image `Image9.jpg` (file unavailable).
 
-![preencoded.png](Image11.jpg)
+Extracted image `Image11.jpg` (file unavailable).
 
-![preencoded.png](Image6.jpg)
+Extracted image `Image6.jpg` (file unavailable).
 
-![preencoded.png](Image8.jpg)
+Extracted image `Image8.jpg` (file unavailable).
 
-![preencoded.png](Image10.jpg)
+Extracted image `Image10.jpg` (file unavailable).
 PlatformIO — five targets
 Broadcast smoke test
 Hardware verification

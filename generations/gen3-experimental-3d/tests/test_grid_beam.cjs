@@ -1,150 +1,129 @@
 const {requireAsset} = require('./asset-source.cjs');
-/**
- * Unit tests for GridBeam Component
- */
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert/strict');
+const path = require('node:path');
 
-// Mock browser DOM
-class MockClassList {
-  constructor() { this.classes = new Set(); }
-  add(c) { this.classes.add(c); }
-  remove(c) { this.classes.delete(c); }
-  contains(c) { return this.classes.has(c); }
-  toggle(c, force) {
-    if (force === undefined) {
-      if (this.classes.has(c)) this.classes.delete(c);
-      else this.classes.add(c);
-    } else if (force) {
-      this.classes.add(c);
-    } else {
-      this.classes.delete(c);
-    }
-  }
-}
-
-class MockElement {
-  constructor(className = '', tagName = 'div') {
-    this.tagName = tagName.toUpperCase();
-    this.className = className;
-    this.classList = new MockClassList();
-    this.clientWidth = 600;
-    this.clientHeight = 200;
-    this.style = {};
-    this.attributes = {};
-    this.listeners = {};
-    this.dataset = {};
-    this.children = [];
-  }
-  appendChild(child) { this.children.push(child); return child; }
-  querySelector(sel) {
-    if (sel === '.grid-beam-canvas') {
-      return this.children.find(c => c.className === 'grid-beam-canvas') || null;
-    }
-    return null;
-  }
-  querySelectorAll(sel) { return []; }
-  addEventListener(evt, fn) {
-    if (!this.listeners[evt]) this.listeners[evt] = [];
-    this.listeners[evt].push(fn);
-  }
-}
-
-class MockCanvas extends MockElement {
-  constructor() {
-    super('grid-beam-canvas', 'canvas');
-    this.width = 600;
-    this.height = 200;
-  }
-  getContext(type) {
-    if (type === '2d') {
-      return {
-        clearRect: () => {},
-        beginPath: () => {},
-        moveTo: () => {},
-        lineTo: () => {},
-        stroke: () => {},
-        save: () => {},
-        restore: () => {},
-        setTransform: () => {},
-        scale: () => {},
-        createLinearGradient: () => ({ addColorStop: () => {} }),
-      };
-    }
-    return null;
-  }
-}
-
-const container = new MockElement('grid-beam-container');
-const canvas = new MockCanvas();
-container.appendChild(canvas);
-
+const documentListeners = new Map();
+const windowListeners = new Map();
+const motionListeners = new Map();
+const frames = new Map();
+let nextFrame = 0, drawnFrames = 0, visible = true;
+let resizeObserver, intersectionObserver;
+const motion = {matches: false,
+  addEventListener: (type, callback) => motionListeners.set(type, callback),
+  removeEventListener: type => motionListeners.delete(type)};
+const context = {
+  clearRect() {drawnFrames++;}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
+  save() {}, restore() {}, setTransform() {}, scale() {},
+  createLinearGradient: () => ({addColorStop() {}})
+};
+const canvas = {style: {}, getContext: () => context};
+const container = {
+  clientWidth: 600, clientHeight: 200,
+  querySelector: () => canvas,
+  getClientRects: () => visible ? [{}] : []
+};
+global.ResizeObserver = class {
+  constructor(callback) {this.callback = callback; resizeObserver = this;}
+  observe(element) {assert.equal(element, container);}
+  disconnect() {this.disconnected = true;}
+};
+global.IntersectionObserver = class {
+  constructor(callback) {this.callback = callback; intersectionObserver = this;}
+  observe(element) {assert.equal(element, container);}
+  disconnect() {this.disconnected = true;}
+};
 global.document = {
-  readyState: 'complete',
-  querySelector: (sel) => sel === '.grid-beam-container' ? container : null,
-  querySelectorAll: () => [],
-  createElement: (tag) => tag === 'canvas' ? new MockCanvas() : new MockElement('', tag),
-  addEventListener: () => {},
+  hidden: false,
+  addEventListener: (type, callback) => documentListeners.set(type, callback),
+  removeEventListener: type => documentListeners.delete(type)
 };
-
 global.window = {
-  devicePixelRatio: 1,
-  matchMedia: () => ({ matches: false }),
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  performance: { now: () => Date.now() },
+  devicePixelRatio: 1, ResizeObserver, IntersectionObserver, matchMedia: () => motion,
+  addEventListener: (type, callback) => windowListeners.set(type, callback),
+  removeEventListener: type => windowListeners.delete(type)
 };
+global.requestAnimationFrame = callback => {frames.set(++nextFrame, callback); return nextFrame;};
+global.cancelAnimationFrame = id => frames.delete(id);
+const {initGridBeam, PALETTES} = requireAsset(path.resolve(__dirname, '../backend/web_dashboard/static/components/grid-beam.js'));
+for (const name of ['colorful', 'ocean', 'sunset', 'mono']) assert.equal(PALETTES[name].stops.length, 4);
+const beam = initGridBeam(container, {colorVariant: 'ocean'});
+assert.equal(beam.options.colorVariant, 'ocean');
+assert.equal(beam.isRunning(), false, 'wait for visibility before scheduling frames');
+assert.equal(frames.size, 0);
 
-global.requestAnimationFrame = (cb) => setTimeout(cb, 16);
-global.cancelAnimationFrame = clearTimeout;
+function intersect(isIntersecting) {
+  intersectionObserver.callback([{isIntersecting}]);
+}
+function frame() {
+  assert.equal(frames.size, 1, 'only one frame is pending');
+  const [id, callback] = frames.entries().next().value;
+  frames.delete(id);
+  callback(performance.now());
+}
+intersect(true);
+assert.equal(beam.isRunning(), true);
+frame();
+assert.equal(drawnFrames, 1);
+assert.equal(frames.size, 1);
 
-// Load module
-const { initGridBeam, PALETTES } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/grid-beam.js'));
+intersect(false);
+assert.equal(beam.isRunning(), false);
+assert.equal(frames.size, 0, 'offscreen canvas stops rendering');
+intersect(true);
+assert.equal(frames.size, 1, 'entering the viewport restarts once');
+intersect(true);
+assert.equal(frames.size, 1);
 
-// Test 1: Verify 4 palettes exist and have valid structure
-assert(PALETTES.colorful, 'colorful palette exists');
-assert(PALETTES.ocean, 'ocean palette exists');
-assert(PALETTES.sunset, 'sunset palette exists');
-assert(PALETTES.mono, 'mono palette exists');
-assert.strictEqual(PALETTES.colorful.stops.length, 4, 'colorful has 4 stops');
-assert.strictEqual(PALETTES.ocean.stops.length, 4, 'ocean has 4 stops');
+visible = false;
+resizeObserver.callback();
+assert.equal(beam.isRunning(), false, 'hidden workspace stops before intersection observer updates');
+assert.equal(frames.size, 0);
+visible = true;
+resizeObserver.callback();
+assert.equal(beam.isRunning(), true);
 
-// Test 2: Initialize GridBeam on container
-const beamApi = initGridBeam(container, {
-  rows: 2,
-  cols: 3,
-  colorVariant: 'ocean',
-  duration: 3.6,
-  strength: 0.95
-});
+document.hidden = true;
+documentListeners.get('visibilitychange')();
+assert.equal(frames.size, 0, 'background tab cancels pending frames');
+document.hidden = false;
+documentListeners.get('visibilitychange')();
+assert.equal(frames.size, 1);
+motion.matches = true;
+motionListeners.get('change')();
+assert.equal(frames.size, 0, 'reduced motion cancels frames');
+motion.matches = false;
+motionListeners.get('change')();
+assert.equal(frames.size, 1);
 
-assert(beamApi, 'GridBeam initialized successfully');
-assert.strictEqual(beamApi.options.colorVariant, 'ocean', 'Variant is ocean');
-assert.strictEqual(beamApi.isRunning(), true, 'Animation is running');
+beam.setActive(false);
+assert.equal(frames.size, 0);
+beam.setActive(true);
+assert.equal(frames.size, 1);
+beam.stop();
+intersect(false);
+intersect(true);
+assert.equal(frames.size, 0, 'an explicit stop persists across visibility updates');
+beam.start();
+assert.equal(frames.size, 1);
+beam.setVariant('sunset');
+assert.equal(beam.options.colorVariant, 'sunset');
+beam.setBreathe(false);
+assert.equal(beam.options.breathe, false);
+beam.destroy();
+assert.equal(beam.isRunning(), false);
+assert.equal(frames.size, 0);
+assert(resizeObserver.disconnected);
+assert(intersectionObserver.disconnected);
+assert.equal(documentListeners.size, 0);
+assert.equal(motionListeners.size, 0);
 
-// Test 3: Set Variant, Breathe, Active
-beamApi.setVariant('sunset');
-assert.strictEqual(beamApi.options.colorVariant, 'sunset', 'Variant changed to sunset');
-
-beamApi.setBreathe(false);
-assert.strictEqual(beamApi.options.breathe, false, 'Breathe toggled off');
-
-beamApi.setActive(false);
-assert.strictEqual(beamApi.options.active, false, 'Active toggled off');
-
-// Test 4: Beam trajectory divider calculations
-const rows = 2;
-const cols = 3;
-const H = 200;
-const W = 600;
-const rowStep = H / rows;
-const colStep = W / cols;
-
-assert.strictEqual(rowStep, 100, 'Horizontal divider is at Y = 100');
-assert.strictEqual(colStep, 200, 'Vertical dividers are at X = 200 and X = 400');
-
-// Test 5: Clean destruction
-beamApi.destroy();
-assert.strictEqual(beamApi.isRunning(), false, 'Animation stopped after destroy()');
-
-console.log('GridBeam component: 5 checks passed (4 color palettes, container init, variant/breathe controls, divider geometry math, clean destroy)');
+window.ResizeObserver = null;
+window.IntersectionObserver = null;
+const fallback = initGridBeam(container);
+assert.equal(fallback.isRunning(), true, 'visible fallback works without observers');
+visible = false;
+windowListeners.get('resize')();
+assert.equal(frames.size, 0);
+fallback.destroy();
+assert.equal(windowListeners.size, 0);
+console.log('GridBeam keeps its effect and palette controls; hidden panels/tabs, reduced motion and destruction release frames and observers');

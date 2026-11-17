@@ -7,7 +7,7 @@ const source = readAsset(path.join(__dirname, '../../gen3-dashboard-refined/back
 const pollSource = source.slice(source.indexOf('async function poll()'), source.indexOf('async function pollSystemStats()'));
 const elements = {};
 function element(id) {
-  return elements[id] ||= { textContent: '', innerHTML: '', hidden: false, disabled: false, className: '', dataset: {}, classList: { add() {}, toggle() {}, remove() {} } };
+  return elements[id] ||= { value: '', textContent: '', innerHTML: '', hidden: false, disabled: false, className: '', dataset: {}, classList: { add() {}, toggle() {}, remove() {} } };
 }
 const rows = Array.from({ length: 12 }, () => ({ cells: [{}, {}, { textContent: 'Valid' }] }));
 element('telemetry-body').children = rows;
@@ -23,6 +23,7 @@ const context = {
   document: { getElementById: element, querySelector: () => element('timers'), querySelectorAll: () => jobs },
   showError: error => { element('error').textContent = error ? error.message : ''; },
   formatRunTime: () => '00:00', checkDraftDifferences() {}, currentIsOperator: true,
+  refreshHardwareMetrics: async () => {}, capturedPose: null,
   pendingAction: false, currentConfig: null, currentRunId: null, appliedSettings: null,
   lastKnownOperator: undefined, statusOnline: true, JOINT_COUNT: 12, Date, Math, Boolean, Error,
 };
@@ -45,7 +46,7 @@ vm.runInContext(pollSource, context);
   assert(!element('floating-stop-btn').disabled);
   fail = false;
   await context.poll();
-  assert.equal(element('status').textContent, 'idle');
+  assert.equal(element('status').textContent, 'idle', element('error').textContent);
   assert.equal(element('feedback-age').textContent, 'Feedback: not sampled');
   assert(!jobs[0].disabled && !element('btn-start').disabled);
   context.currentIsOperator = false;

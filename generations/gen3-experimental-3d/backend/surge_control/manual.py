@@ -56,11 +56,11 @@ class Localization:
 
 
 class ManualController:
-    timeout = .5
+    timeout = None  # Owner request: no input-gap stop; LB release, B and Stop still stop.
 
     def __init__(self, options=None, now=None):
         options = {} if options is None else options
-        if not isinstance(options, dict) or set(options) - {'assist', 'path', 'localization_verified', 'steering_sign', 'inspection'}:
+        if not isinstance(options, dict) or set(options) - {'assist', 'path', 'localization_verified', 'steering_sign', 'inspection', 'steering'}:
             raise ValueError('Unknown controller option')
         self.assist = options.get('assist', 'manual')
         if self.assist not in ('manual', 'heading', 'route'):
@@ -70,6 +70,13 @@ class ManualController:
         self.inspection = options.get('inspection', False)
         if self.inspection and self.assist != 'manual':
             raise ValueError('Inspection cannot be combined with navigation')
+        self.steering = options.get('steering', 'gait')
+        if self.steering not in ('gait', '3d'):
+            raise ValueError('Choose gait or 3d steering')
+        if self.steering == '3d' and (self.assist != 'manual' or self.inspection):
+            raise ValueError('3D Motions steering uses manual control without inspection')
+        self.steer3d = None  # Steering3D, attached once the joint map is known
+        self.pose3d = None   # measured body pose for 3D steering, when available
         if self.assist == 'route':
             from .spatial_route import SpatialRoute
             self.route = SpatialRoute(options.get('path'))
@@ -103,8 +110,9 @@ class ManualController:
             raise ValueError('Controller sequence must increase')
         if type(data.get('deadman')) is not bool:
             raise ValueError('Controller input requires boolean deadman')
-        wall = time.time()
-        bounded(data.get('captured_at'), 'captured_at', wall - .5, wall + .1)
+        # The browser clock may differ from this host's (e.g. a Raspberry Pi without RTC),
+        # so freshness uses sequence order and the local receive time, not captured_at.
+        bounded(data.get('captured_at'), 'captured_at', 0, float('inf'))
         candidate = {k: bounded(data.get(k, 0), k, 0 if k == 'throttle' else -1, 1)
                      for k in ('stick_x', 'stick_y', 'head_x', 'head_y', 'throttle')}
         events = ('reverse', 'preset', 'yaw_up', 'yaw_down', 'pitch_up', 'pitch_down')
@@ -127,12 +135,13 @@ class ManualController:
         now = time.monotonic() if now is None else now
         if not self.input['deadman']:
             raise InterruptedError('Controller hold released')
-        if now - self.received > self.timeout:
+        if self.timeout is not None and now - self.received > self.timeout:
             raise InterruptedError('Controller input stale')
 
     def feedback(self, rows, limit, dt):
         valid = list(rows.values())
-        if len(valid) != 10 or any(not row.get('valid') or not all(
+        # Both interfaces return a row for every motor (10 on Gen 2.1, 12 on Gen 3), so empty = stale.
+        if not valid or any(not row.get('valid') or not all(
                 isinstance(row.get(k), (int, float)) and math.isfinite(row[k]) for k in ('position', 'target')) for row in valid):
             desired, reason = .25, 'Incomplete feedback'
         else:
@@ -142,9 +151,14 @@ class ManualController:
         self.feedback_scale = approach(self.feedback_scale, desired, max(0., dt) * (2 if desired < self.feedback_scale else .1))
         self.feedback_reason = reason
 
+    def attach_steering(self, joints, offsets):
+        from .steering import Steering3D
+        self.steer3d = Steering3D(joints, offsets)
+
     def parameters(self, base, dt, pose=None, t=0):
         dt = max(0., min(.1, dt))
-        desired_turn = -self.steering_sign * self.input['stick_x'] * STEP
+        # 3D Motions steers per joint (see steering.py) instead of a uniform yaw bias.
+        desired_turn = 0. if self.steering == '3d' else -self.steering_sign * self.input['stick_x'] * STEP
         if self.assist != 'manual':
             if pose is None:
                 raise RuntimeError('Measured head pose required for navigation')
@@ -175,8 +189,13 @@ class ManualController:
         self.head_y = approach(self.head_y, self.input['head_y'] * HEAD_RANGE if self.inspection else 0, STEP * dt)
         self.lag = approach(base['lag'] if self.lag is None else self.lag,
                             base['lag'] * (.75 if self.preset == 2 else 1), .5 * dt)
-        return dict(base, yaw=self.yaw, pitch=self.pitch, bias=base.get('bias', 0) + self.turn,
-                    frequency=base['frequency'] * self.rate, lag=self.lag)
+        result = dict(base, yaw=self.yaw, pitch=self.pitch, bias=base.get('bias', 0) + self.turn,
+                      frequency=base['frequency'] * self.rate, lag=self.lag)
+        if self.steer3d:
+            self.steer3d.update(self.input['stick_x'], self.input['stick_y'], result['frequency'], result['lag'],
+                                dict(yaw=abs(result['yaw']) + abs(result['bias']), pitch=abs(result['pitch'])),
+                                dt, self.pose3d)
+        return result
 
     def limit_targets(self, targets, joints, speed, t):
         dt = 0 if self.last_t is None else max(0., min(.1, t - self.last_t))
@@ -195,4 +214,5 @@ class ManualController:
                     inspection=self.inspection, reversed=self.reversed, preset=self.preset,
                     yaw_gain=self.yaw_gain, pitch_gain=self.pitch_gain, rate=self.rate,
                     feedback_scale=self.feedback_scale, feedback_reason=self.feedback_reason,
-                    route=self.route.snapshot() if self.route else None)
+                    route=self.route.snapshot() if self.route else None,
+                    steering=self.steer3d.snapshot() if self.steer3d else None)

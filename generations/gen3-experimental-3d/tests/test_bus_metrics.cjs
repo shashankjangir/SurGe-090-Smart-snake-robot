@@ -1,9 +1,9 @@
 const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js', 'utf8');
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-hardware.js', 'utf8');
 const elements = {};
-const context = { $: id => elements[id] ||= {}, Date };
+const context = { $: id => elements[id] ||= {}, Date, JOINT_COUNT: 12 };
 vm.createContext(context);
 vm.runInContext(source.slice(source.indexOf('function renderBusMetrics('), source.indexOf('function renderDiagnostics(')), context);
 context.renderBusMetrics({port: 'COM7', timestamp: Date.now() / 1000 - 5, servos: {
@@ -14,14 +14,14 @@ context.renderBusMetrics({port: 'COM7', timestamp: Date.now() / 1000 - 5, servos
 }});
 assert.equal(elements['grid-metric-voltage'].textContent, '11.2 V');
 assert.equal(elements['grid-metric-temp'].textContent, '34 °C');
-assert.equal(elements['grid-metric-servos'].textContent, '2 / 10');
+assert.equal(elements['grid-metric-servos'].textContent, '2 / 12');
 assert.match(elements['bus-metrics-status'].textContent, /Snapshot · COM7 · \d+s old/);
 context.renderBusMetrics(null);
 assert.equal(elements['grid-metric-voltage'].textContent, 'Unavailable');
 assert.equal(elements['grid-metric-servos'].textContent, 'Unavailable');
 context.renderBusMetrics({port: 'COM7', timestamp: Date.now()/1000, servos: {1: {reg8: -1, voltage: -1, temperature: -1}}});
 assert.equal(elements['grid-metric-temp'].textContent, 'Unavailable');
-assert.equal(elements['grid-metric-servos'].textContent, '0 / 10');
+assert.equal(elements['grid-metric-servos'].textContent, '0 / 12');
 const now = Date.now() / 1000;
 const snapshot = {port: 'COM7', timestamp: now - 60, servos: {1: {reg8: 1, voltage: 117, temperature: 32}}};
 const telemetry = {1: {valid: true, target: 2048, position: 2037}, 2: {valid: true, target: 2100, position: 2100},
@@ -30,13 +30,13 @@ context.renderBusMetrics(snapshot, {server_time: now, telemetry, bus: {port: 'CO
 assert.equal(elements['grid-metric-latency'].textContent, '18 ms');
 assert.equal(elements['grid-metric-rate'].textContent, '20.0 Hz');
 assert.equal(elements['grid-metric-sync'].textContent, '±1.0°');
-assert.equal(elements['grid-metric-servos'].textContent, '3 / 10');
+assert.equal(elements['grid-metric-servos'].textContent, '3 / 12');
 assert.equal(elements['grid-metric-voltage'].textContent, '11.7 V');
 assert.match(elements['bus-metrics-status'].textContent, /Live · COM7 · voltage\/temp snapshot \d+s old/);
 // Stale feedback (run ended) falls back to the snapshot.
 context.renderBusMetrics(snapshot, {server_time: now, telemetry, bus: {port: 'COM7', at: now - 5, latency_ms: 18, interval_s: .05}});
 assert.equal(elements['grid-metric-latency'].textContent, 'Unavailable');
-assert.equal(elements['grid-metric-servos'].textContent, '1 / 10');
+assert.equal(elements['grid-metric-servos'].textContent, '1 / 12');
 assert.match(elements['bus-metrics-status'].textContent, /Snapshot · COM7/);
 context.renderBusMetrics(snapshot, {server_time: now, telemetry: {1: {valid: true, position: 2048}},
   bus: {kind: 'idle', port: 'COM8', at: now - 3, latency_ms: 19, interval_s: 3}});

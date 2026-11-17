@@ -6,7 +6,7 @@ for (const id of ['battery-indicator', 'battery-value', 'battery-fill']) {
   elements[id] = { dataset: {}, style: {}, setAttribute(key, value) { this[key] = value; } };
 }
 const context = { window: {}, document: { getElementById: id => elements[id] } };
-vm.runInNewContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/battery.js', 'utf8'), context);
+vm.runInNewContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/components/battery.js', 'utf8'), context);
 const render = context.window.SurgeBattery.render;
 for (const [percent, level] of [[100, 'high'], [51, 'high'], [50, 'medium'], [21, 'medium'], [20, 'low'], [0, 'low']]) {
   render({ percent, voltage: 11.1 + 1.5 * percent / 100, age_s: 2, sample_count: 10, state: 'fresh' });
@@ -27,7 +27,7 @@ console.log('Battery colors, thresholds, accessible descriptions, stale and unav
 
 (async () => {
   let finish, calls = 0;
-  const script = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/script.js', 'utf8');
+  const script = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js', 'utf8');
   const polling = {
     window: { SurgeBattery: { render } },
     document: { getElementById: () => null },

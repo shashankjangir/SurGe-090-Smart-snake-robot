@@ -30,7 +30,7 @@ async def verify(base, control):
             for raw, percent, level in [(126, '100%', 'high'), (120, '60%', 'high'),
                                         (117, '40%', 'medium'), (111, '0%', 'low')]:
                 control.last_diagnostic = dict(timestamp=time.time(), servos={
-                    i: dict(valid=True, voltage=raw) for i in range(1, 11)})
+                    i: dict(valid=True, voltage=raw) for i in range(1, 13)})
                 await page.wait_for_function(
                     'text => document.querySelector("#battery-value").textContent === text', arg=percent)
                 assert await page.locator('#battery-indicator').get_attribute('data-level') == level

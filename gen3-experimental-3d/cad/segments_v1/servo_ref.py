@@ -9,7 +9,7 @@ before anything is measured from them; a failed check raises.
 import math
 import numpy as np
 import trimesh
-from build123d import import_step, export_stl, Location, Axis, Compound
+from build123d import import_step, export_stl, Axis, Compound
 
 import params as P
 

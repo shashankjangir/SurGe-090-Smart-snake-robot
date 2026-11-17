@@ -1,60 +1,23 @@
-# How I built SURGE-090
+# How SURGE-090 developed
 
-I am Shashank Jangir. This is how I explain our project as it stands on 3 November 2026. I use "I" for the design I am explaining and "we" for the work recorded across the project. Bhavesh and Mahima are also named operators in the software.
+SURGE-090 explores how a chain of servo joints can move as one body. The project developed during SURGE 2026 at IIT Delhi under Prof. Amartansh Dubey. Shashank Jangir, Bhavesh Bansiwal and Mahima Chotiya are the named operators in the control software.
 
-## What I am trying to make
-
-I want a chain of joints to move as one body. Turning a servo is only the first step. Useful movement also depends on ground contact, the travelling wave, electrical power and wiring that survives repeated bending.
-
-The current experiment uses ten ST3215 servos. In Gen 3, alternate joints bend vertically and horizontally. That gives us pitch waves, yaw waves and combinations of the two. My immediate goal is repeatable, measured movement. A video of moving joints is not enough to establish that.
-
-## Why the repository has three generations
-
-| Generation | What we built or investigated |
+| Generation | Main work |
 | --- | --- |
-| Gen 1 | A Dynamixel XL330 prototype with the earlier Pi/U2D2 setup. |
-| Gen 2 and 2.1 | A ten-joint planar ST3215 chain, servo-bus tools and host controls. |
-| Gen 3 | An alternating pitch/yaw ST3215 body, mapped calibration and 3D simulation. |
+| Gen 1 | Dynamixel XL330 prototype with the earlier Pi/U2D2 setup |
+| Gen 2 and 2.1 | Ten-joint planar ST3215 chain, segment design, servo-bus tools and host control |
+| Gen 3 | Twelve alternating pitch/yaw joints, calibration map and 3D simulation |
 
-Gen 2.0 calculates its gait onboard in the robot firmware. Gen 2.1 calculates targets on the host and sends them to the receiver. Gen 3 uses that maintained text transport with its own motion runner and joint map. I keep these systems separate because their actuator protocols and mechanical assumptions differ.
+Gen 2.0 calculates its gait onboard. Gen 2.1 and Gen 3 calculate targets on the host and send them through a PC transmitter ESP32 to the robot receiver. The receiver checks commands and operates the ST3215 bus. Feedback shows joint tracking, while ground travel needs a separate measurement.
 
-## How the body is made
+The CAD folders record motor holders, plates and alternating-axis connectors. Browser meshes and PyBullet bodies derive from the assembly. The 12-joint simulation has 13 links. Its added tail modules use cloned mesh sections pending a full SolidWorks re-export. Printed fit, load capacity and cable clearance still require physical checks.
 
-The CAD folders contain the development of the planar segments, motor holders, plates and alternating-axis connectors. The current simulation uses the V2 neutral assembly: a head, nine middle sections, a tail and ten motor joints. Every servo is at encoder count 2048 in the neutral pose.
+The recorded robot uses an external battery on long leads. Ground contact, battery drag, wiring and the travelling wave all affect movement. Simulation helps compare controls, but its contact and mass assumptions remain illustrative.
 
-Native SolidWorks files and STEP exports stay with the relevant generation. We derive meshes for the browser and articulated bodies for PyBullet. Opening the assembly in CAD does not prove that a printed part can carry the robot. The prototype filenames explicitly retain the fit-and-load-validation warning.
+The maintained dashboard serves separate Simulation and Hardware workspaces. Hardware starts in Dry run. Finite trials, per-joint settings, taught poses, feedback logging and hold-to-run gamepad control support small repeatable experiments. See [the software guide](SOFTWARE.md).
 
-The central battery section was removed from the recorded physical setup. The battery is external on long leads. Its drag and position affect the real robot, so we need to account for them when comparing trials with simulation.
+The physical record includes pitch-only trials at 2, 5 and 10 degrees. A later trial at yaw 30 degrees, pitch 25 degrees, 0.5 Hz and speed 1500 produced a write fault and missing IDs 7/8. Wiring was reported repaired afterward. Those are historical trial settings. The [current map](../generations/gen3-experimental-3d/joint_map.json) now saves speed 2144 and tracking error 492.
 
-## How I send a joint target
+IDs 11 and 12 were added to the maintained code on 7 November and marked calibrated by the owner on 10 November. The last recorded firmware installation is 3 November. Later receiver changes still need installation and physical verification.
 
-```mermaid
-flowchart LR
-    Browser[Browser dashboard] --> Host[Python control runtime]
-    Host -->|USB 115200 baud| TX[PC transmitter ESP32]
-    TX -->|ESP-NOW channel 1| RX[Robot receiver ESP32]
-    RX -->|UART 1 Mbps| Motors[Ten ST3215 servos]
-    Motors --> RX
-    RX --> TX
-    TX --> Host
-```
-
-The host sends a motor ID, encoder position and speed. The receiver checks the frame, applies bounds and reports faults. Feedback tells us whether a joint follows its target; it does not tell us where the whole robot is on the floor.
-
-We adapted the plain-text ESP-NOW transport from Bhavesh's Snake_SURGE repository and kept our maintained command handlers. Our receiver adds arming, torque-off Stop, bounds, a target watchdog, maintenance protection and write/read-back checks. The command radio remains plain text without command authentication.
-
-## What we changed in the software
-
-We moved source and CAD into generation folders, consolidated dashboard assets and made one maintained backend serve Gen 2.1 and Gen 3. We added finite trials, calibration, tracking faults, pose tools, per-joint settings and run records.
-
-The dashboard now separates Simulation and Hardware. Gen 3 Hardware starts with Dry run selected. Simulation has its own PyBullet model, route and controller. Copying waveform settings between workspaces is explicit and does not copy the measured hardware speed.
-
-We added hold-to-run gamepad control, slowing when tracking error rises, localization-gated route assistance and OTA maintenance mode. The three Gen 2.1 bench launchers are now one command with an align, sine or spiral argument.
-
-## What the results show
-
-The physical record includes centering and pitch-only trials at 2, 5 and 10 degrees. A 10-degree trial used an eight-second ramp. Later, a 30-degree yaw / 25-degree pitch trial at 0.5 Hz and speed 1500 produced a write fault and missing responses from IDs 7 and 8. A wiring repair was reported afterward. A corresponding logged diagnostic recheck and repeated trial remain outstanding in the handoff.
-
-Software checks cover parts of the browser, simulation, firmware and control logic. They do not measure traction, validate printed parts or establish wireless stop latency on the assembled robot.
-
-My next physical steps are to confirm all ten motors again, record voltage under load and measure travel during small, repeatable trials. [Current status](CURRENT_STATUS.md) separates these pending steps from completed software work.
+The next physical milestone is a trial record with the assembly, map, waveform, supply voltage, surface, feedback and measured travel. The [current status](CURRENT_STATUS.md) lists the remaining checks, and the [handoff](GEN3_HANDOFF.md) records the hardware setup and dated work.

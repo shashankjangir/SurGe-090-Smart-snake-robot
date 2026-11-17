@@ -64,7 +64,7 @@ STOP and close the port in cleanup. Port selection may also use `SURGE_PORT`.
 Gen 2.0 `main.py` uses the 1 Mbps transparent bridge, not the Gen 2.1 text receiver.
 Gen 2.0 `robot_esp32_v2` generates its own onboard gait. Gen 3.0 is a separate
 experiment; its script defaults to printing targets without opening hardware.
-See [versions](../versions/VERSIONS.md) and [firmware](../../generations/gen2-st3215/firmware/README.md).
+See [versions](../../../../versions/VERSIONS.md) and [firmware](../../../../../generations/gen2-st3215/firmware/README.md).
 
 
 ## Gen 3 operating guide

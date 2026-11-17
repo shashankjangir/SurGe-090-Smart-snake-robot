@@ -1,7 +1,6 @@
 const {readAsset} = require('./asset-source.cjs');
 /**
- * Verification test for SURGE 090 Unified Playful Dashboard
- * Tests all gates from docs/archive/SURGE_090_UNIFIED_UI_EXECUTION_PLAN.md
+ * Shared control and accessibility checks for the refined dashboard.
  */
 const assert = require('assert');
 const path = require('path');
@@ -13,6 +12,7 @@ const scriptJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static
 const gen3Js = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3.js'), 'utf8');
 const searchJs = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3-search.js'), 'utf8');
 const styleCss = readAsset(path.join(__dirname, '../backend/web_dashboard/static/style.css'), 'utf8');
+const refinedCss = readAsset(path.join(__dirname, '../backend/web_dashboard/static/refined.css'), 'utf8');
 
 console.log('Testing SURGE 090 Unified UI Acceptance Gates...');
 
@@ -29,18 +29,18 @@ console.log('Testing SURGE 090 Unified UI Acceptance Gates...');
 });
 console.log('  PASS: Gate 1 — Shared header, brand, and operator login morphing controls verified');
 
-// Gate 2: Shared Hero & Generation Switch with Rich Info Cards
+// Gate 2: Compact headings and generation navigation.
 [indexHtml, gen3Html].forEach((html, idx) => {
   const route = idx === 0 ? 'Gen 2.1 (/)' : 'Gen 3 (/gen3)';
-  assert(html.includes('hero-snake-canvas'), `${route} must include hero-snake-canvas`);
-  assert(html.includes('shader-lens-blur-canvas'), `${route} must include shader-lens-blur-canvas`);
-  assert(html.includes('distorted-glass-ribbon'), `${route} must include distorted-glass-ribbon`);
-  assert(html.includes('class="modular-control-wrapper"'), `${route} must include modular-control-wrapper`);
-  assert(html.includes('id="tooltip-gen21"') && html.includes('id="tooltip-gen3"'), `${route} must include generation info tooltips`);
-  assert(html.includes('Planar Snake') && html.includes('10 Yaw Joints'), `${route} must describe Gen 2.1 planar kinematics`);
-  assert(html.includes('3D Spatial Snake') && html.includes('Alternating 6 Pitch + 6 Yaw Joints'), `${route} must describe Gen 3 spatial kinematics`);
+  assert(html.includes('data-design="refined"') && html.includes('class="console-heading"'), `${route} must use its refined heading`);
+  assert(html.includes(idx === 0 ? 'Gen 2.1 simulation console' : 'Gen 3 control console'), `${route} must identify its workspace`);
+  const navigation = html.match(/<nav class="generation-switch"[^>]*>[\s\S]*?<\/nav>/)[0];
+  assert(navigation.includes('aria-label="Robot generation"'));
+  assert(navigation.includes('href="/"') && navigation.includes('href="/gen3"') && navigation.includes('href="/3d"'));
+  assert.equal((navigation.match(/aria-current="page"/g) || []).length, 1);
+  assert(!/hero-snake-canvas|shader-lens-blur-canvas|distorted-glass-ribbon/.test(html), `${route} omits the poster decoration`);
 });
-console.log('  PASS: Gate 2 — Shared hero, shaders, and generation switch with rich hover cards verified');
+console.log('  PASS: Gate 2 — Refined headings and generation navigation verified');
 
 // Gate 3: Task Navigation Tabs & Tab Stop Action
 assert(indexHtml.includes('id="telemetry-hub"'), 'Gen 2.1 must have telemetry');
@@ -59,12 +59,13 @@ assert(scriptJs.includes("id of ['btn-hero-stop', 'tab-stop-btn', 'floating-stop
 assert(gen3Js.includes("$('floating-stop-btn')"), 'gen3.js must wire stop handlers');
 console.log('  PASS: Gate 4 — Always-visible persistent Stop button and safe handlers verified');
 
-// Gate 5: Telemetry Hover Vibration & Reduced Motion Guard
+// Gate 5: Refined telemetry stays still and request feedback respects reduced motion.
 assert(styleCss.includes('.telem-box:hover'), 'style.css must style .telem-box:hover');
-assert(styleCss.includes('animation: telemetry-wiggle'), 'style.css must animate telemetry-wiggle');
-assert(styleCss.includes('@media (prefers-reduced-motion: reduce)') && styleCss.includes('.telem-box:hover { animation: none;'),
-  'style.css must disable telemetry hover vibration under prefers-reduced-motion');
-console.log('  PASS: Gate 5 — Telemetry hover vibration and reduced-motion alternative verified');
+assert(refinedCss.includes(':is(.telem-box:hover, .card:hover, .preset-card:hover) { transform: none; animation: none; }'));
+assert(refinedCss.includes('@media (prefers-reduced-motion: reduce)') && refinedCss.includes('transition: none !important;'),
+  'Refined feedback must respect reduced motion');
+assert(refinedCss.includes(':focus-visible'), 'Controls retain visible keyboard focus');
+console.log('  PASS: Gate 5 — Stable telemetry, keyboard focus and reduced motion verified');
 
 // Gate 6: Search Safety on Gen 3 Only
 assert(!indexHtml.includes('console-search'), 'Gen 2.1 must not include search');

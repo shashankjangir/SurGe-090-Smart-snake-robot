@@ -1,13 +1,13 @@
 # System Logic, Code & Interface Review — SURGE 090
 
-**Date**: 28 October 2026  
+**Date**: 28 October 2026\
 **Scope**: Whole-codebase architecture, concurrency & safety logic, frontend performance, UI engineering details, and comparative backend trade-offs.
 
 ---
 
 ## 1. System Architecture & Knowledge Graph Overview (`/graphify`)
 
-Based on the repository knowledge graph ([`graphify-out/GRAPH_REPORT.md`](file:///c:/1. SurGe 090 Smart snake robot/graphify-out/GRAPH_REPORT.md)), the project is organized into four distinct architectural tiers:
+Based on the repository knowledge graph ([`graphify-out/GRAPH_REPORT.md`](../../artifacts/graphify-out/GRAPH_REPORT.md)), the project is organized into four distinct architectural tiers:
 
 ```mermaid
 flowchart TD
@@ -50,8 +50,8 @@ flowchart TD
 ## 2. Logic, Concurrency & State Machine Review
 
 ### A. Threading & Lock Reentrancy
-- **State**: The server synchronizes concurrent access using `control.lock` across [`web_app.py`](file:///c:/1. SurGe 090 Smart snake robot/generations/gen3-experimental-3d/backend/web_dashboard/web_app.py) and [`gen3.py`](file:///c:/1. SurGe 090 Smart snake robot/shared/surge_control/gen3.py).
-- **Audit Finding**: `control.lock` is initialized as a `threading.RLock()` in [`runtime.py`](file:///c:/1. SurGe 090 Smart snake robot/shared/surge_control/runtime.py#L13). Because requests acquire the lock during `before_request` and re-enter `with control.lock:` within endpoints, reentrancy is safely handled without self-deadlock.
+- **State**: The server synchronizes concurrent access using `control.lock` across [`web_app.py`](../../generations/gen3-experimental-3d/backend/web_dashboard/web_app.py) and [`gen3.py`](../../generations/gen3-experimental-3d/backend/surge_control/gen3.py).
+- **Audit Finding**: `control.lock` is initialized as a `threading.RLock()` in [`runtime.py`](../../generations/gen3-experimental-3d/backend/surge_control/runtime.py#L13). Because requests acquire the lock during `before_request` and re-enter `with control.lock:` within endpoints, reentrancy is safely handled without self-deadlock.
 
 ### B. Operator Lease & Safety Invariants
 - **Two Roles**: Viewer (default for any browser connection, read-only telemetry, emergency STOP permitted) vs. Operator (login required, exactly one active lease).
@@ -59,7 +59,7 @@ flowchart TD
 - **Safety Stop**: If the lease expires while hardware motion is running, the runtime automatically commands `self.stop()`, powers down the motors, and changes state to `Operator lease expired; safety stop commanded`.
 
 ### C. Optimistic Concurrency Control
-- **Audit**: Calibration saves ([`save_map`](file:///c:/1. SurGe 090 Smart snake robot/shared/surge_control/gen3.py#L430)) require a 16-character SHA256 checksum token of the existing `joint_map.json`.
+- **Audit**: Calibration saves ([`save_map`](../../generations/gen3-experimental-3d/backend/surge_control/gen3.py#L430)) require a 16-character SHA256 checksum token of the existing `joint_map.json`.
 - **Finding**: Concurrent edits or external file modifications reject stale payloads with HTTP 400, preventing race conditions or overwritten zero-points. Automatic timestamped backups are preserved in `runs/calibration-before-<timestamp>.json`.
 
 ---
@@ -67,18 +67,18 @@ flowchart TD
 ## 3. Errors Checked & Fixed
 
 ### Fix 1: Polling Storm & GC Churn in Telemetry Loop
-- **Error**: In [`gen3.js`](file:///c:/1. SurGe 090 Smart snake robot/shared/web-dashboard/static/gen3.js), `poll()` runs every 400ms. It was calling `tbody.replaceChildren()` and reallocating 10 `<tr>` DOM elements on every single tick, while also issuing an extra HTTP request (`GET /api/gen3/session`) on every poll tick.
+- **Error**: In [`gen3.js`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3.js), `poll()` runs every 400ms. It was calling `tbody.replaceChildren()` and reallocating 10 `<tr>` DOM elements on every single tick, while also issuing an extra HTTP request (`GET /api/gen3/session`) on every poll tick.
 - **Fix Applied**:
   1. **In-place DOM Reuse**: Replaced `replaceChildren()` with row reuse (`existingRows[id - 1].innerHTML = ...`), eliminating garbage collection spikes in long-running sessions.
   2. **Session Sync on Transition**: Cached `lastKnownOperator` so `/api/gen3/session` is only fetched when the active operator actually changes, saving ~2.5 redundant HTTP requests per second.
 
 ### Fix 2: Tactile Button Press Micro-Interactions (`/make-interfaces-feel-better`)
 - **Error**: Buttons lacked physical compression feedback on click, making interactions feel rigid.
-- **Fix Applied**: Added `:active:not(:disabled) { transform: scale(0.97); }` with a fast 80ms ease-out transition to [`style.css`](file:///c:/1. SurGe 090 Smart snake robot/shared/web-dashboard/static/style.css), providing immediate tactile feedback on all action triggers.
+- **Fix Applied**: Added `:active:not(:disabled) { transform: scale(0.97); }` with a fast 80ms ease-out transition to [`style.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/style.css), providing immediate tactile feedback on all action triggers.
 
 ### Fix 3: Heading Typography & Balance
 - **Error**: Long crushed display headlines and banner headers had potential for single-word typographic orphans.
-- **Fix Applied**: Configured `text-wrap: balance` on `.display-headline` and `.hero-tagline` in [`style.css`](file:///c:/1. SurGe 090 Smart snake robot/shared/web-dashboard/static/style.css).
+- **Fix Applied**: Configured `text-wrap: balance` on `.display-headline` and `.hero-tagline` in [`style.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/style.css).
 
 ---
 
@@ -113,7 +113,7 @@ flowchart TD
    - *Current*: 400ms HTTP polling (`GET /api/gen3/status`).
    - *Idea*: Upgrade to an SSE endpoint (`/api/gen3/events`). Pushes status updates immediately when joint positions change or when an operator claims the lease, eliminating HTTP request/response headers.
 2. **Physical Sign-Table Reconciliation Script**:
-   - *Current*: Documented in [`docs/GEN3_HANDOFF.md`](file:///c:/1. SurGe 090 Smart snake robot/docs/GEN3_HANDOFF.md) that physical Pitch signs on joints 3, 5, 7, 9 are inverted compared to the PyBullet 3D simulation.
+   - *Current*: Documented in [`docs/GEN3_HANDOFF.md`](../GEN3_HANDOFF.md) that physical Pitch signs on joints 3, 5, 7, 9 are inverted compared to the PyBullet 3D simulation.
    - *Idea*: Add a software sign-table adapter flag (`--kinematics-source=hardware|simulation`) so PyBullet visualizer and physical hardware share a single mathematical definition without manual sign inversion.
 3. **Telemetry Downsampling for CSV Export**:
    - *Current*: Full 50Hz logging in RAM during active runs.
@@ -124,11 +124,11 @@ flowchart TD
 ## 7. Verification Summary
 
 - **Checked**:
-  - All 11 Node test suites in [`gen3-experimental-3d/tests/`](file:///c:/1. SurGe 090 Smart snake robot/gen3-experimental-3d/tests/): **11/11 passed**.
-  - All 77 Gen 3 Python unit tests in [`gen3-experimental-3d/tests/`](file:///c:/1. SurGe 090 Smart snake robot/gen3-experimental-3d/tests/): **77/77 passed**.
-  - All 29 Gen 2 Python unit tests in [`tests/`](file:///c:/1. SurGe 090 Smart snake robot/tests/): **29/29 passed**.
-  - In-place telemetry table mutation and session poll caching in [`gen3.js`](file:///c:/1. SurGe 090 Smart snake robot/shared/web-dashboard/static/gen3.js).
-  - Button active scale feedback and headline text balance in [`style.css`](file:///c:/1. SurGe 090 Smart snake robot/shared/web-dashboard/static/style.css).
+  - All 11 Node test suites in [`gen3-experimental-3d/tests/`](../../generations/gen3-experimental-3d/tests): **11/11 passed**.
+  - All 77 Gen 3 Python unit tests in [`gen3-experimental-3d/tests/`](../../generations/gen3-experimental-3d/tests): **77/77 passed**.
+  - All 29 Gen 2 Python unit tests in [`tests/`](../../tests): **29/29 passed**.
+  - In-place telemetry table mutation and session poll caching in [`gen3.js`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3.js).
+  - Button active scale feedback and headline text balance in [`style.css`](../../generations/gen3-experimental-3d/backend/web_dashboard/static/style.css).
 - **Skipped / Unchecked**:
   - Live serial motor torque commanding and physical ESP32 board flashing (safety protocol: mock execution preserved).
 - **Known Risks**:

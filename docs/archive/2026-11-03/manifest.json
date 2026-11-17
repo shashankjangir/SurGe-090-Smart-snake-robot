@@ -5,7 +5,9 @@
   },
   {
     "path": "docs/architecture/GEN2_1_VS_GEN3_FRONTEND_COMPARISON.md",
-    "sha256": "4183e66cfd5406d2811fdb2b1b37c2540c33947b0b51ab9d2b69373619022b9a"
+    "sha256": "4183e66cfd5406d2811fdb2b1b37c2540c33947b0b51ab9d2b69373619022b9a",
+    "portable_sha256": "07762d4c733296748affa3967a8c0ef82f3a17ddd98d0ca1b1e723adc7406496",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/development/FIX_CHECKLIST.md",
@@ -35,15 +37,21 @@
   },
   {
     "path": "docs/GEN3_HANDOFF.md",
-    "sha256": "e1e3755f4cd03c0c70ad46edbfcc2149ad4989b261d2d24caa025a423fef0345"
+    "sha256": "e1e3755f4cd03c0c70ad46edbfcc2149ad4989b261d2d24caa025a423fef0345",
+    "portable_sha256": "49b481c6a1e478c001d456892c33c77a7a6690f2228c0d20472cc155ccd6ecf2",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/hardware/4_WIRING_DIAGRAM.md",
-    "sha256": "b89bb7a4337c652b201e5abf9eaca417adf57304335fd89bd59d5c9f9875ab2f"
+    "sha256": "b89bb7a4337c652b201e5abf9eaca417adf57304335fd89bd59d5c9f9875ab2f",
+    "portable_sha256": "e37bb696a73d72c623109cf5235e14526c706884d26b7a318b9c0682a0f880d3",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/hardware/5_PARTS_AND_SAFETY.md",
-    "sha256": "b22cf6adfe348d368297c5c65b40e2e4eb33130e48e3a36ac49395410c01d1f0"
+    "sha256": "b22cf6adfe348d368297c5c65b40e2e4eb33130e48e3a36ac49395410c01d1f0",
+    "portable_sha256": "978c93a768f8a0030456968c32807db830f66e2b80af3c2dd9f97ca500cdf7d4",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/hardware/6_ADDITIONAL_PARTS.md",
@@ -63,15 +71,21 @@
   },
   {
     "path": "docs/hardware/README.md",
-    "sha256": "b8923c3d7a22dc882ff82e1152d19a6a163f4eef4891af94a972dc5540a9389c"
+    "sha256": "b8923c3d7a22dc882ff82e1152d19a6a163f4eef4891af94a972dc5540a9389c",
+    "portable_sha256": "20045b099a7384b6c31ef012f34392f290be66f6eecdaee7f75efb65ef3c1c60",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/hardware/Updated_Hardware_Inventory.md",
-    "sha256": "f6acb9587f3b5629bef097deba5b77df35d6e93ad8e69ae5408a1d268b881511"
+    "sha256": "f6acb9587f3b5629bef097deba5b77df35d6e93ad8e69ae5408a1d268b881511",
+    "portable_sha256": "80a7c74e5d8f90cf301c388ee7e08dc95150a3574551cab7afbd9718306bd95d",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/operations/1_APP_USAGE_MANUAL.md",
-    "sha256": "76ee93d7bf06866b70dfa0bb14fecdc44c8b56ee6653ace2de6051a999526c78"
+    "sha256": "76ee93d7bf06866b70dfa0bb14fecdc44c8b56ee6653ace2de6051a999526c78",
+    "portable_sha256": "26647ff8eea2ea73ef5975e2e14a0be154df5dd91b0603dce19b194d4e964317",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/operations/3_RASPBERRY_PI_SETUP.md",
@@ -87,7 +101,9 @@
   },
   {
     "path": "docs/operations/CONTROLLER_UPGRADES.md",
-    "sha256": "d6da2a8836026046826904af89bc4f457cafa8ef8e8e6df51ef889e96b3580dd"
+    "sha256": "d6da2a8836026046826904af89bc4f457cafa8ef8e8e6df51ef889e96b3580dd",
+    "portable_sha256": "00c29b97ab3c4d44531d70cae745998e0b612d3b021c35c863ee91ce5bd45b0a",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/operations/FIRMWARE_OTA.md",
@@ -95,7 +111,9 @@
   },
   {
     "path": "docs/README.md",
-    "sha256": "e1f2abbcfe5502a81fb3cba7002989d04f2a60666f22152cbf65525a85e5af7f"
+    "sha256": "e1f2abbcfe5502a81fb3cba7002989d04f2a60666f22152cbf65525a85e5af7f",
+    "portable_sha256": "ade6f20fa57157801fc650aa715487a8ea7ee2b89ea5a9520e144df5681e8f98",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "docs/reports/CHANGES_FROM_BASE_REPO.md",
@@ -103,11 +121,15 @@
   },
   {
     "path": "docs/REPOSITORY_LAYOUT.md",
-    "sha256": "3fa80735c9c1a03e8156fa4ade09df81172315b7e66cc369cccdb2f362e45fcb"
+    "sha256": "3fa80735c9c1a03e8156fa4ade09df81172315b7e66cc369cccdb2f362e45fcb",
+    "portable_sha256": "2053a63592764ab8cfc43b3237030283fa950eaaa9d63b70aa4bb274c7296ab1",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "generations/gen2-st3215/README.md",
-    "sha256": "f1d1297068cc97f5d8c58e5a9ddb3cb0b3ec81a23ef479f05dbd8b8f1251b52a"
+    "sha256": "f1d1297068cc97f5d8c58e5a9ddb3cb0b3ec81a23ef479f05dbd8b8f1251b52a",
+    "portable_sha256": "5a9d2391e2f720b4f383523c5c743d1950ffb650902fc3310272e6b55639f37d",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "generations/gen3-experimental-3d/backend/web_dashboard/README.md",
@@ -115,14 +137,18 @@
   },
   {
     "path": "generations/gen3-experimental-3d/README.md",
-    "sha256": "d14dca9fa23499f00841fb2a982c12d4953b76a6c988725b61d3e761777f345f"
+    "sha256": "d14dca9fa23499f00841fb2a982c12d4953b76a6c988725b61d3e761777f345f",
+    "portable_sha256": "c22d826016b622bd9c9bd63289deb37aaba77a3f7cf33c1b0065f955a8d2c29d",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "README.md",
     "sha256": "9f576ba76684d403c33ca0abf4f8505243885679720ef1deb3e662315a9410c6",
     "archive_path": "root/README.md",
     "original_sha256": "36811e71c9e948e36eef87a945bbd680dea739f0157488d88c1ebabdb6edd50f",
-    "preservation": "Text restored from the pre-rewrite readout after the archive index occupied the same name. Original byte hash retained separately; byte equality is not claimed for this entry."
+    "preservation": "Text restored from the pre-rewrite readout after the archive index occupied the same name. Original byte hash retained separately; byte equality is not claimed for this entry.",
+    "portable_sha256": "83962cdbaa49aabb24e346079aa79381ce54b6157704e1dae0de300e3df524d9",
+    "link_maintenance": "Relative link targets repaired for the current repository on 17 November 2026; original snapshot hash retained."
   },
   {
     "path": "generations/gen2-st3215/tests/README.md",

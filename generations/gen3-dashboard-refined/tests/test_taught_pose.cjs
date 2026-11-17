@@ -14,7 +14,7 @@ const rows = joints.map(joint => {
     querySelector: selector => selector === '.pose-slider' ? slider : output};
 });
 elements['joint-control-body'] = {children: rows};
-elements['pose-preset'] = {value: '', options: [], add(option) {this.options.push(option);}};
+elements['pose-preset'] = {value: '', options: [], add(option) {this.options.push(option);}, addEventListener() {}};
 const snapshot = {joints, pose: Object.fromEntries(joints.map(j => [j.id, j.sign * (j.min - j.zero) * 360 / 4096]))};
 let saved = [], failCapture = false, error, lastSave;
 const requests = [];
@@ -35,7 +35,7 @@ const context = {$: id => elements[id], currentConfig: {joints}, POSE_PRESETS: {
   }};
 vm.createContext(context);
 vm.runInContext(source.slice(source.indexOf('let savedPosePresets ='),
-  source.indexOf("\n{\n  const select = $('pose-preset');")), context);
+  source.indexOf('function readPose()')), context);
 (async () => {
   await elements['btn-pose-capture'].onclick();
   assert.equal(elements['btn-pose-save'].disabled, false);

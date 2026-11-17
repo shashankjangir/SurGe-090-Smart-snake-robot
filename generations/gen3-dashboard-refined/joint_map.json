@@ -100,5 +100,5 @@
   "speed": 2144,
   "tracking_error": 492,
   "tracking_timeout": 0.5,
-  "calibrated": false
+  "calibrated": true
 }

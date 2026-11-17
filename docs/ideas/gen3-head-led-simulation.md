@@ -1,5 +1,7 @@
 # Gen 3 head-led simulation
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Approved by the owner on 31 October 2026 after the compact workspace update.
 
 ## Problem Statement

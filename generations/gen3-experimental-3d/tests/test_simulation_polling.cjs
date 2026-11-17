@@ -2,7 +2,7 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const path = require('node:path');
-const source = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3-sim.js'), 'utf8');
+const source = readAsset(path.join(__dirname, '../backend/web_dashboard/static/pages/gen3-sim.js'), 'utf8');
 const polling = source.slice(source.indexOf('    async function pollSimulation()'), source.indexOf('  function resetCamera()'));
 const activity = source.slice(source.indexOf('  function syncSimulationActivity()'), source.indexOf("  if (typeof document !== 'undefined')", source.indexOf('  function syncSimulationActivity()')));
 let requests = 0;

@@ -1,5 +1,7 @@
 # Path PID: preliminary simulation analysis
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Date: 2026-10-29
 
 The current dashboard path tracker uses the Gen 2.1 planar PyBullet model, not the Gen 3 alternating-axis model. No PID has been installed, and no hardware was accessed.

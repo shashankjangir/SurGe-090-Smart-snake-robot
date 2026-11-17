@@ -1,5 +1,7 @@
 # TASK: Snake Strike Loading Transition (Gen 2 <-> Gen 3)
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Add a cinematic "snake strike" loading transition for switching between the Gen 2 and Gen 3 tabs/views of my SurGe 090 Smart Snake Robot project.
 
 Read `/DESIGN.md` (Playdate-style design system) AND inspect the project's existing CSS variables/theme first. Match the site's real current look: reuse its existing CSS custom properties, fonts, radii and colors. Do NOT invent new colors. If DESIGN.md and the live CSS differ, the live CSS wins.

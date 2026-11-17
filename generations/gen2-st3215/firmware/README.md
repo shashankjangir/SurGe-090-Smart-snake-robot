@@ -1,5 +1,7 @@
 # ESP32 firmware
 
+The maintained dashboard uses receiver_gen2_1 and transmitter_gen2_1. Current receiver source serves twelve motors for Gen 3, validates targets, checks pending radio Stop before normal USB work, and reports failed watchdog torque-off as ERR,STOP,TORQUE_OFF_UNCONFIRMED. These changes were built and checked offline; uploading this version to the boards is unverified. The last recorded installed pair is the OTA-capable 3 November build. See the [current handoff](../../../docs/GEN3_HANDOFF.md).
+
 The firmware follows the two Gen 2 control arrangements. In Gen 2.0, the robot
 can compute its gait onboard and send telemetry to a base station. In Gen 2.1,
 the host computes targets and an ESP32 receiver applies them to the servo bus.
@@ -32,7 +34,9 @@ For password-protected Wi-Fi maintenance updates of the receiver/transmitter, se
 requires USB; `OTA` on the board's own USB port enters maintenance mode.
 
 Open the repository root in PlatformIO; `platformio.ini` defines one environment
-per firmware folder. For example:
+per firmware folder. Private configuration headers are omitted from the GitHub copy. For optional OTA, copy common/ota_config.h.example to common/ota_config.h and choose a private Wi-Fi password of 8–63 characters and upload password of at least 16 characters. Without valid values OTA entry is refused. Binary Gen 2.0 targets also require a local common/surge_credentials.h copied from its example, with a new private key and the MAC addresses for that pair. The maintained plain-text Gen 2.1 pair does not use that radio key. Keep both private headers out of Git.
+
+For example:
 
 ```powershell
 pio run -e receiver_gen2_1
@@ -67,9 +71,10 @@ transmitter waits for the ESP-NOW send callback before dispatching the next USB
 line and reports asynchronous delivery/queue failures as `ERR,RADIO,...`.
 Receiver replies use the requesting transmitter's MAC after learning its peer
 in the main loop; USB-only/legacy fallback replies remain broadcast. STOP is
-prioritized outside the command queue; queue overflow requests a stop rather
+prioritized outside the command queue and before normal USB command dispatch; queue overflow requests a stop rather
 than silently losing commands. A STOP acknowledgement is `OK,STOP` only when
-all ten torque-off writes are acknowledged; otherwise it reports
+all `NUM_MOTORS` torque-off writes are acknowledged (12 since the Gen 3
+12-motor upgrade, 7 November 2026; flash it only once IDs 11 and 12 are on the bus); otherwise it reports
 `ERR,STOP,TORQUE_OFF_UNCONFIRMED` and physical power disconnection may be needed.
 
 The OLED connection indication is recent command activity, not an ESP-NOW
@@ -129,7 +134,7 @@ The configured behavior and thresholds are:
 |---|---|
 | Boot state | Torque **OFF** — nothing moves until `RUN` |
 | Soft start | Torque on one power group at a time (400 ms apart, slow speed), then amplitude ramps in over 3 s to reduce startup current |
-| Joint limit | ±70° (v6 segment mechanical limit ±80°), per-joint `TRIM[]` |
+| Joint limit | ±110° (raised from ±70° on 4 November 2026; the v6 segment was earlier noted as ±80° mechanical, so verify clearance), per-joint `TRIM[]` |
 | Torque limit | 70 % |
 | Stall detect | 1200 mA for 4 consecutive samples (calibrate on hardware) |
 | Low battery stop | 10.2 V (3.4 V/cell) for 3 s |
@@ -180,20 +185,22 @@ See the [power-design history](../../../docs/hardware/README.md) and
 
 ---
 
-## Security Architecture & Protocol V3 (October 2026)
+## Historical security architecture, October 2026
+
+This section records the earlier protocol proposal. The maintained Gen 2.1 pair switched to plain-text radio on 31 October. Binary Gen 2.0 firmware still uses its authenticated packet helpers.
 
 Following an independent security audit across Gen 2 and Gen 2.1 firmware targets:
 
 ### 1. Cryptographic Authentication (HMAC-SHA256)
 - **Binary Commands (`robot_esp32_v2`, `base_esp32`, `robot_esp32`):** Command packets use `AuthRobotCommand` (28 bytes) featuring a 128-bit truncated HMAC-SHA256 tag over `(magic=0x5352, ver=3, opcode, seq, epoch)`. Unauthenticated or replayed `RUN` packets cannot enable torque or initiate motion.
 - **Binary Telemetry (`AuthRobotTelemetry`):** Telemetry packets (82 bytes) include 128-bit HMAC-SHA256 protecting timestamps, sequence numbers, and all 10 servo state records.
-- **Text Commands (`receiver_gen2_1`, `transmitter_gen2_1`):** Over-the-air commands are framed as `AUTH,<seq>,<tag_hex_16>,<raw_command>`, where `<tag_hex_16>` is an 8-byte HMAC-SHA256 over `<seq>:<raw_command>`.
+- **Earlier text-command design (`receiver_gen2_1`, `transmitter_gen2_1`):** Over-the-air commands were framed as `AUTH,<seq>,<tag_hex_16>,<raw_command>`, where `<tag_hex_16>` is an 8-byte HMAC-SHA256 over `<seq>:<raw_command>`.
 
 ### 2. Emergency Stop Fail-Safe Policy
-In compliance with industrial robotics safety directives (ISO 13849 / IEC 61508), remote emergency `STOP` commands are accepted and executed immediately from any RF source to ensure immediate torque cutoff without risk of cryptographic locking.
+The design accepts remote emergency `STOP` commands from any RF source. This is a software policy, not a claim of ISO 13849 or IEC 61508 certification. Torque-off still requires acknowledged bus writes.
 
 ### 3. Privileged Command & EEPROM Maintenance Gating
-- All non-emergency radio commands require cryptographic signature verification and advancing sequence numbers.
+- Binary Gen 2.0 non-emergency radio commands require signature verification and advancing sequence numbers. Maintained Gen 2.1 text commands have no HMAC, replay protection, or sender allowlist.
 - Persistent servo ID reprogramming (`I,<new_id>`) is locked behind `MAINT,UNLOCK,CONFIRM`.
 - The maintenance window automatically expires after 15 seconds (`MAINTENANCE_TIMEOUT_MS = 15000`) and auto-relocks immediately upon single-use completion.
 
@@ -204,7 +211,7 @@ In compliance with industrial robotics safety directives (ISO 13849 / IEC 61508)
   #define SURGE_PROVISIONED_AUTH_KEY \
     {0x53, 0x75, 0x72, 0x47, 0x65, 0x30, 0x39, 0x30, ...}
   ```
-- All targets compile cleanly with PlatformIO: `pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e robot_esp32_v2 -e base_esp32 -e robot_esp32`.
+- The October verification recorded successful builds with PlatformIO: `pio run -e receiver_gen2_1 -e transmitter_gen2_1 -e robot_esp32_v2 -e base_esp32 -e robot_esp32`.
 
 ---
 
@@ -227,4 +234,4 @@ commanded by the assistant during that work unless stated.
   **COM7 = PC transmitter** (`68:09:47:5c:10:ec`). HELLO → `SURGE,2.1` exchanges passed, including after
   a transmitter-only reset. Use COM7 for the dashboard.
 - `platformio.ini` transmitter monitor: `send_on_enter`, LF line endings.
-- New `tests/test_text_auth.cpp` compiles for ESP32. It was not run on the host because no host compiler is installed.
+- New `tests/test_text_auth.cpp` compiles for ESP32. At that date it had not run on the host. Later native C++ checks ran with the compiler under C:/Strawberry/c/bin; see the [test guide](../tests/README.md).

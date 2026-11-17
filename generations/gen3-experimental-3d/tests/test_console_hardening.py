@@ -13,8 +13,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'generations/gen3-experimental-3d/backend'))
-sys.path.insert(0, str(ROOT / 'shared'))
-DASHBOARD_DIR = ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard' if (ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard').exists() else DASHBOARD_DIR
+DASHBOARD_DIR = ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard'
 from surge_control.gen3 import Gen3Control, GaitMotionGenerator, runner, DEFAULT_PRESETS
 
 
@@ -23,7 +22,7 @@ class ConsoleHardeningTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / 'joint_map.json'
-        self.config = runner.load_map()
+        self.config = dict(runner.load_map(), calibrated=True)  # hardware paths need a confirmed map
         self.path.write_text(json.dumps(self.config))
         spec = importlib.util.spec_from_file_location('hardened_web', DASHBOARD_DIR / 'web_app.py')
         web = importlib.util.module_from_spec(spec)
@@ -126,7 +125,8 @@ class ConsoleHardeningTests(unittest.TestCase):
         self.assertTrue(finished.is_set())
 
     def test_default_lease_and_cookie_safety(self):
-        self.assertEqual(self.control.sessions.lease_timeout, 3.0)
+        self.assertEqual(self.control.sessions.lease_timeout, 1800.0)
+        self.assertIsNone(self.control.sessions.motion_timeout)
         cookie = self.client.get('/api/gen3/session').headers['Set-Cookie']
         self.assertIn('HttpOnly', cookie)
         self.assertIn('SameSite=Lax', cookie)
@@ -145,7 +145,9 @@ class ConsoleHardeningTests(unittest.TestCase):
                     with self.subTest(route=route, method=method, headers=headers):
                         response = client.open(route, method=method, json={}, headers=headers)
                         self.assertEqual(response.status_code, 403)
-                        self.assertEqual(response.get_json()['error'], 'Operator mode required')
+                        expected = ('Open the controller link shown on the laptop dashboard'
+                                    if route == '/api/phone/input' else 'Operator mode required')
+                        self.assertEqual(response.get_json()['error'], expected)
 
     def test_cross_origin_actions_and_malformed_objects(self):
         self.operator()
@@ -291,12 +293,11 @@ class ConsoleHardeningTests(unittest.TestCase):
             run_id='web-test', request_id='apply', settings={}), headers=headers)
         self.assertEqual(response.status_code, 400)
 
-    def test_dashboard_assets_are_utf8_and_upload_is_unavailable(self):
+    def test_dashboard_assets_are_utf8(self):
         dashboard = DASHBOARD_DIR
-        for name in ('static/gen3.js', 'static/gen3.css', 'templates/gen3.html'):
+        for name in ('static/pages/gen3.js', 'static/gen3.css', 'templates/pages/gen3.html'):
             (dashboard / name).read_text(encoding='utf-8')
-        response = self.client.get('/gen3')
-        self.assertIn(b'disabled>Browser upload unavailable', response.data)
+        self.assertEqual(self.client.get('/gen3').status_code, 200)
 
     def test_default_presets_validate_and_numeric_strings_rejected(self):
         for preset in DEFAULT_PRESETS:
@@ -304,6 +305,50 @@ class ConsoleHardeningTests(unittest.TestCase):
         preset = dict(DEFAULT_PRESETS[0], yaw='0')
         with self.assertRaises(ValueError):
             self.control.save_preset(preset)
+
+    def test_login_and_claim_share_transport_checks(self):
+        credentials = {'name': 'Shashank', 'password': 'transport-test-only'}
+        remote = {'REMOTE_ADDR': '192.0.2.44'}
+        with patch.dict(self.control.sessions._config, password=credentials['password']):
+            for action in ('login', 'claim'):
+                with self.subTest(action=action):
+                    path = '/api/gen3/session/' + action
+                    self.assertEqual(self.client.post(path, json=credentials, environ_overrides=remote).status_code, 403)
+                    self.assertEqual(self.client.post(path, json=credentials, base_url='https://localhost',
+                                                      environ_overrides=remote).status_code, 200)
+
+    def test_damaged_preset_file_is_never_overwritten(self):
+        _, headers = self.operator()
+        endpoint = '/api/gen3/presets'
+        self.assertEqual(self.client.get(endpoint).get_json()['presets'], DEFAULT_PRESETS)
+        path = self.path.parent / 'runs' / 'presets.json'
+        path.parent.mkdir()
+        for damaged in (b'{broken', b'\xff', b'{}', b'[{}]'):
+            with self.subTest(damaged=damaged):
+                path.write_bytes(damaged)
+                self.assertEqual(self.client.get(endpoint).status_code, 409)
+                self.assertEqual(self.client.post(endpoint, json=DEFAULT_PRESETS[0], headers=headers).status_code, 409)
+                self.assertEqual(self.client.delete(endpoint + '/missing', headers=headers).status_code, 409)
+                self.assertEqual(path.read_bytes(), damaged)
+        path.write_bytes(b'[]')
+        self.assertEqual(self.client.get(endpoint).get_json()['presets'], [])
+
+    def test_dashboard_gait_limit_matches_start_and_live_apply(self):
+        from gait import GAIT_ANGLE_LIMIT_DEG
+
+        html = self.client.get('/gen3').get_data(as_text=True)
+        for field in ('yaw', 'pitch', 'bias', 'sim-param-yaw-amp', 'sim-param-pitch-amp',
+                      'runs-sim-yaw', 'runs-sim-pitch'):
+            self.assertRegex(html, rf'id="{field}"[^>]*max="{GAIT_ANGLE_LIMIT_DEG}"')
+        _, headers = self.operator()
+        rejected = self.client.post('/api/gen3/start', headers=headers, json={
+            'mode': 'gait', 'execution': 'preview', 'yaw': GAIT_ANGLE_LIMIT_DEG + 1,
+            'request_id': 'gait-angle-limit',
+        })
+        self.assertEqual(rejected.status_code, 400)
+        self.assertIn(f'0..{GAIT_ANGLE_LIMIT_DEG}', rejected.get_json()['error'])
+        with self.assertRaisesRegex(ValueError, rf'0\.\.{GAIT_ANGLE_LIMIT_DEG}'):
+            self.generator().request_update('gait-angle', 1, {'yaw': GAIT_ANGLE_LIMIT_DEG + 1}, 4)
 
     def test_preset_save_rejects_stale_snapshot_without_overwriting(self):
         _, headers = self.operator()
@@ -475,7 +520,7 @@ class ConsoleHardeningTests(unittest.TestCase):
 
     def test_lease_expiry_stops_without_http_polling(self):
         class Fake:
-            def __init__(self): self.positions = {i: 2048 for i in range(1, 11)}; self.closed = False
+            def __init__(self): self.positions = {i: 2048 for i in range(1, 13)}; self.closed = False
             def connect(self): return True, 'fake'
             def start(self): pass
             def write_positions(self, positions, speed): self.positions.update(positions)
@@ -571,9 +616,13 @@ class ConsoleHardeningTests(unittest.TestCase):
 
     def test_firmware_unavailable_and_start_excludes_build(self):
         _, headers = self.operator()
-        response = self.client.post('/api/gen3/firmware/upload', headers=headers, json=dict(confirm_board=True, confirm_power=True, confirm_risk=True, env='receiver_gen2_1', port='FAKE'))
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('unavailable', response.get_json()['error'])
+        with patch.object(self.control.firmware, 'upload') as upload:
+            for payload in ({}, dict(confirm_board=True, confirm_power=True, confirm_risk=True, env='receiver_gen2_1', port='FAKE')):
+                with self.subTest(payload=payload):
+                    response = self.client.post('/api/gen3/firmware/upload', headers=headers, json=payload)
+                    self.assertEqual(response.status_code, 400)
+                    self.assertIn('unavailable', response.get_json()['error'])
+            upload.assert_not_called()
         with patch.object(self.control.firmware, 'snapshot', return_value={'is_busy': True}):
             with self.assertRaisesRegex(RuntimeError, 'Firmware'):
                 self.control.start(dict(mode='gait', execution='preview'))
@@ -588,6 +637,58 @@ class ConsoleHardeningTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.control.start(dict(data, yaw=2))
 
+    def test_start_history_evicts_oldest_without_losing_recent_retries(self):
+        data = dict(mode='gait', execution='preview', yaw=1, pitch=0, duration=4, request_id='new')
+        for index in range(1000):
+            key = (None, str(index))
+            self.control.start_requests[key] = dict(data, request_id=str(index))
+            self.control.start_run_ids[key] = f'web-{index}'
+        with patch.object(self.control, '_run'):
+            run_id = self.control.start(data)
+            self.control.thread.join(1)
+        self.assertEqual(len(self.control.start_requests), 1000)
+        self.assertEqual(len(self.control.start_run_ids), 1000)
+        self.assertNotIn((None, '0'), self.control.start_requests)
+        self.assertNotIn((None, '0'), self.control.start_run_ids)
+        self.assertEqual(self.control.start(data), run_id)
+        recent = dict(data, request_id='999')
+        self.assertEqual(self.control.start(recent), 'web-999')
+        with self.assertRaises(ValueError):
+            self.control.start(dict(recent, yaw=2))
+
+    def test_idle_viewers_expire_without_removing_operator_or_current_viewer(self):
+        from surge_control.session import SessionManager
+
+        sessions = SessionManager(lease_timeout=None)
+        with patch.dict(sessions._config, password='test-only'):
+            with patch('surge_control.session.time.monotonic', return_value=1):
+                viewer = sessions.get_or_create()
+                operator = sessions.get_or_create()
+                active = sessions.get_or_create()
+                self.assertTrue(sessions.login(operator['session_id'], 'Shashank', 'test-only')['success'])
+            later = 1 + sessions.VIEWER_IDLE_TIMEOUT
+            with patch('surge_control.session.time.monotonic', return_value=later - 1):
+                sessions.get_or_create(active['session_id'])
+            with patch('surge_control.session.time.monotonic', return_value=later + 60):
+                sessions.check_lease_expiry()
+                self.assertNotIn(viewer['session_id'], sessions.sessions)
+                self.assertIn(active['session_id'], sessions.sessions)
+                self.assertIn(operator['session_id'], sessions.sessions)
+                self.assertTrue(sessions.is_operator(operator['session_id']))
+
+    def test_report_reflects_outcome_and_sample_changes(self):
+        runtime = self.app.config['CONTROL']
+        runtime.state.update(target_path=[[0, 0], [1, 0]], actual_path=[[0, 0], [.5, 0]],
+                             path_progress=.5, status='Running', sim_time=1., engine='SIM', is_running=True)
+        runtime.report_errors[:] = [.1, .2]
+        self.assertEqual(self.client.get('/api/report').get_json()['outcome'], 'stopped')
+        runtime.state.update(status='Path Complete', sim_time=2.)
+        runtime.report_errors[:] = [.2, .4]
+        report = self.client.get('/api/report').get_json()
+        self.assertEqual(report['outcome'], 'completed')
+        self.assertEqual(report['duration_s'], 2.)
+        self.assertAlmostEqual(report['avg_error'], .3)
+
     def test_align_uses_all_saved_zeros(self):
         calls = []
         class Fake:
@@ -599,7 +700,7 @@ class ConsoleHardeningTests(unittest.TestCase):
         with patch.object(runner, 'run_motion', side_effect=capture):
             self.control.start(dict(mode='align', execution='hardware', port='FAKE'))
             self.control.thread.join(1)
-        self.assertEqual(calls, [{i: 2048 for i in range(1, 11)}])
+        self.assertEqual(calls, [{i: 2048 for i in range(1, 13)}])
 
 
 

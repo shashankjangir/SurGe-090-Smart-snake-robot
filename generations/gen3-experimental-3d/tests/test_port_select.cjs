@@ -2,7 +2,7 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const path = require('node:path');
-const source = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3.js'), 'utf8');
+const source = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-ports.js'), 'utf8');
 const start = source.indexOf('async function loadPorts()');
 const end = source.indexOf("$('refresh-ports')", start);
 function field(value) {
@@ -11,7 +11,7 @@ function field(value) {
     replaceChildren(option) { this.options = [option]; this.value = option.value; },
     add(option) { this.options.push(option); }};
 }
-const fields = {port: field('COM6'), 'fw-port': field('COM7')};
+const fields = {port: field('COM6')};
 let finish;
 const context = vm.createContext({$: id => fields[id],
   Option: function(text, value) { this.text = text; this.value = value; },
@@ -24,7 +24,6 @@ vm.runInContext(source.slice(start, end), context);
   finish({ports: [{device:'COM6', description:'Transmitter'}, {device:'COM7', description:'Board'}]});
   await loading;
   assert.equal(fields.port.value, 'COM6');
-  assert.equal(fields['fw-port'].value, 'COM7');
   assert.equal(fields.port.disabled, false);
   context.api = async () => ({ports: []});
   await context.loadPorts();
@@ -35,5 +34,5 @@ vm.runInContext(source.slice(start, end), context);
   assert.match(fields.port.options[0].text, /Could not load/);
   assert.equal(fields.port.attrs['aria-busy'], 'false');
   assert.equal(fields.port.disabled, false);
-  console.log('Port select loading, independent selection, empty and failure checks passed');
+  console.log('Port select loading, selection preservation, empty and failure checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

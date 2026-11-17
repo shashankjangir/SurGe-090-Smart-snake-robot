@@ -22,7 +22,7 @@ ROOT = _p2
 spec = importlib.util.spec_from_file_location('surge_gen3_runner', ROOT / 'test_3d_snake.py')
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
-from gait import NUM_JOINTS, JOINT_IDS, validate_map, validate_gait, validate_overrides, validate_pose, joint_wave, calc_peak_speed, envelope, COUNTS_PER_RADIAN
+from gait import GAIT_ANGLE_LIMIT_DEG, NUM_JOINTS, JOINT_IDS, validate_map, validate_gait, validate_overrides, validate_pose, joint_wave, calc_peak_speed, envelope, COUNTS_PER_RADIAN
 from surge_control.session import SessionManager
 from surge_control.spatial_route import SpatialRoute
 from surge_control.manual import ManualController, Localization
@@ -334,9 +334,9 @@ class GaitMotionGenerator:
                 raise ValueError("Cannot update settings during final return/shutdown ramp")
 
             candidate_deg = {
-                'yaw': runner.number(candidate_settings.get('yaw', math.degrees(self.applied_settings['yaw'])), 'yaw', 0, 110),
-                'pitch': runner.number(candidate_settings.get('pitch', math.degrees(self.applied_settings['pitch'])), 'pitch', 0, 110),
-                'bias': runner.number(candidate_settings.get('bias', math.degrees(self.applied_settings['bias'])), 'bias', -110, 110),
+                'yaw': runner.number(candidate_settings.get('yaw', math.degrees(self.applied_settings['yaw'])), 'yaw', 0, GAIT_ANGLE_LIMIT_DEG),
+                'pitch': runner.number(candidate_settings.get('pitch', math.degrees(self.applied_settings['pitch'])), 'pitch', 0, GAIT_ANGLE_LIMIT_DEG),
+                'bias': runner.number(candidate_settings.get('bias', math.degrees(self.applied_settings['bias'])), 'bias', -GAIT_ANGLE_LIMIT_DEG, GAIT_ANGLE_LIMIT_DEG),
                 'frequency': runner.number(candidate_settings.get('frequency', self.applied_settings['frequency']), 'frequency', -0.6, 0.6),
                 'lag': runner.number(candidate_settings.get('lag', math.degrees(self.applied_settings['lag'])), 'lag', -360, 360),
                 'offset': runner.number(candidate_settings.get('offset', math.degrees(self.applied_settings['offset'])), 'offset', -360, 360),
@@ -823,7 +823,7 @@ class Gen3Control:
             config = runner.load_map(self.map_path, require_calibrated=execution == 'hardware')
             apply_simulation_tracking(config)
             overrides = validate_overrides(data.get('joints'))
-            fields = [('yaw', 5, 0, 90), ('pitch', 5, 0, 90), ('bias', 0, -90, 90),
+            fields = [('yaw', 5, 0, GAIT_ANGLE_LIMIT_DEG), ('pitch', 5, 0, GAIT_ANGLE_LIMIT_DEG), ('bias', 0, -GAIT_ANGLE_LIMIT_DEG, GAIT_ANGLE_LIMIT_DEG),
                       ('frequency', .1, -.6, .6), ('lag', 90, -360, 360), ('offset', 90, -360, 360)]
             numbers = [runner.number(data.get(k, default), k, low, high) for k, default, low, high in fields]
             run_speed = runner.number(run_speed, 'speed', 1, 3000)
@@ -856,8 +856,11 @@ class Gen3Control:
             config = None
 
         if request_id:
+            # Keep the most recent 1,000 starts as the retry window.
             if len(self.start_requests) >= 1000:
-                raise RuntimeError('Request history full; restart the stopped server')
+                oldest = next(iter(self.start_requests))
+                del self.start_requests[oldest]
+                self.start_run_ids.pop(oldest, None)
             self.start_requests[key] = copy.deepcopy(data)
         self.owner_session = session_id
         self.manual = manual
@@ -1321,12 +1324,17 @@ class Gen3Control:
     @locked
     def get_presets(self):
         preset_file = self.map_path.parent / 'runs' / 'presets.json'
-        if preset_file.exists():
-            try:
-                return json.loads(preset_file.read_text(encoding='utf-8'))
-            except Exception:
-                pass
-        return DEFAULT_PRESETS
+        try:
+            presets = json.loads(preset_file.read_text(encoding='utf-8'))
+        except FileNotFoundError:
+            return DEFAULT_PRESETS
+        except (OSError, UnicodeError, ValueError) as exc:
+            raise RuntimeError('Could not read saved gait presets. Restore or repair presets.json before editing.') from exc
+        if not isinstance(presets, list) or any(
+            not isinstance(preset, dict) or not isinstance(preset.get('name'), str) for preset in presets
+        ):
+            raise RuntimeError('Invalid saved gait presets. Restore or repair presets.json before editing.')
+        return presets
 
     @locked
     def save_preset(self, preset, expected=...):

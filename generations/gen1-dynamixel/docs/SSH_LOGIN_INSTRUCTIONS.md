@@ -1,5 +1,7 @@
 # Raspberry Pi SSH Login Instructions
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../docs/START_HERE.md) and [hardware guide](../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 These are the step-by-step instructions to log into the Raspberry Pi from your Windows computer.
 
 ## Prerequisites

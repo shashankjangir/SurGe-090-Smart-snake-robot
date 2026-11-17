@@ -1,8 +1,6 @@
 # How I use the Gen 2.1 and Gen 3 controller
 
-Updated 3 November 2026. These upgrades use the maintained dashboard runtime for
-Gen 2/2.1 and Gen 3. Historical standalone Gen 2 bench programs retain their own
-interfaces; this is not a firmware change.
+This guide describes the maintained 12-joint dashboard and its Gen 2.1 simulation page. The feature began on 3 November 2026. See the [current handoff](../GEN3_HANDOFF.md) for hardware status and the [Raspberry Pi package](../../generations/rasp_pi/README.md) for the separate 10-joint distribution.
 
 ## Start and stop
 
@@ -14,18 +12,12 @@ interfaces; this is not a firmware change.
    server's maximum limits and controller simulation runs last up to 300 s.
    Hardware has a separate draft and a **Dry run · no connection** checkbox
    (checked initially). Clear Dry run only for a supervised physical trial.
-   Gen 2.1 Simulation connects SIM; Hardware connects ST3215 through the selected
-   transmitter (COM7, plain-text radio). Stop and disconnect before switching.
+   Gen 2.1 provides Simulation through SIM. Physical ST3215 control belongs to the Gen 3 Hardware workspace. The last confirmed transmitter USB port is COM8. Verify it before connecting, then stop and disconnect before switching.
 3. Enable Controller. Release all buttons and throttle to establish neutral.
 4. Hold LB and press A. Physical hardware requires the motion confirmation dialog;
    keep LB held throughout confirmation. RT controls gait rate independently of
-   steering and amplitude. Releasing LB ends the job; restarting requires Enable
-   Controller, neutral buttons, then LB + A again.
-5. B and the page Stop controls request torque-off. Focus loss, hidden page,
-   disconnect, operator loss, changing setup, disabling input or input age over
-   0.5 seconds ends controller motion. The backend checks expiry even without
-   browser status polling. Existing hardware watchdog and torque-off readback
-   still apply; a software Stop is not a physical power cutoff.
+   steering and amplitude. Releasing LB ends the job. The controller remains enabled, so release the controls to neutral before using LB + A to start again.
+5. B and the page Stop controls request torque-off. Releasing LB, losing the gamepad, operator loss, changing setup, disabling input or a failed controller request also stops browser controller motion. Leaving the page sends a Stop request. The default backend manual controller has no input-gap timeout. Focus loss, a hidden laptop tab or switching workspace is not an automatic stop trigger. Press Stop before leaving the controls. The receiver watchdog still applies when host target frames stop arriving.
 
 Starts never switch generation or workspace automatically. Gen 3 jobs remain
 finite. Controller preview now runs in real time so inputs can affect its CSV;
@@ -56,14 +48,14 @@ Buttons and sticks follow the browser's standard gamepad mapping (Xbox-style):
 LB hold, A start, B stop, X reverse, Y shape, RT throttle, left stick steering,
 right stick head inspection, D-pad amplitude. They are not remappable; other
 gamepad layouts need a browser/driver that supplies the standard mapping.
-Expand Route and controller setup to invert steering or set a dead zone or
+Expand Button map, route and setup to invert steering or set a dead zone or
 sensitivity. Centre sticks with all controls released. Values are saved per
 controller in browser storage.
 
 Tracking feedback reduces gait rate when position error rises above half the
 tracking limit, with slower recovery. It does not change calibration, amplitude
 ceilings or hard fault limits. Missing hardware feedback stops motion. Gen 3
-retains the map's speed **1500**, tracking error **216**, timeout **0.5** and measured
+uses the saved map's speed **2144**, tracking error **492**, timeout **0.5** and measured
 signs. Gen 2.1 manual mode retains its existing 2400 counts/s command limit (600
 in Low Power Mode), and adds a 216-count / 0.5-second tracking stop. These are
 command limits, not certified loaded capabilities or measured current limits.
@@ -117,40 +109,38 @@ and an initial `input`. Subsequent POSTs to `/api/gen3/controller` require that 
 `run_id`. Gen 2.1 uses `/api/controller` with `btn_start: true` and `options` for
 the initial packet, then the returned `run_id` for subsequent packets.
 
-Each input carries increasing integer `sequence`, recent Unix `captured_at`,
+Each input carries increasing integer `sequence`, a Unix `captured_at`,
 boolean `deadman`, `throttle` in 0–1 and `stick_x`, `stick_y`, `head_x`, `head_y` in
 −1–1. Optional boolean events are `reverse`, `preset`, `yaw_up`, `yaw_down`,
 `pitch_up`, `pitch_down`. Events apply once per accepted sequence. Duplicate or
-older packets are rejected without refreshing expiry. Motion starts are not
+older packets are rejected. The default manual controller uses sequence order and local receive time, with its optional input-gap timeout disabled. Localization has its separate 0.5-second freshness requirement. Motion starts are not
 automatically retried. A stale run cannot control a later run.
 
-The optional Python helper uses the same hold, sequence, expiry and streaming
+The optional Python helper uses the same hold, sequence and streaming
 contract. It expects an Xbox-style SDL joystick layout (six axes, LB index 4,
 RT axis 5); use the browser controller for other layouts. Gen 3 helper runs preview only.
-For Gen 2.1 it connects simulation by default; `--port COM7` explicitly selects
+For Gen 2.1 it connects simulation by default; `--port COM8` explicitly selects
 the hardware transmitter. Existing motion must be stopped before helper takeover.
 
 ## Verification limits
 
 Offline tests cover validation, ordered navigation, pose expiry, smoothing,
 velocity/joint limits, mocked hardware cleanup and authenticated endpoint access.
-An isolated Chrome check drives both real dashboards against preview and a planar
+The recorded November browser check drove both dashboards against preview and a planar
 simulator stub, including release Stop and 1440/390/320-pixel layouts. These checks
 do not establish real locomotion, sensor accuracy, radio timing or loaded safety.
-The wiring repair still needs a logged all-ten diagnostic re-query before trials.
+The wiring repair still needs a logged all-twelve diagnostic re-query before trials.
 
 ## Workspace separation
 
-Only one browser controller can be enabled at a time. Both controllers stop on
-window blur, hidden page, leaving their workspace, stale status, lease loss,
-LB release or B; enabling requires a fresh neutral input again. Separate panels
+Only one browser controller can be enabled at a time. Enabling requires a visible workspace, fresh status and a neutral input. Once enabled, use LB release, B or Stop to end motion before changing workspace. Separate panels
 share mapping/centring settings but never execution destinations or gait drafts.
 
 Gen 3 **Copy to Hardware draft** / **Copy from Simulation** copies waveform
-values only. Hardware speed, duration and ramp stay in the Hardware draft;
-nothing starts. Presets and recorded gait runs offer **Load into Simulation**
-and **Load into Hardware**. The runs journal has an execution filter. Hardware
-Calibration and Firmware tabs remain hardware-only; per-joint tools stay in Hardware.
+values only. Hardware speed, duration and ramp stay in the Hardware draft.
+Presets and recorded gait runs offer **Load into Simulation**
+and **Load into Hardware**. The runs journal has an execution filter.
+Calibration and per-joint tools remain in Hardware. Firmware updates use the [firmware guide](FIRMWARE_OTA.md).
 
 Simulation button and controller use the same finite start builder, tracking
 verification and speed limit. For controller waypoint assistance, select
@@ -160,5 +150,4 @@ automatic route follower. Hardware live tuning cannot modify a simulation job.
 
 Offline verification and desktop/mobile evidence:
 [workspace separation](../gen3/workspace-separation/README.md). No physical trial
-was performed for this change. Keep the measured joint map unchanged: speed
-1500, tracking error 216 counts, timeout 0.5 seconds and confirmed joint signs.
+was performed for this change. The saved 12-joint map uses speed 2144 counts/s, tracking error 492 counts, timeout 0.5 seconds and confirmed joint signs.

@@ -1,5 +1,7 @@
 # SURGE 090 — Unified Playful Dashboard Implementation Plan
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 ## Goal
 
 Give the Gen 2.1 and Gen 3 dashboards a consistent, colorful, playful experience built around a shared central cockpit and task-tab navigation. Preserve the personality of the existing Slush-inspired design and the working tools of each generation.

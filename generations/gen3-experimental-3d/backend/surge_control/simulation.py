@@ -10,7 +10,6 @@ class SimulationInterface:
         self.snake_id = None
         self.p = None
         self.headless = True
-        self.sliders = {}
         self.target_path_ids = []
         self.dt = 0.02
 
@@ -30,13 +29,6 @@ class SimulationInterface:
             self.snake_id = p.loadURDF(str(model), [0, 0, 0.05], flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
             if p.getNumJoints(self.snake_id) != self.num_motors:
                 raise ValueError("URDF joint count does not match controller")
-            if not headless:
-                for key, label, low, high, value in [
-                    ("pov", "Camera view", 0, 2, 0), ("zoom", "Camera zoom", .1, 10, 1.5),
-                    ("amp", "Amplitude (rad)", .1, 1.2, .8), ("freq", "Frequency (rad/s)", .1, 5, 2),
-                    ("phase", "Phase lag (rad)", .1, 3, 1), ("force", "Torque cap (Nm)", .1, 2.94, 2.0),
-                    ("fric", "Lateral/forward friction ratio", 1, 50, 20)]:
-                    self.sliders[key] = p.addUserDebugParameter(label, low, high, value)
             self.is_connected = True
             return True, "Planar simulation: 11 links / 10 joints"
         except Exception as exc:
@@ -77,11 +69,6 @@ class SimulationInterface:
         self.target_path_ids = [self.p.addUserDebugLine([*a, .02], [*b, .02], [0, 0, 1], 3)
                                for a, b in zip(path, path[1:])]
 
-    def read_sliders(self):
-        if self.headless:
-            return {"pov": 0, "zoom": 1.5, "amp": .8, "freq": 2, "phase": 1, "force": 2, "fric": 20}
-        return {key: self.p.readUserDebugParameter(value) for key, value in self.sliders.items()}
-
     def update_physics(self, fric_ratio, pov_mode, zoom, base_pos):
         if not math.isfinite(fric_ratio) or fric_ratio < 1:
             raise ValueError("Friction ratio must be >= 1")
@@ -99,7 +86,7 @@ class SimulationInterface:
             if not 1 <= sid <= self.num_motors:
                 raise ValueError("Invalid joint ID")
             self.p.setJointMotorControl2(self.snake_id, sid - 1, self.p.POSITION_CONTROL,
-                                        targetPosition=max(-math.radians(70), min(math.radians(70), angle)),
+                                        targetPosition=max(-math.radians(110), min(math.radians(110), angle)),
                                         force=max(0, min(2.94, max_force)))
         self.p.setTimeStep(self.dt)
         self.p.stepSimulation()

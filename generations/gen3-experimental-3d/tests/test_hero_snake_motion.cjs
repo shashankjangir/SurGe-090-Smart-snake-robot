@@ -1,7 +1,7 @@
 const {readAsset} = require('./asset-source.cjs');
 /**
  * Unit tests for SurGe 090 Hero Snake Motion
- * Verifies 11 segments, 10 joints, ±70° hardware joint limit clamp,
+ * Verifies 11 segments, 10 joints, ±110° hardware joint limit clamp,
  * and strict boundary containment within .hero-section.
  */
 const assert = require('assert');
@@ -103,7 +103,7 @@ global.self = global.window;
 global.performance = { now: () => Date.now() };
 
 // Load hero-snake-motion.js
-const code = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/hero-snake-motion.js'), 'utf8');
+const code = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/hero-snake-motion.js'), 'utf8');
 const factory = new Function('module', 'exports', `${code}; return module.exports || root.heroSnakeMotion;`);
 const mockModule = { exports: {} };
 const heroSnakeLib = factory(mockModule, mockModule.exports) || mockModule.exports;
@@ -111,8 +111,8 @@ const heroSnakeLib = factory(mockModule, mockModule.exports) || mockModule.expor
 assert(heroSnakeLib, 'heroSnakeMotion module should export properly');
 assert.strictEqual(heroSnakeLib.NUM_SEGMENTS, 11, 'Must have exactly 11 segments (1 head, 9 body, 1 tail)');
 assert.strictEqual(heroSnakeLib.NUM_JOINTS, 10, 'Must have exactly 10 revolute joints');
-const expectedLimitRad = 70 * (Math.PI / 180);
-assert(Math.abs(heroSnakeLib.MAX_JOINT_LIMIT - expectedLimitRad) < 1e-4, 'Hardware joint limit must be ±70°');
+const expectedLimitRad = 110 * (Math.PI / 180);
+assert(Math.abs(heroSnakeLib.MAX_JOINT_LIMIT - expectedLimitRad) < 1e-4, 'Hardware joint limit must be ±110°');
 
 // Instantiate simulator
 const sim = new heroSnakeLib.HeroSnakeMotion('hero-snake-canvas', '.hero-section');
@@ -185,4 +185,4 @@ assert.strictEqual(sim.getState().isRunning, false, 'stop() should halt animatio
 sim.destroy();
 assert.strictEqual(sim.isRunning, false, 'destroy() should clean up resources');
 
-console.log('HeroSnakeMotion component: 6 checks passed (11 segments, 10 joints, ±70° hardware limits clamped, strict .hero-section boundary containment, render pipeline, lifecycle control)');
+console.log('HeroSnakeMotion component: 6 checks passed (11 segments, 10 joints, ±110° hardware limits clamped, strict .hero-section boundary containment, render pipeline, lifecycle control)');

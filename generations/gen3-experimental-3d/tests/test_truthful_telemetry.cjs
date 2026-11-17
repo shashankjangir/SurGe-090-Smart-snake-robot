@@ -7,7 +7,7 @@ const $ = id => elements[id] ||= {textContent: '',style:{}};
 let now = 0;
 const rate = {document:{getElementById:$}, performance:{now:()=>now}};
 vm.createContext(rate);
-const script = read('script.js');
+const script = read('pages/gen21.js');
 vm.runInContext(script.slice(script.indexOf('    const statusSampleTimes'),script.indexOf('    let statusInFlight')),rate);
 rate.updateDashboardRate(true);
 assert.match($('dashboard-update-rate').textContent,/awaiting/);
@@ -19,7 +19,7 @@ now=1500;rate.updateDashboardRate();
 assert.match($('dashboard-update-rate').textContent,/no recent/);
 now=6000;rate.updateDashboardRate();
 assert.doesNotMatch($('dashboard-update-rate').textContent,/Hz/);
-const sim = read('gen3-sim.js');
+const sim = read('pages/gen3-sim.js');
 const initialCards = [];
 const initialGrid = { set innerHTML(value) { initialCards.length = 0; }, appendChild(card) { initialCards.push(card); } };
 const initialContext = { $: id => id === 'sim-telemetry-grid' ? initialGrid : null,
@@ -50,12 +50,13 @@ sampleContext.snapshotAvailable=false;
 assert.match(sampleContext.samplePresentation({at:99.9},100000).label,/Stale/);
 sampleContext.snapshotAvailable=true;
 assert.match(sampleContext.samplePresentation({at:99.9,valid:false},100000).label,/Stale/);
-const gen3=read('gen3.js');
+const gen3=read('pages/gen3.js');
+const status=read('pages/gen3-status.js');
 // pollSystemStats uses a request timeout and the battery renderer; give the sandbox both browser globals.
 const stats = {$, AbortSignal, window:{}, fetch:async()=>({ok:true,json:async()=>stats.data})};
 vm.createContext(stats);
 vm.runInContext(gen3.slice(gen3.indexOf('function formatUnit('),gen3.indexOf('function number(')),stats);
-vm.runInContext(gen3.slice(gen3.indexOf('async function pollSystemStats()'),gen3.indexOf('// Bootstrap')),stats);
+vm.runInContext(status.slice(status.indexOf('async function pollSystemStats()'),status.indexOf('// Bootstrap')),stats);
 (async()=>{
  for(const invalid of ['N/A',null,undefined,NaN,Infinity]) {
   stats.data={cpu:invalid,ram:invalid,temp:invalid};await stats.pollSystemStats();

@@ -20,7 +20,7 @@ pio run -e receiver_gen2_1 -e transmitter_gen2_1
 ```
 
 The first OTA-capable firmware installation requires USB. Identify the boards before
-uploading; the last confirmed ports were COM6 receiver and COM7 transmitter. Disconnect
+uploading; the last confirmed ports were COM6 receiver and COM8 transmitter. Disconnect
 servo power and support the robot before installation. Use the existing USB upload
 procedure for each matching environment. On 3 November 2026 the OTA-capable pair
 was installed by USB on COM6 receiver and COM8 transmitter with the robot battery
@@ -38,8 +38,7 @@ only the application image, not bootloader or partition changes.
 1. Stop and disconnect the dashboard; disconnect servo power and support the robot.
 2. Open the target board's own USB serial port at 115200 baud with LF line endings.
    For the receiver, send `STOP` and require `OK,STOP`. Then send `OTA` on that same
-   USB port. Wireless `OTA` is not accepted by the receiver; COM7 does not forward
-   this command to the robot because it enters the transmitter's own OTA mode.
+   USB port. Wireless `OTA` is not accepted by the receiver. Sending it to the transmitter's USB port enters the transmitter's own OTA mode.
 3. Require `OK,OTA,SURGE-Receiver,192.168.4.1` or
    `OK,OTA,SURGE-Transmitter,192.168.4.1`. Receiver entry refuses an armed state or
    unconfirmed torque-off. `ERR,OTA,CREDENTIALS` means rebuild with valid credentials;

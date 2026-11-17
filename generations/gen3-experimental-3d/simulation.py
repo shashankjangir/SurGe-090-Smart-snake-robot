@@ -6,7 +6,7 @@ from pathlib import Path
 
 from collections import deque
 
-from gait import COUNTS_PER_RADIAN
+from gait import COUNTS_PER_RADIAN, NUM_JOINTS
 
 # ST3215 response fitted to the 24-26 Oct hardware logs (tools/replay_run.py --all): feedback trails
 # the command by 0.25 s on average (sim with this delay: 0.23 s) and settles 2-4 counts short. Stall torque 2.94 Nm at 12 V, scaled to 3S.
@@ -21,7 +21,7 @@ MODELS = Path(__file__).resolve().parent / 'backend/web_dashboard/static/models'
 def robot_xml(config, length, mass):
     assembly = json.loads((MODELS / 'gen3-cad.json').read_text(encoding='utf-8')) if length is None else None
     parts = ['<robot name="gen3_bench">']
-    for i in range(11):
+    for i in range(NUM_JOINTS + 1):
         span = length if assembly is None else abs(assembly['bodies'][max(i, 1)]['origin'][0] - assembly['bodies'][max(i, 1)-1]['origin'][0])
         center = [-span/2, 0, 0] if assembly is None else assembly['bodies'][i]['center']
         xyz = ' '.join(str(v) for v in center)
@@ -78,7 +78,7 @@ class SimulationInterface:
                 flags=self.p.URDF_USE_SELF_COLLISION | self.p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
         self.stop()
         # shortcut: directional contact is illustrative; fit it to measured surface trials later.
-        for i in range(-1, 10):
+        for i in range(-1, NUM_JOINTS):
             self.p.changeDynamics(self.body, i, lateralFriction=.8,
                                   anisotropicFriction=[.1, 1, 1], restitution=0)
         self.p.resetDebugVisualizerCamera(1.7, 35, -35, [.5, 0, 0])
@@ -91,7 +91,7 @@ class SimulationInterface:
         self.armed = False
         self.pending.clear()
         if self.p is not None and hasattr(self, 'body'):
-            for i in range(10):
+            for i in range(NUM_JOINTS):
                 self.p.setJointMotorControl2(self.body, i, self.p.VELOCITY_CONTROL, force=0)
 
     def disconnect(self):
@@ -119,17 +119,17 @@ class SimulationInterface:
                     targetPosition=angle, maxVelocity=speed / COUNTS_PER_RADIAN, force=self.torque)
 
     def link_positions(self):
-        # World-space centers of the floating base and ten child links.
+        # World-space centers of the floating base and each child link.
         return [list(self.p.getBasePositionAndOrientation(self.body)[0])] + [
             list(self.p.getLinkState(self.body, i, computeForwardKinematics=True)[0])
-            for i in range(10)
+            for i in range(NUM_JOINTS)
         ]
 
     def link_poses(self):
         base = self.p.getBasePositionAndOrientation(self.body)
         return [dict(position=list(base[0]), quaternion=list(base[1]))] + [
             dict(position=list(s[0]), quaternion=list(s[1])) for s in
-            (self.p.getLinkState(self.body, i, computeForwardKinematics=True) for i in range(10))
+            (self.p.getLinkState(self.body, i, computeForwardKinematics=True) for i in range(NUM_JOINTS))
         ]
 
     def head_pose(self):

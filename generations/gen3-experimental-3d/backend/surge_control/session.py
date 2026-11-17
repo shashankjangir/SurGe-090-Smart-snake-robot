@@ -7,9 +7,9 @@ Enforces two roles:
 
 Only ONE operator may be active at a time. A second operator logging in while another
 is active becomes a viewer with an informative message.
-Operator lease is renewed via heartbeats (1.0s interval, 3.0s timeout). Expiry commands STOP.
+Operator lease is renewed via heartbeats (1.0s interval). The login lasts 30 minutes without a
+heartbeat. Motion does not stop when heartbeats pause (owner request); use Stop.
 """
-import copy
 import hmac
 import json
 import os
@@ -44,27 +44,44 @@ def load_operators_config(config_path=None):
 
 
 class SessionManager:
+    VIEWER_IDLE_TIMEOUT = 30 * 60.0
     HEARTBEAT_INTERVAL = 1.0
-    LEASE_TIMEOUT = 3.0
+    LEASE_TIMEOUT = 30 * 60.0
+    MOTION_TIMEOUT = None  # Owner request: motion does not stop when dashboard heartbeats pause.
 
-    def __init__(self, heartbeat_interval=1.0, lease_timeout=LEASE_TIMEOUT, config_path=None):
+    def __init__(self, heartbeat_interval=1.0, lease_timeout=LEASE_TIMEOUT, config_path=None,
+                 motion_timeout=MOTION_TIMEOUT):
         self.heartbeat_interval = heartbeat_interval
         self.lease_timeout = lease_timeout
+        self.motion_timeout = motion_timeout
         self.config_path = config_path
         self._config = load_operators_config(config_path)
         self.allowed_operators = tuple(self._config['operators'])
         self.canonical_map = {n.lower(): n for n in self.allowed_operators}
         self.sessions = {}
+        self.next_session_cleanup = 0.
         self.active_operator = None
         self.on_operator_leave = []
+
+    def prune_viewers(self, now):
+        if now < self.next_session_cleanup:
+            return
+        self.next_session_cleanup = now + 60
+        active_id = self.active_operator['session_id'] if self.active_operator else None
+        for session_id, session in list(self.sessions.items()):
+            if (session_id != active_id and session['role'] == 'viewer'
+                    and now - session['last_seen'] >= self.VIEWER_IDLE_TIMEOUT):
+                del self.sessions[session_id]
 
     def get_or_create(self, session_id=None):
         now = time.monotonic()
         if session_id and session_id in self.sessions:
             session = self.sessions[session_id]
             session['last_seen'] = now
+            self.prune_viewers(now)
             return session
 
+        self.prune_viewers(now)
         new_id = f"s_{uuid.uuid4().hex[:16]}"
         session = {
             'session_id': new_id,
@@ -171,9 +188,6 @@ class SessionManager:
         session['name'] = 'Viewer'
         return {'success': True}
 
-    def release_operator(self, session_id, busy_with_motion=False):
-        return self.logout(session_id, busy_with_motion=busy_with_motion)
-
     def heartbeat(self, session_id):
         now = time.monotonic()
         if self.is_operator(session_id):
@@ -187,9 +201,10 @@ class SessionManager:
 
     def check_lease_expiry(self):
         """Returns (is_expired, expired_operator_info)."""
+        now = time.monotonic()
+        self.prune_viewers(now)
         if self.lease_timeout is None:
             return False, None
-        now = time.monotonic()
         if self.active_operator and now >= self.active_operator['expires_at']:
             expired = self.active_operator
             self.active_operator = None
@@ -209,6 +224,14 @@ class SessionManager:
         if self.lease_timeout is None:
             return True
         return time.monotonic() < self.active_operator['expires_at']
+
+    def is_driving(self, session_id):
+        """Operator whose dashboard heartbeat is recent enough to keep motion running."""
+        if not self.is_operator(session_id):
+            return False
+        if self.motion_timeout is None:
+            return True
+        return time.monotonic() - self.active_operator['last_heartbeat'] < self.motion_timeout
 
     def get_operator_name(self, session_id):
         session = self.sessions.get(session_id)

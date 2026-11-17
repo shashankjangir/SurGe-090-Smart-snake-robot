@@ -7,7 +7,7 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('assert');
 const path = require('path');
 
-const html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html'), 'utf8');
+const html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html'), 'utf8');
 
 // Required DOM IDs referenced by gen3.js
 const REQUIRED_IDS = [

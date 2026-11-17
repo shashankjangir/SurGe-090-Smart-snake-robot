@@ -1,6 +1,6 @@
 const {requireAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
-requireAsset(require('node:path').resolve(__dirname, '../backend/web_dashboard/static/math-path.js'));
+requireAsset(require('node:path').resolve(__dirname, '../backend/web_dashboard/static/pages/gen21-math-path.js'));
 const {compile, generate} = globalThis.SurgeMathPath;
 assert.ok(Math.abs(compile('sin(x) + 0.5*cos(2*x)')(0) - .5) < 1e-12);
 for (const expression of ['alert(1)', 'constructor(1)', 'x;1', 'Math.sin(x)', '1/0', 'sqrt(-1)']) {

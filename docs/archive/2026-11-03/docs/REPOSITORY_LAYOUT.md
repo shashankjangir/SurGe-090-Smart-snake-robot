@@ -38,7 +38,7 @@ SURGE-090/
 Each generation retains its own internal structure. This avoids mixing actuator
 protocols, firmware variants and mechanical assumptions. Gen 3's backend serves
 both dashboard generations; it is not a second copy of the Gen 2 bench code.
-See [ADR 0001](adr/0001-generation-based-repository-layout.md).
+See [ADR 0001](../../../adr/0001-generation-based-repository-layout.md).
 
 Measured calibration, operator credentials, transmitter hint and run history
 remain beside the Gen 3 runtime. Their bytes were preserved during the move.
@@ -64,7 +64,7 @@ editing them. No hardware was actuated or flashed.
 | Loose manuals and research in `docs/` | Purpose-specific documentation folders |
 
 The [CSV move manifest](reorganization/moves.csv) lists every moved file.
-The [verification report](reorganization/VERIFICATION.md) records preservation
+The [verification report](../../../reorganization/VERIFICATION.md) records preservation
 checks, test results and review limits.
 Imports, root-relative test paths, firmware build working directory, PlatformIO
 source directory, ignore rules, IDE workspace paths and Markdown links were

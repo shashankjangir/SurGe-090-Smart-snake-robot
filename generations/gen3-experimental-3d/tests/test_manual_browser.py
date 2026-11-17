@@ -15,12 +15,11 @@ from werkzeug.serving import make_server
 ROOT = Path(__file__).resolve().parents[3]
 GEN = ROOT / 'generations/gen3-experimental-3d'
 sys.path.insert(0, str(GEN / 'backend'))
-sys.path.insert(0, str(ROOT / 'shared'))
 OUT = ROOT / 'docs/gen3/workspace-separation'
 
 
 class PlanarSimulator:
-    def __init__(self): self.positions = {i: 2048 for i in range(1, 11)}
+    def __init__(self): self.positions = {i: 2048 for i in range(1, 13)}
     def start(self): pass
     def stop(self): pass
     def disconnect(self): pass
@@ -176,7 +175,7 @@ def main():
     gen3.hardware_factory = lambda **kw: (_ for _ in ()).throw(AssertionError('Physical transport prohibited'))
     with tempfile.TemporaryDirectory() as temp:
         gen3.map_path = Path(temp) / 'joint_map.json'
-        gen3.map_path.write_bytes((GEN / 'joint_map.json').read_bytes())
+        gen3.map_path.write_text(json.dumps(dict(json.loads((GEN / 'joint_map.json').read_text()), calibrated=True)))
         session = gen3.sessions.get_or_create()
         session.update(role='operator', name='Offline test')
         gen3.sessions.active_operator = dict(session_id=session['session_id'], name=session['name'],

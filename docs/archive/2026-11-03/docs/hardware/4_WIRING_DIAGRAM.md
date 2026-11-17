@@ -6,9 +6,9 @@ This is the current wiring for the Gen 2 robot: 10× Waveshare ST3215 servos, on
 Waveshare Servo Driver with ESP32, and a 3S LiPo on **split power bus v3**.
 
 - Power design and numbers: [`hardware/power_split_bus_v3.md`](power_split_bus_v3.md)
-- Full drawing: [`hardware/wiring_split_bus_v3.svg`](wiring_split_bus_v3.svg)
+- Full drawing: [`hardware/wiring_split_bus_v3.svg`](../../../../hardware/wiring_split_bus_v3.svg)
 - Firmware for this wiring: `generations/gen2-st3215/firmware/robot_esp32_v2/`
-- Gen 1 (Dynamixel XL330 + U2D2) wiring is kept in [`../gen1-dynamixel/docs/wiring_diagram.md`](../../generations/gen1-dynamixel/docs/wiring_diagram.md)
+- Gen 1 (Dynamixel XL330 + U2D2) wiring is kept in [`../gen1-dynamixel/docs/wiring_diagram.md`](../../../../../generations/gen1-dynamixel/docs/wiring_diagram.md)
 
 > The one rule of v3: **DATA and GND run as one continuous wire from the controller to ID10. +12 V is cut before every inject board**, so each pair of servos is powered only by its own fused feed.
 
@@ -156,12 +156,12 @@ graph TD
         U2D2 -->|Plugs Directly On Top| PHB[U2D2 PHB Power Hub]
         PHB_V --> PHB
         PHB_G --> PHB
-        
+
         PHB <-->|X3P Robot Cable| M1[Dynamixel XL330 Motor 1]
         M1 <-->|X3P Robot Cable| M2[Dynamixel XL330 Motor 2]
         M2 <-.->|X3P Robot Cable| M10[Dynamixel XL330 Motor 10]
     end
-    
+
     subgraph Future Head Sensors
         PI -.->|Bluetooth / WiFi Data| ESP[ESP32 Microcontroller]
         ESP <-->|Jumper Wires| SEN[HC-SR04 / VL53L0X Sensor]
@@ -186,7 +186,7 @@ graph TD
 
 ### Step 2: The Motor Power Supply
 1. Take your **5V 10A Power Supply**. Wire its AC input terminals (L, N, G) to a standard wall plug cable.
-2. Take two thick wires (18 AWG recommended). 
+2. Take two thick wires (18 AWG recommended).
 3. Connect one wire to the **V+** terminal on the power supply, and the other to the **V- (or COM)** terminal.
 4. On the **U2D2 PHB Power Hub Board**, locate the 2-pin screw terminal block.
 5. Screw the **V+** wire into the **+** slot on the PHB.

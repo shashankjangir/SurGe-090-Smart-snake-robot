@@ -1,7 +1,7 @@
 """Slides 18 and 24 - duplicated from slide 6
 (vertical block-diagram chain + right-hand boxes + legend + status row)."""
 from pptx import Presentation
-from edit import sl, find, txt, lst, notes
+from edit import sl, find, txt, notes
 
 P = "work.pptx"
 prs = Presentation(P)
@@ -47,7 +47,7 @@ txt(find(s, "Text 1"), "Field and Bench Power Paths")
 txt(find(s, "Text 8"),
     "Robot rail resolved    ·    No DC conversion needed    ·    Protection hardware outstanding")
 
-txt(find(s, "PwrBlock" if False else "PwrLabel"), "3S LiPo 1800 mAh   —   20.0 Wh")
+txt(find(s, "PwrLabel"), "3S LiPo 1800 mAh   —   20.0 Wh")
 txt(find(s, "RPiLabel"), "Inline fuse  +  XT60 loop key   [NOT YET HELD]")
 txt(find(s, "CommLabel"), "1000 µF bulk capacitor   [NOT YET HELD]")
 txt(find(s, "DynLabel"), "Waveshare Driver VIN   (6 – 12 V)")

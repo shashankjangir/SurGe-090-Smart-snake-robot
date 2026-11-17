@@ -7,7 +7,7 @@ const {readAsset} = require('./asset-source.cjs');
  * - Left Column: PyBullet 3D Connection Engine, 3D Spatial Gait Presets (Sidewinding, Rolling, Lateral Undulation, Sinus-Lifting, Corkscrew) & Confirmed Joint Map
  * - Center Column: Interactive 3D Perspective Simulation Canvas (#gen3SimCanvas), badges, 3D controls footer, Start/Stop/Reset actions
  * - Right Column: 3D Simulation Physics tuning (#sim-3d-physics-card), sliders (contact friction, yaw amp, pitch amp, frequency, lag, pitch-yaw offset, bias, torque limit, low power), Apply 3D Physics and Set to Default buttons
- * - Bottom Telemetry: 10-Joint Alternating Actuator Telemetry grid (#sim-telemetry-grid)
+ * - Bottom Telemetry: 12-joint alternating actuator telemetry grid (#sim-telemetry-grid)
  * - Integration with /static/gen3-sim.js
  */
 const assert = require('assert');
@@ -68,9 +68,17 @@ console.log('  PASS: Left column verified (Preview notice & 5 spatial presets)')
 
 // 5. Verify Center Column (Interactive 3D Simulation Canvas & Actions)
 assert(simPanelContent.includes('id="gen3SimCanvas"'), 'Must have #gen3SimCanvas element');
-assert(simPanelContent.includes('6 Pitch Joints'), 'Must highlight 6 Pitch Joints badge');
-assert(simPanelContent.includes('6 Yaw Joints'), 'Must highlight 6 Yaw Joints badge');
-assert(simPanelContent.includes('13 Links'), 'Must highlight 13 Links badge');
+const joints = {};
+vm.runInNewContext(gen3SimJs.slice(gen3SimJs.indexOf('  const JOINT_SPECS ='), gen3SimJs.indexOf('  const COUNTS_PER_DEGREE')) + ';this.specs = JOINT_SPECS;', joints);
+assert.equal(joints.specs.length, 12, 'Simulation represents twelve calibrated joints and thirteen links');
+assert.equal(joints.specs.filter(joint => joint.axis === 'pitch').length, 6);
+assert.equal(joints.specs.filter(joint => joint.axis === 'yaw').length, 6);
+const map = JSON.parse(readAsset(path.join(__dirname, '../joint_map.json')));
+for (const joint of map.joints) {
+  const displayed = joints.specs.find(spec => spec.id === joint.id);
+  assert(displayed && displayed.axis === joint.axis && displayed.sign === joint.sign && displayed.zero === joint.zero,
+    `Simulation joint ${joint.id} must match the saved calibration`);
+}
 assert(simPanelContent.includes('id="btn-gen3-sim-start"'), 'Must have Start 3D Sim button');
 assert(gen3Html.includes('id="floating-stop-btn"'), 'Persistent Stop is available during simulation');
 assert(simPanelContent.includes('id="btn-gen3-sim-reset"'), 'Must have Reset 3D Pose button');
@@ -94,13 +102,13 @@ assert(simPanelContent.includes('id="sim-physics-applied-pill"'), 'Must have con
 console.log('  PASS: Right column verified (Gait parameters, Apply & Set-to-Default buttons)');
 
 // 7. Verify Bottom Telemetry Section
-assert(simPanelContent.includes('id="sim-telemetry-hub"'), 'Must have 10-joint spatial telemetry hub');
+assert(simPanelContent.includes('id="sim-telemetry-hub"'), 'Must have twelve-joint spatial telemetry hub');
 assert(simPanelContent.includes('id="sim-telemetry-grid"'), 'Must have #sim-telemetry-grid');
 console.log('  PASS: Bottom telemetry section verified');
 
 // 8. Verify JavaScript Controller Integration (gen3-sim.js)
 assert(/<script src="\/static\/gen3-sim\.js(\?v=[^"]*)?" defer><\/script>/.test(gen3Html), 'gen3.html must load gen3-sim.js');
-assert(gen3SimJs.includes('JOINT_SPECS'), 'gen3-sim.js must define 10 alternating joint specifications');
+assert(gen3SimJs.includes('JOINT_SPECS'), 'gen3-sim.js must define twelve alternating joint specifications');
 // Confirmed signs check: Pitch 1 = 1; Pitch 3, 5, 7, 9 = -1; all Yaw = 1
 assert(gen3SimJs.includes('{ id: 1, axis: \'pitch\', sign: 1'), 'Pitch ID 1 must have sign = 1');
 assert(gen3SimJs.includes('{ id: 3, axis: \'pitch\', sign: -1'), 'Pitch ID 3 must have sign = -1');

@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 
 COUNTS_PER_RADIAN = 4096 / (2 * math.pi)
+GAIT_ANGLE_LIMIT_DEG = 90
 MAP_PATH = Path(__file__).with_name("joint_map.json")
 # 12-motor upgrade (Nov 2026): IDs 11 (pitch) and 12 (yaw) added at the tail.
 NUM_JOINTS = 12
@@ -115,9 +116,10 @@ def validate_pose(config, degrees):
 def validate_gait(config, yaw, pitch, bias, frequency, lag, offset, duration, ramp, speed=None, overrides=None):
     validate_map(config)
     effective_speed = config["speed"] if speed is None else number(speed, "speed", 1, 3000)
+    angle_limit = math.radians(GAIT_ANGLE_LIMIT_DEG)
     for name, value in (("yaw", yaw), ("pitch", pitch)):
-        number(value, name, 0, math.pi / 2)
-    number(bias, "bias", -math.pi / 2, math.pi / 2)
+        number(value, name, 0, angle_limit)
+    number(bias, "bias", -angle_limit, angle_limit)
     number(frequency, "frequency", -.6, .6)
     number(lag, "lag", -2 * math.pi, 2 * math.pi)
     number(offset, "offset", -2 * math.pi, 2 * math.pi)

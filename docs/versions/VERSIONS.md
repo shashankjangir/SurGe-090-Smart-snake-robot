@@ -1,5 +1,7 @@
 # SURGE-090 version map
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Recorded 2026-10-15 during Gen 2.1 repository integration.
 
 ## Project versions
@@ -53,7 +55,7 @@ The tag `archive/pre-gen2.1-integration-2026-10-15` records project HEAD
 The complete original source snapshot (recorded HEAD `b15efef`) and both Git
 bundles were restored on 16 October. All 66 source-snapshot files and 46 selected
 pre-integration files match their original SHA-256 manifests. See the
-[archive index](../../removed/INDEX.md) and [audit](../../removed/AUDIT.md).
+`removed/INDEX.md` (historical file unavailable in this checkout) and `removed/AUDIT.md` (historical file unavailable in this checkout).
 
 See [verification](VERIFICATION.md) and [whole-folder recheck](RECHECK.md).
 

@@ -20,7 +20,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'generations/gen3-experimental-3d/backend'))
-sys.path.insert(0, str(ROOT / 'shared'))
 WEB_APP_PATH = ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard/web_app.py' if (ROOT / 'generations/gen3-experimental-3d/backend/web_dashboard/web_app.py').exists() else WEB_APP_PATH
 from surge_control.gen3 import Gen3Control, GaitMotionGenerator, runner
 from surge_control.session import SessionManager
@@ -174,6 +173,17 @@ class ConsoleTests(unittest.TestCase):
         gen.evaluate(9.0)
         with self.assertRaisesRegex(ValueError, 'shutdown ramp'):
             gen.request_update("req-late", 1, {'yaw': 6}, 9.0)
+
+    def test_stale_heartbeat_stops_motion_but_keeps_login(self):
+        mgr = SessionManager(lease_timeout=60.0, motion_timeout=0.1)
+        s = mgr.get_or_create()
+        mgr.login(s['session_id'], name="Shashank", password="test-only-operator-password")
+        self.assertTrue(mgr.is_driving(s['session_id']))
+        time.sleep(0.15)
+        self.assertTrue(mgr.is_operator(s['session_id']))
+        self.assertFalse(mgr.is_driving(s['session_id']))
+        mgr.heartbeat(s['session_id'])
+        self.assertTrue(mgr.is_driving(s['session_id']))
 
     def test_operator_sessions_lease_and_heartbeat(self):
         mgr = SessionManager(heartbeat_interval=0.5, lease_timeout=1.0)

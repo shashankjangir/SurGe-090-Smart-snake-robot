@@ -4,7 +4,7 @@
 **Scope:** Gen 2.1 planner (`/`) and Gen 3 console (`/gen3`), all five Gen 3 tabs (3D Simulation, Controls, Runs & Presets, Calibration & Diag, Firmware), header, hero, marquee, search, password morph, generation switch transition, team footer.
 **Viewports:** 1440×900 desktop and 390×844 mobile, in the Claude built-in browser (Chromium), served by `python web_app.py --port 5000`. Robot was disconnected; no operator was signed in.
 **Judged against:** `DESIGN.md` (Playdate reference: Roobert/Manrope, Carbon `#312f27` text, yellow bands, violet only for interactive elements, 2.85px card radius, no card borders or shadows, a single CTA shadow).
-**Evidence:** every row below was seen on screen or read from the computed style of the live DOM (`getComputedStyle`, the live CSSOM, and `elementFromPoint`). Screenshots are in [`report-assets/`](report-assets). No code was changed.
+**Evidence:** every row below was seen on screen or read from the computed style of the live DOM (`getComputedStyle`, the live CSSOM, and `elementFromPoint`). Screenshots are in [`report-assets/`](../reports/assets). No code was changed.
 
 ---
 

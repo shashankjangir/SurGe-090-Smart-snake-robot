@@ -1,7 +1,7 @@
 const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/script.js', 'utf8');
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js', 'utf8');
 const block = source.slice(source.indexOf('            isRunning = Boolean(data.is_running'), source.indexOf("            if (currentPathRevision !=="));
 for (const [connected, paused, expected] of [[true, false, 'Running'], [true, true, 'Stopped'], [false, true, 'Disconnected']]) {
     const elements = {};

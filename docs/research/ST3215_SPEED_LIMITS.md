@@ -1,5 +1,7 @@
 # ST3215 speed and power limits
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Research checked 1 November 2026. Read against `docs/GEN3_HANDOFF.md`, current
 `generations/gen3-experimental-3d/joint_map.json`, and the newer wiring issue resolution.
 No hardware opened, motion commanded, firmware changed or calibration edited.
@@ -42,7 +44,7 @@ changes a cap; it does not double a gait's commanded frequency or amplitude.
 The owner's goal is faster whole-body gait, so the useful outcome is increased
 achieved waveform speed with acceptable tracking under load, not a larger field.
 
-The current map is speed 1500, tracking error 216 counts, timeout 0.5 s.
+The map inspected for the 1 November research had speed 1500, tracking error 216 counts, and timeout 0.5 s. The maintained map now saves 2144 / 492 / 0.5; the trial calculations below retain their original 1500-count/s baseline.
 The project's conservative sinusoidal envelope is
 `4096/360 * amplitude_degrees * (2*pi*frequency_hz + pi/(2*ramp_seconds))`.
 At 30°, 0.5 Hz and a 2 s ramp it is about 1340.4 counts/s, already below 1500.

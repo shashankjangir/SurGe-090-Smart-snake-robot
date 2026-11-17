@@ -12,7 +12,7 @@ const vm = require('node:vm');
 console.log('Testing joint sign parity: gen3-sim.js vs joint_map.json...');
 
 const jointMapPath = path.join(__dirname, '../joint_map.json');
-const gen3SimPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3-sim.js');
+const gen3SimPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-sim.js');
 
 assert(fs.existsSync(jointMapPath), 'joint_map.json must exist');
 assert(fs.existsSync(gen3SimPath), 'gen3-sim.js must exist');
@@ -33,8 +33,8 @@ const jointSpecs = context.JOINT_SPECS;
 
 assert(Array.isArray(jointSpecs), 'JOINT_SPECS must be an array');
 assert(Array.isArray(jointMap.joints), 'joint_map.json must contain joints array');
-assert.strictEqual(jointSpecs.length, 10, 'gen3-sim.js must specify 10 joints');
-assert.strictEqual(jointMap.joints.length, 10, 'joint_map.json must specify 10 joints');
+assert.strictEqual(jointSpecs.length, 12, 'gen3-sim.js must specify 12 joints');
+assert.strictEqual(jointMap.joints.length, 12, 'joint_map.json must specify 12 joints');
 
 for (const spec of jointSpecs) {
   const mapJoint = jointMap.joints.find(j => j.id === spec.id);
@@ -72,4 +72,4 @@ for (const joint of jointSpecs) {
   }
 }
 
-console.log('  PASS: All 10 joint sign values in gen3-sim.js match joint_map.json exactly.');
+console.log('  PASS: All 12 joint sign values in gen3-sim.js match joint_map.json exactly.');

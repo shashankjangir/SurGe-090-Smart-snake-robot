@@ -52,3 +52,8 @@ artifacts/graphify-out/cache/
 
 # Machine-specific transmitter USB socket hint
 generations/gen3-experimental-3d/transmitter_port.json
+
+# Run logs, operator credentials and port hints in any copy (main, refined, Raspberry Pi)
+generations/**/runs/
+**/operators.json
+**/transmitter_port.json

@@ -18,7 +18,7 @@ class SnakeKinematics:
         positions, angles = {}, {}
         for i in range(self.num_motors):
             angle = self.amplitude * math.sin(self.frequency * current_time - i * self.phase_shift) + self.turn_offset
-            ticks = max(1252, min(2844, self.center_pos + round(angle * self.ticks_per_radian)))
+            ticks = max(796, min(3300, self.center_pos + round(angle * self.ticks_per_radian)))
             positions[i + 1] = ticks
             angles[i + 1] = (ticks - self.center_pos) / self.ticks_per_radian
         return positions, angles

@@ -1,5 +1,7 @@
 # Acceptance checklist: segments v1, Phase 1 (revision 2)
 
+This saved report describes the original ten-joint CAD prototype. The generator's earlier checks/ scripts are absent from this checkout, so the recorded checks cannot be rerun from this folder. Physical fit and RF clearance still require verification.
+
 **Status: PROTOTYPE: fit and load validation required.** All checks ran on nominal vendor geometry and provisional
 parameters. They do not show that the printed assembly is strong, low-wobble or printable.
 

@@ -15,10 +15,10 @@ For Gen 3, Hardware initially selects Dry run. Leaving it selected gives a mathe
 ## Connect the physical system
 
 1. Support the robot and keep a physical power-disconnection path accessible. Check wiring and clearance before supplying servo power.
-2. Identify the boards. The last mapping is COM6 receiver and COM7 transmitter.
+2. Identify the boards. The last confirmed two-board USB mapping is COM6 receiver and COM8 transmitter (3 November 2026). Verify the ports on this computer.
 3. Close serial monitors and other CLI programs. They do not share the dashboard's connection lock.
-4. Choose Hardware and the correct serial port. COM7 is the normal wireless host port.
-5. Connect and require the Gen 2.1 handshake and confirmed torque-off state. Check measured feedback for all ten motors.
+4. Choose Hardware and the correct serial port. COM8 was the last confirmed transmitter port.
+5. Connect and require the Gen 2.1 handshake and confirmed torque-off state. Check measured feedback for all twelve motors (IDs 11 and 12 since 7 November 2026).
 6. Review amplitude, frequency, bias, ramp, duration and speed. Use the current map, not an old command copied from an archived report.
 7. Start only a supervised finite trial. Use Stop to end it, then disconnect.
 
@@ -29,7 +29,7 @@ A missing Stop acknowledgement or torque-off-unconfirmed error is not a successf
 After checking the hardware setup, this command explicitly selects the physical receiver path:
 
 ```powershell
-conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --hardware --port COM7 --mode read
+conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --hardware --port COM8 --mode read
 ```
 
 The port is an example based on the last identification. Read mode still opens the real connection and uses its handshake/Stop behaviour. It is not an offline command.
@@ -40,7 +40,7 @@ For stopped bus diagnostics, the receiver's D command reports register, torque, 
 
 Gen 3 Hardware refreshes stopped telemetry and diagnostics automatically every three seconds while the tab is visible, an Operator is logged in and a transmitter port is selected. Requests use the existing handshake and Stop/torque-off connection, never RUN or position targets. Failed requests retry after 15 seconds. Viewer, hidden tabs, Simulation, motion jobs and firmware jobs do not initiate these reads.
 
-Latency measures the telemetry round trip; idle telemetry rate measures the interval between samples, so its first value arrives after the second sample. Tracking reads **Idle · torque off** while stopped because no target is commanded. During hardware motion these three values use the active run's feedback. Voltage, temperature and battery stay on the last stopped diagnostic sample during motion: the installed receiver refuses armed diagnostics. Sample ages remain visible and battery becomes stale after 30 seconds.
+Latency measures the telemetry round trip; idle telemetry rate measures the interval between samples, so its first value arrives after the second sample. Tracking reads **Idle · torque off** while stopped because no target is commanded. During hardware motion these three values use the active run's feedback. Voltage, temperature and battery stay on the last stopped diagnostic sample during motion. The installed receiver refuses armed diagnostics. The battery indicator becomes stale after 30 seconds. The optional automatic-refresh helper line is hidden by the dashboard CSS.
 
 The owner-reported battery is a **2200 mAh 3S LiPo**. Its reserve percentage uses the existing conservative voltage scale (12.6 V = 100%, 11.1 V = recharge), not measured remaining mAh or runtime. Changing capacity does not change this voltage scale.
 
@@ -50,7 +50,7 @@ In Gen 3 Hardware, open Per-Joint Control and log in as Operator. Select the tra
 
 1. Press **STOP / torque off** and confirm release before handling the joints. Support the body so it cannot fall when torque is off.
 2. With servo power connected, gently arrange the snake by hand within its calibrated limits. Do not force a joint.
-3. Keep the body still and click **Capture hand-positioned pose**. This opens the real connection, requests Stop and reads all ten joint positions, even if Dry run is selected. Missing feedback or an out-of-range joint rejects the capture.
+3. Keep the body still and click **Capture hand-positioned pose**. This opens the real connection, requests Stop and reads all twelve joint positions, even if Dry run is selected. Missing feedback or an out-of-range joint rejects the capture.
 4. Enter a name and click **Save captured pose**. The snapshot is stored on the dashboard computer in `generations/gen3-experimental-3d/runs/pose_presets.json`. New captures require a unique name; use Re-calibrate to update an existing saved pose.
 5. Choose **Saved: your name** in **Shape preset** to load the angles. Loading does not move the robot. **Move to Pose** uses the existing Hardware / Dry run choice and confirmation; it moves, holds for the selected duration, then returns to neutral.
 
@@ -63,30 +63,30 @@ Captures retain encoder precision and the joint calibration used to interpret th
 I first inspect all measured positions with torque off. I then jog one selected joint with mechanical support and clearance. A small example is:
 
 ```powershell
-conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --hardware --port COM7 --mode jog --id 1 --ticks 20 --duration 4
+conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --hardware --port COM8 --mode jog --id 1 --ticks 20 --duration 4
 ```
 
 The CLI bounds jogs to 57 counts in either direction and uses its commissioning speed limit. It cannot know if a cable or bracket is about to collide. The other joints remain torque-off.
 
 Centering requires the selected output to be mechanically free and uses the CLI's --free-shaft confirmation. I check --help before that operation. Aligning the full chain can also move it. None of these commands should be used as a substitute for checking physical clearance.
 
-The saved map has neutral 2048, bounds 1252–2844, speed 1500, tracking error 216 and timeout 0.5 seconds. Pitch ID 1 is positive; pitch IDs 3/5/7/9 are negative; yaw signs are positive. Changing a map field requires a real calibration decision.
+The saved map has neutral 2048, bounds 796–3300 (±110°), speed 2144, tracking error 492 and timeout 0.5 seconds. Pitch ID 1 is positive. Pitch IDs 3/5/7/9/11 are negative and all yaw signs are positive. Shared gait yaw and pitch amplitudes are limited to 0–90° and shared bias to ±90° before per-joint checks. Joint travel limits remain separate. Changing a map field requires a real calibration decision.
 
 ## Planar Gen 2.1 bench launcher
 
 The three older launchers have been replaced by one:
 
 ```powershell
-python generations/gen2-st3215/tools/bench_gen2_1.py align --port COM7
-python generations/gen2-st3215/tools/bench_gen2_1.py sine --port COM7 --duration 10
-python generations/gen2-st3215/tools/bench_gen2_1.py spiral --port COM7 --duration 10
+python generations/gen2-st3215/tools/bench_gen2_1.py align --port COM8
+python generations/gen2-st3215/tools/bench_gen2_1.py sine --port COM8 --duration 10
+python generations/gen2-st3215/tools/bench_gen2_1.py spiral --port COM8 --duration 10
 ```
 
 These commands physically move the planar robot. They are not the alternating-axis Gen 3 gait runner. All three first require two consecutive encoder samples with every motor within 30 counts of centre. Alignment timeout raises a fault. The sine waveform uses speed 1500 and the spiral uses 300; disconnect cleanup requests torque-off.
 
 ## Gamepad and firmware
 
-Use [the controller guide](CONTROLLER_UPGRADES.md) for LB + A start, RT throttle and focus-loss stopping. Firmware updates are described in [the OTA guide](FIRMWARE_OTA.md). Initial OTA installation requires USB. The receiver and transmitter need their own matching firmware images.
+Use [the controller guide](CONTROLLER_UPGRADES.md) for LB + A start, RT throttle and stop behavior. The default manual controller has no server input-gap timeout. Press Stop before leaving the laptop controls. Firmware updates are described in [the OTA guide](FIRMWARE_OTA.md). Initial OTA installation requires USB. The receiver and transmitter need their own matching firmware images.
 
 The older standalone desktop commands are archived because their shared/desktop-app path is absent from this checkout. Gen 2.0 direct-bus and onboard firmware also use different interfaces. I do not mix their commands with the maintained text receiver.
 

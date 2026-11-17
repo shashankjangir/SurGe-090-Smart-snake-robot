@@ -1,18 +1,19 @@
 /* SURGE phone controller: same palette and type as the Gen 3 console. */
+/* Short names used by the phone controller, mapped to tokens.css. */
 :root {
-  --carbon: #000000;
-  --paper: #ffffff;
-  --sky: #dceeff;
-  --electric: #4da2ff;
-  --mint: #55db9c;
-  --lavender: #e9ccff;
-  --ember: #fb4903;
-  --sun: #ffd731;
+  --carbon: var(--color-carbon);
+  --paper: var(--color-paper-white);
+  --sky: var(--color-sky-wash);
+  --electric: var(--color-electric-blue);
+  --mint: var(--color-mint-pop);
+  --lavender: var(--color-lavender);
+  --ember: var(--color-ember);
+  --sun: var(--color-sunburst);
   --muted: #475569;
-  --radius-card: 20px;
-  --font-display: 'Bowlby One', 'Antonio', system-ui, sans-serif;
+  --radius-card: var(--radius-cards);
+  --font-display: var(--font-lateral);
   --font-condensed: 'Antonio', system-ui, sans-serif;
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: var(--font-aeonik-pro);
   color-scheme: light;
 }
 
@@ -63,12 +64,12 @@ button { font: inherit; color: inherit; }
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--paper);
   color: var(--carbon);
   font-family: var(--font-ui);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -83,7 +84,7 @@ button { font: inherit; color: inherit; }
   width: 40px;
   height: 40px;
   border: 1px solid rgb(255 255 255 / 40%);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: transparent;
   color: var(--paper);
 }
@@ -127,14 +128,14 @@ button { font: inherit; color: inherit; }
 .run-detail { margin: 4px 0 0; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .key-form { margin-top: 10px; }
-.key-form label { display: block; font-size: 12px; font-weight: 650; margin-bottom: 4px; }
+.key-form label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
 .key-row { display: flex; gap: 8px; }
 .key-row input {
   flex: 1;
   min-width: 0;
   padding: 8px 12px;
   border: 1px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   font: inherit;
   -webkit-user-select: text;
   user-select: text;
@@ -142,10 +143,10 @@ button { font: inherit; color: inherit; }
 .pill {
   padding: 8px 16px;
   border: 1px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--carbon);
   color: var(--paper);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 /* Shared press feedback */
@@ -160,7 +161,7 @@ button { font: inherit; color: inherit; }
   gap: 10px;
   min-height: 56px;
   border: 2px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--ember);
   box-shadow: 0 4px 0 var(--carbon);
   font-family: var(--font-display);
@@ -172,7 +173,7 @@ button { font: inherit; color: inherit; }
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--carbon);
   color: var(--paper);
   font-size: 15px;
@@ -187,7 +188,7 @@ button { font: inherit; color: inherit; }
   width: clamp(64px, 18vmin, 92px);
   aspect-ratio: 1;
   border: 2px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   box-shadow: 0 4px 0 var(--carbon);
   padding: 0;
 }
@@ -206,7 +207,7 @@ button { font: inherit; color: inherit; }
   width: clamp(130px, 42vmin, 200px);
   aspect-ratio: 1;
   border: 2px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background:
     linear-gradient(rgb(0 0 0 / 14%), rgb(0 0 0 / 14%)) center / 2px 70% no-repeat,
     linear-gradient(rgb(0 0 0 / 14%), rgb(0 0 0 / 14%)) center / 70% 2px no-repeat,
@@ -227,7 +228,7 @@ button { font: inherit; color: inherit; }
   width: 44%;
   aspect-ratio: 1;
   border: 2px solid var(--carbon);
-  border-radius: 999px;
+  border-radius: var(--radius-pills);
   background: var(--electric);
   box-shadow: 0 4px 0 var(--carbon);
   transition: transform 120ms ease-out;

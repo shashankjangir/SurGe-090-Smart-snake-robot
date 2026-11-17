@@ -1,5 +1,7 @@
 # SURGE-090 presentation update — v3 plan
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Prepared 18 October 2026.
 
 Source: `generations/gen1-dynamixel/docs/presentations/Smart_Snake_Robot_SURGE090_Progress_Review_v2.pptx`.

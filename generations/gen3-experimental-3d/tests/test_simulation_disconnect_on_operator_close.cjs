@@ -2,7 +2,7 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const source = readAsset(path.join(__dirname, '../backend/web_dashboard/static/gen3-sim.js'), 'utf8');
+const source = readAsset(path.join(__dirname, '../backend/web_dashboard/static/pages/gen3-sim.js'), 'utf8');
 
 // Verify that gen3-sim.js handles operator session change to disconnect simulation
 assert(source.includes('const wasOperator = simOperator;'), 'gen3-sim.js must track wasOperator');

@@ -8,8 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'backend'))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'shared'))
-from gait import MAP_PATH, load_map, number, slew, targets_at, validate_gait
+from gait import JOINT_IDS, NUM_JOINTS, MAP_PATH, load_map, number, slew, targets_at, validate_gait
 from surge_control.hardware import ST3215Interface
 
 PERIOD = .05
@@ -70,12 +69,12 @@ def record(writer, stage, elapsed, target, state, dt):
 def run_motion(iface, config, target_at, duration, writer, *, jog_id=None,
                jog_ticks=0, clock=time.monotonic, sleep=time.sleep, stop_event=None, center=False):
     """The caller owns disconnect, including failure before RUN acknowledgement."""
-    if center and jog_id not in range(1, 11):
+    if center and jog_id not in JOINT_IDS:
         raise ValueError('Center requires one selected servo ID')
     if jog_id is None:
         bounds = {j['id']: (j['min'], j['max']) for j in config['joints']}
     else:
-        bounds = {jog_id: (1252, 2844)}
+        bounds = {jog_id: (796, 3300)}
     state = feedback(iface, bounds, clock)
     current = {sid: float(state[sid]['position']) for sid in bounds}
     if center:
@@ -83,7 +82,7 @@ def run_motion(iface, config, target_at, duration, writer, *, jog_id=None,
         target_at = lambda t: neutral
     elif jog_id is not None:
         origin = current[jog_id]
-        if not 1252 <= origin + jog_ticks <= 2844:
+        if not 796 <= origin + jog_ticks <= 3300:
             raise ValueError('Jog would exceed receiver limits')
         # Return to the measured start; only this servo is enabled.
         target_at = lambda t: {jog_id: origin + jog_ticks * (1 - math.cos(2 * math.pi * min(t, duration) / duration)) / 2}
@@ -181,20 +180,20 @@ def main(argv=None):
             if args.mode != 'gait':
                 raise ValueError('Simulation supports gait mode only')
         if args.mode == 'center':
-            if args.id not in range(1, 11) or not args.free_shaft:
-                raise ValueError('Center requires --id 1..10 and --free-shaft; disconnect linkage before centering')
+            if args.id not in JOINT_IDS or not args.free_shaft:
+                raise ValueError(f'Center requires --id 1..{NUM_JOINTS} and --free-shaft; disconnect linkage before centering')
             config = {'speed': 100, 'tracking_error': 25, 'tracking_timeout': .5}
             target_at = None
         elif args.mode == 'jog':
-            if args.id not in range(1, 11) or args.ticks is None or not 1 <= abs(args.ticks) <= 57:
-                raise ValueError('Jog requires --id 1..10 and --ticks -57..57, excluding zero')
+            if args.id not in JOINT_IDS or args.ticks is None or not 1 <= abs(args.ticks) <= 57:
+                raise ValueError(f'Jog requires --id 1..{NUM_JOINTS} and --ticks -57..57, excluding zero')
             config = {'speed': 100, 'tracking_error': 25, 'tracking_timeout': .5}
             target_at = None
         elif args.mode == 'align':
             config = {'speed': 100, 'tracking_error': 25, 'tracking_timeout': .5,
-                      'joints': [{'id': i, 'zero': 2048, 'min': 1252, 'max': 2844}
-                                 for i in range(1, 11)]}
-            target_at = lambda t: {i: 2048 for i in range(1, 11)}
+                      'joints': [{'id': i, 'zero': 2048, 'min': 796, 'max': 3300}
+                                 for i in JOINT_IDS]}
+            target_at = lambda t: {i: 2048 for i in JOINT_IDS}
         elif args.mode == 'gait':
             config = load_map(args.map, require_calibrated=args.hardware)
             if args.speed is not None:
@@ -234,14 +233,14 @@ def main(argv=None):
             from simulation import SimulationInterface
             iface = SimulationInterface(config, args.link_length, args.link_mass, args.sim_torque, args.headless)
         else:
-            iface = ST3215Interface(port=args.port)
+            iface = ST3215Interface(num_motors=NUM_JOINTS, port=args.port)
         failure = None
         try:
             ok, message = iface.connect()
             if not ok:
                 raise RuntimeError(message)
             if args.mode == 'read':
-                state = feedback(iface, {i: (0, 4095) for i in range(1, 11)})
+                state = feedback(iface, {i: (0, 4095) for i in JOINT_IDS})
                 print(json.dumps(state, indent=2))
                 record(stream, 'read_torque_off', 0, {i: row['position'] for i, row in state.items()}, state, 0)
             else:

@@ -21,7 +21,7 @@ from simulation import robot_xml
 def example_map():
     return dict(calibrated=False, speed=200, tracking_error=25, tracking_timeout=.5,
                 joints=[dict(id=i, axis='yaw' if i % 2 else 'pitch', sign=1,
-                             zero=2048, min=1934, max=2162) for i in range(1, 11)])
+                             zero=2048, min=1934, max=2162) for i in range(1, 13)])
 
 
 class Clock:
@@ -32,7 +32,7 @@ class Clock:
 
 class Fake:
     def __init__(self):
-        self.positions = {i: 2048 for i in range(1, 11)}
+        self.positions = {i: 2048 for i in range(1, 13)}
         self.sent = []
         self.armed = False
         self.closed = False
@@ -94,7 +94,7 @@ class GaitTests(unittest.TestCase):
         self.assertEqual(targets[1], 2048 + round(5 * 4096 / 360))
         self.assertEqual(targets[3], 2048 - round(5 * 4096 / 360))
         self.assertEqual(targets[2], 2048)
-        for bad in ({'1': 15}, {'11': 0}, {}, {'1': True}):
+        for bad in ({'1': 15}, {'13': 0}, {}, {'1': True}):
             with self.assertRaises(ValueError):
                 gait.validate_pose(config, bad)
 
@@ -126,12 +126,12 @@ class GaitTests(unittest.TestCase):
         gait.validate_gait(config, *self.values)
         for t in (0, self.values[-2]):
             self.assertEqual(gait.targets_at(t, config, *self.values),
-                             {i: 2048 for i in range(1, 11)})
+                             {i: 2048 for i in range(1, 13)})
 
     def test_invalid_maps(self):
         mutations = [lambda c: c['joints'][1].update(id=1),
                      lambda c: c['joints'][0].update(sign=0),
-                     lambda c: c['joints'][0].update(min=1200),
+                     lambda c: c['joints'][0].update(min=700),
                      lambda c: c['joints'][0].update(zero=2200),
                      lambda c: c['joints'][0].update(axis='pitch'),
                      lambda c: c.update(speed=float('nan')),
@@ -154,22 +154,22 @@ class GaitTests(unittest.TestCase):
                 self.assertTrue(all(abs(targets[i] - previous[i]) <= 3 for i in targets))
             previous = targets
         for t in (0, 4):
-            self.assertEqual(gait.targets_at(t, self.config, *self.values), {i: 2048 for i in range(1, 11)})
+            self.assertEqual(gait.targets_at(t, self.config, *self.values), {i: 2048 for i in range(1, 13)})
 
     def test_mount_sign_zero_and_physical_order(self):
         c = self.config
-        c['joints'][0].update(id=10, sign=-1, zero=2050)
+        c['joints'][0].update(id=12, sign=-1, zero=2050)
         c['joints'][-1]['id'] = 1
         gait.validate_map(c)
         targets = gait.targets_at(2, c, *self.values)
         expected = round(2050 - math.radians(5) * math.sin(.4*math.pi) * gait.COUNTS_PER_RADIAN)
-        self.assertEqual(targets[10], expected)
+        self.assertEqual(targets[12], expected)
 
     def test_yaw_only_and_reverse(self):
         values = list(self.values)
         values[1] = 0
         targets = gait.targets_at(2, self.config, *values)
-        self.assertTrue(all(targets[i] == 2048 for i in (2, 4, 6, 8, 10)))
+        self.assertTrue(all(targets[i] == 2048 for i in (2, 4, 6, 8, 10, 12)))
         values[3] *= -1
         reverse = gait.targets_at(2, self.config, *values)
         self.assertEqual(reverse[1] - 2048, -(targets[1] - 2048))
@@ -187,10 +187,10 @@ class GaitTests(unittest.TestCase):
     def test_simulation_has_alternating_axes_and_mapped_limits(self):
         self.config['joints'][0]['sign'] = -1
         root = ET.fromstring(robot_xml(self.config, .1, .25))
-        self.assertEqual(len(root.findall('link')), 11)
+        self.assertEqual(len(root.findall('link')), 13)
         joints = root.findall('joint')
-        self.assertEqual(len(joints), 10)
-        self.assertEqual([j.find('axis').get('xyz') for j in joints], ['0 0 1', '0 1 0'] * 5)
+        self.assertEqual(len(joints), 12)
+        self.assertEqual([j.find('axis').get('xyz') for j in joints], ['0 0 1', '0 1 0'] * 6)
         self.assertLess(float(joints[0].find('limit').get('lower')), 0)
 
 
@@ -215,7 +215,7 @@ class RunnerTests(unittest.TestCase):
         self.fake.positions[1] = 2000
         self.run_gait()
         self.assertEqual(self.fake.sent[0][1], 2000)
-        self.assertEqual(self.fake.sent[-1], {i: 2048 for i in range(1, 11)})
+        self.assertEqual(self.fake.sent[-1], {i: 2048 for i in range(1, 13)})
         self.assertIn('settle', self.output.getvalue())
 
     def test_missing_joint_blocks_arming(self):
@@ -241,7 +241,7 @@ class RunnerTests(unittest.TestCase):
         self.assertLess(min(row[3] for row in self.fake.sent), 2020)
 
     def test_jog_limit_blocks_arming(self):
-        self.fake.positions[1] = 1260
+        self.fake.positions[1] = 800
         with self.assertRaises(ValueError):
             runner.run_motion(self.fake, self.config, None, 2, self.writer, jog_id=1, jog_ticks=-50)
         self.assertFalse(self.fake.armed)
@@ -265,7 +265,7 @@ class RunnerTests(unittest.TestCase):
             runner.main(['--hardware', '--mode', 'align', '--duration', '2',
                          '--log', str(Path(self.directory.name) / 'align.csv')])
         self.assertEqual(self.fake.sent[0][1], 1980)
-        self.assertEqual(self.fake.sent[-1], {i: 2048 for i in range(1, 11)})
+        self.assertEqual(self.fake.sent[-1], {i: 2048 for i in range(1, 13)})
         self.assertTrue(self.fake.closed)
         self.assertTrue(all(abs(a[i] - b[i]) <= 6 for a, b in zip(self.fake.sent, self.fake.sent[1:]) for i in a))
 
@@ -284,7 +284,7 @@ class RunnerTests(unittest.TestCase):
                               clock=self.clock.now, sleep=self.clock.sleep)
 
     def test_center_requires_free_shaft_confirmation_and_single_id(self):
-        for options in ([], ['--id', '1'], ['--id', '11', '--free-shaft']):
+        for options in ([], ['--id', '1'], ['--id', '13', '--free-shaft']):
             with patch.object(runner, 'ST3215Interface') as factory, patch('sys.stderr', new=io.StringIO()):
                 with self.assertRaises(SystemExit): runner.main(['--hardware', '--mode', 'center'] + options)
                 factory.assert_not_called()
@@ -329,7 +329,7 @@ class RunnerTests(unittest.TestCase):
             factory.assert_not_called()
             with path.open() as stream:
                 rows = [json.loads(line) for line in stream]
-            self.assertEqual(len(rows), 2010)
+            self.assertEqual(len(rows), 201 * 12)
             self.assertTrue(all(row.get('position_counts') is None or row.get('position_counts') == '' for row in rows))
             self.assertEqual(json.loads(path.with_suffix('.json').read_text())['execution'], 'preview')
 

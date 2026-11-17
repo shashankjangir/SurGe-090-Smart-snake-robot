@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {readAsset} = require('./asset-source.cjs');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js');
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-joints.js');
 const joints = JSON.parse(readAsset('generations/gen3-experimental-3d/joint_map.json')).joints;
 const elements = Object.fromEntries(['btn-pose-capture', 'btn-pose-save', 'btn-pose-recalibrate', 'pose-capture-status',
   'pose-save-name', 'pose-preset-desc', 'port'].map(id => [id, {value: '', disabled: true}]));
@@ -34,6 +34,7 @@ const context = {$: id => elements[id], currentConfig: {joints}, POSE_PRESETS: {
     return {presets: saved};
   }};
 vm.createContext(context);
+vm.runInContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/data/gen3-records.js'), context);
 vm.runInContext(source.slice(source.indexOf('let savedPosePresets ='),
   source.indexOf("\n{\n  const select = $('pose-preset');")), context);
 (async () => {

@@ -1,0 +1,130 @@
+/* SURGE 090 design tokens — the single source for colour, type, spacing, radius and motion.
+   Loaded first by every page (index, gen3, phone, 3d viewer). Component files use these
+   variables; they do not define their own :root blocks. */
+
+/* Base palette, type scale, spacing and radii (the sticker system). */
+:root {
+  /* Colors — Slush Shared Sticker Palette */
+  --color-carbon: #000000;
+  --color-paper-white: #ffffff;
+  --color-sky-wash: #dceeff;
+  --color-concrete-gray: #cccccc;
+  --color-soft-mist: #e9e9e9;
+  --color-electric-blue: #4da2ff;
+  --color-mint-pop: #55db9c;
+  --color-lavender: #e9ccff;
+  --color-ember: #fb4903;
+  --color-sunburst: #ffd731;
+  --color-voltage-violet: #5c4ade;
+
+  /* Contrast-Compliant Tokens (WCAG AA >= 4.5:1) */
+  --badge-target-bg: var(--color-electric-blue);
+  --badge-target-text: #000000;
+  --badge-actual-bg: var(--color-ember);
+  --badge-actual-text: #000000;
+  --color-btn-start: #15803d;
+  --color-btn-start-hover: #166534;
+
+  /* Typography — Font Families */
+  --font-lateral: 'Bowlby One', 'Antonio', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonik-pro: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Typography — Scale */
+  --text-caption: 12px;
+  --leading-caption: 1.56;
+  --tracking-caption: -0.01em;
+  --text-body-lg: 15px;
+  --leading-body-lg: 1.39;
+  --tracking-body-lg: -0.01em;
+  --text-subheading: 24px;
+  --leading-subheading: 1.2;
+  --tracking-subheading: -0.01em;
+  --text-heading-sm: 30px;
+  --leading-heading-sm: 1.1;
+  --tracking-heading-sm: -0.01em;
+  --text-heading: 64px;
+  --leading-heading: 1.0;
+  --tracking-heading: -0.01em;
+  --text-display: clamp(48px, 7vw, 110px);
+  --leading-display: 0.78;
+  --tracking-display: 0px;
+  --text-display-lg: clamp(72px, 11vw, 180px);
+  --leading-display-lg: 0.75;
+  --tracking-display-lg: 0px;
+
+  /* Typography — Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-44: 44px;
+  --spacing-48: 48px;
+  --spacing-60: 60px;
+  --spacing-80: 80px;
+
+  /* Named Radii — Softness is system default (min 16px) */
+  --radius-nav: 999px;
+  --radius-body: 30px;
+  --radius-cards: 20px;
+  --radius-pills: 999px;
+  --radius-buttons: 999px;
+  --radius-wallet-icon: 16px;
+  --radius-cards-elevated: 40px;
+
+  /* Surfaces */
+  --surface-sky-wash: #dceeff;
+  --surface-paper-white: #ffffff;
+  --surface-concrete-gray: #cccccc;
+  --surface-soft-mist: #e9e9e9;
+  --surface-sticker-surfaces: #e9ccff;
+}
+
+/* Console UI layer: neutral surfaces, text roles and status colours. */
+:root {
+  --color-brand-blue: #1d4ed8;
+  --color-brand-dark: #0f172a;
+  --color-border: #cbd5e1;
+  --color-border-dark: #64748b;
+  --color-bg-light: #f8fafc;
+  --color-card-bg: #ffffff;
+  --color-text-main: #1e293b;
+  --color-text-muted: #526176;
+  --color-success: #15803d;
+  --color-success-bg: #dcfce7;
+  --color-danger: #b91c1c;
+  --color-danger-bg: #fee2e2;
+  --color-warning: #b45309;
+  --color-warning-bg: #fef3c7;
+  --color-focus: #3b82f6;
+}
+
+/* Effects: distorted glass and headlight (kept as-is). */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.42);
+  --glass-bg-dark: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+  --headlight-glow: rgba(2, 132, 199, 0.55);
+}
+
+/* Motion-state fills for the run buttons. */
+:root {
+  --motion-idle: var(--color-soft-mist);
+  --motion-running: var(--color-mint-pop);
+  --motion-stopping: var(--color-sunburst);
+  --motion-stopped: var(--color-paper-white);
+  --motion-unknown: var(--color-soft-mist);
+}

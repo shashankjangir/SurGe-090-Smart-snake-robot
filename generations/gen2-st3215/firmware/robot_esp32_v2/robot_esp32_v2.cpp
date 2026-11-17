@@ -13,7 +13,7 @@
  *   - Boots with torque OFF. Nothing moves until RUN (Serial or base station).
  *   - Soft start: torque is enabled one power group at a time at low speed,
  *     then the wave amplitude ramps in — so the 3 A PTCs do not trip.
- *   - Joint angles clamped to ±70° (mechanical limit of the v6 segment is ±80°).
+ *   - Joint angles clamped to ±110°.
  *   - Per-joint trim so a straight body really is straight.
  *   - One 15-byte read per servo per cycle (position, voltage, temp, current).
  *   - Stall detection needs several consecutive over-current samples.
@@ -51,7 +51,7 @@ static const uint8_t IMU_ADDR = 0x68;
 static const int NUM_JOINTS = SURGE_NUM_JOINTS;  // 10
 static const int ENC_CENTER = 2048;              // 4096 counts = 360°
 static const float COUNTS_PER_DEG = 4096.0f / 360.0f;
-static const int JOINT_LIMIT = (int)(70.0f * COUNTS_PER_DEG);  // ±70° = ±796
+static const int JOINT_LIMIT = (int)(110.0f * COUNTS_PER_DEG);  // ±110° = ±1251
 
 // Straight-body trim per joint (counts). If a joint is not straight at CENTER,
 // put the correction here (+ = one way, - = the other). 11 counts ≈ 1°.

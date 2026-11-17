@@ -2,6 +2,7 @@
 #define SURGE_OTA_WIFI_PASSWORD "test-wifi-password"
 #define SURGE_OTA_PASSWORD "test-upload-password"
 #include "../firmware/receiver_gen2_1/receiver_gen2_1.cpp"
+static_assert(NUM_MOTORS == SMS_STS::maxID);
 
 int main() {
   setup();
@@ -14,23 +15,24 @@ int main() {
   processCommand("P,1:2100:400,1:2200:400");
   assert(!armed && st.targets.empty());
   processCommand("RUN");
-  processCommand("P,1:9999:400,2:-20:400");
+  processCommand("P,1:9999:400,2:-20:400,11:2100:400,12:2200:400");
   assert(armed && st.targets[0]==POS_MAX && st.targets[1]==POS_MIN);
+  assert(st.torque[11] && st.torque[12] && st.goal[11] == 2100 && st.goal[12] == 2200);
   processCommand("STOP");
-  for (int id=1;id<=10;++id) assert(!st.torque[id]);
+  for (int id=1;id<=NUM_MOTORS;++id) assert(!st.torque[id]);
   processCommand("RUN");
   st.failID = 2;
   processCommand("P,1:2200:400,2:2200:400");
   assert(!armed);
   assert(lastRadioReply == "ERR,SERVO,ID=2,OP=WRITE,RESULT=0,STATUS=0");
-  for (int id=1;id<=10;++id) assert(!st.torque[id]);
+  for (int id=1;id<=NUM_MOTORS;++id) assert(!st.torque[id]);
   st.failID = 0;
   st.torqueFailID = 4;
   processCommand("RUN");
   processCommand("P,4:2048:100");
   assert(!armed);
   assert(lastRadioReply == "ERR,SERVO,ID=4,OP=TORQUE,RESULT=0,STATUS=32");
-  for (int id=1;id<=10;++id) assert(!st.torque[id]);
+  for (int id=1;id<=NUM_MOTORS;++id) assert(!st.torque[id]);
   st.torqueFailID = 0;
   processCommand("RUN");
   processCommand("P,4:2048:100");
@@ -69,14 +71,30 @@ int main() {
   assert(lastRadioReply == "STOP,WATCHDOG");
 
   processCommand("RUN");
+  processCommand("P,12:2100:100");
+  st.torqueOffFailID = 12;
   fakeTime += WATCHDOG_MS + 1;
   loop();
-  assert(!armed);
+  assert(!armed && st.torque[12]);
+  assert(lastRadioReply == "ERR,STOP,TORQUE_OFF_UNCONFIRMED");
+  st.torqueOffFailID = 0;
+  processCommand("STOP");
+  assert(lastRadioReply == "OK,STOP" && !st.torque[12]);
+
   const uint8_t run[] = "RUN", stop[] = "STOP";
+  processCommand("RUN");
+  const auto targetsBeforeStop = st.targets.size();
+  Serial.feed("P,12:2200:100\nRUN\n");
   OnDataRecv(nullptr, run, 3);
   OnDataRecv(nullptr, stop, 4);
   loop();
+  assert(!armed && lastRadioReply == "OK,STOP" && st.targets.size() == targetsBeforeStop);
+  loop();
   assert(!armed && commandQueue->items.empty());
+  OnDataRecv(nullptr, run, 3);
+  Serial.feed("STOP\n");
+  loop();
+  assert(!armed && lastRadioReply == "OK,STOP" && commandQueue->items.empty());
   auto targetsBeforeDiagnostic = st.targets.size();
   processCommand("D");
   assert(lastRadioReply.find("D,1:1:0:120:30:0,") == 0);

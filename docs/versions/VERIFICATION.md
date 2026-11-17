@@ -1,7 +1,9 @@
 > **Archive restored — 16 October 2026:** Both bundles are valid and the original
 > source snapshot is complete again (66/66 SHA-256 matches). The earlier missing
-> archive notes below describe the previous sync. See [archive audit](../../removed/AUDIT.md).
+> archive notes below describe the previous sync. See `removed/AUDIT.md` (historical file unavailable in this checkout).
 > This update used targeted integrity checks, not a rerun of the full test suite.
+
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
 
 ## GitHub sync check — 16 October 2026
 
@@ -19,7 +21,7 @@
 
 > **16 October update:** The results below record the 15 October recheck.
 > The original full local archive is now absent; its preservation check cannot
-> currently be repeated. See [archive availability](../../removed/INDEX.md).
+> currently be repeated. See `removed/INDEX.md` (historical file unavailable in this checkout).
 > The maintainer now confirms Gen 2.0 and Gen 2.1 are working in project trials;
 > hardware behavior was not independently measured during this GitHub sync.
 

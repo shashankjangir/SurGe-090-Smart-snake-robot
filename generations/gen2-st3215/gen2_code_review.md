@@ -1,5 +1,7 @@
 # SURGE-090 Gen2 (ST3215) Comprehensive Code Review
 
+This is a historical review of the Gen 2.0 bench and onboard stacks. Its findings and timing claims describe the reviewed snapshot. Current setup uses the [maintained dashboard](../gen3-experimental-3d/backend/web_dashboard/README.md). The [firmware guide](firmware/README.md) separates Gen 2.0 binary and Gen 2.1 text protocols.
+
 This document provides a detailed walkthrough, architecture analysis, static code analysis, and a comparison between the **Gen1 (Dynamixel)** and **Gen2 (ST3215)** codebases.
 
 ---
@@ -29,24 +31,24 @@ graph TD
 ## 2. File Walkthrough & Summary
 
 ### Python Source Files (`generations/gen2-st3215/`)
-* **[main.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/main.py)**: Entry point for Bench Mode. Integrates locomotion kinematics, obstacle evasion logic, and the `ServoDriver` loop running at 50 Hz.
-* **[base_station.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/base_station.py)**: Runs on the Pi 5 to read and format raw serial telemetry streamed from the base ESP32.
-* **[servo_test.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/servo_test.py)**: Utility to perform sweeping movements on a single servo for ID verification and mechanical alignment.
+* **[main.py](main.py)**: Entry point for Bench Mode. Integrates locomotion kinematics, obstacle evasion logic, and the `ServoDriver` loop running at 50 Hz.
+* **[base_station.py](base_station.py)**: Runs on the Pi 5 to read and format raw serial telemetry streamed from the base ESP32.
+* **[servo_test.py](servo_test.py)**: Utility to perform sweeping movements on a single servo for ID verification and mechanical alignment.
 
 ### Python Core Modules (`generations/gen2-st3215/src/`)
-* **[robot_config.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/robot_config.py)**: Houses physical robot parameters, protocol maps (`St3215Addr` registers), gait frequency/amplitude, and current limits.
-* **[feetech_protocol.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/feetech_protocol.py)**: Custom low-level packet-level serial communications layer implementing half-duplex Feetech SMS/STS Protocol 1.
-* **[servo_driver.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/servo_driver.py)**: Higher-level hardware abstraction layer. Provides mock modes, multi-servo torque commands, and status/current reads.
-* **[snake_locomotion.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/snake_locomotion.py)**: Generates planar joint angle trajectories using traveling sine waves with adjustable offset bias for steering.
-* **[obstacle_avoidance.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/obstacle_avoidance.py)**: Implements a finite state machine (FSM) triggered by motor current thresholds (reverses and turns if stall is detected).
-* **[torque_controller.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/torque_controller.py)**: Implements compliant joint control (PD controller). *Note: Currently unused as ST3215 servos are run in position mode.*
-* **[utils.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/utils.py)**: Helper functions for sign-magnitude conversion, current parsing, and angle-to-encoder mapping.
+* **[robot_config.py](src/robot_config.py)**: Houses physical robot parameters, protocol maps (`St3215Addr` registers), gait frequency/amplitude, and current limits.
+* **[feetech_protocol.py](src/feetech_protocol.py)**: Custom low-level packet-level serial communications layer implementing half-duplex Feetech SMS/STS Protocol 1.
+* **[servo_driver.py](src/servo_driver.py)**: Higher-level hardware abstraction layer. Provides mock modes, multi-servo torque commands, and status/current reads.
+* **[snake_locomotion.py](src/snake_locomotion.py)**: Generates planar joint angle trajectories using traveling sine waves with adjustable offset bias for steering.
+* **[obstacle_avoidance.py](src/obstacle_avoidance.py)**: Implements a finite state machine (FSM) triggered by motor current thresholds (reverses and turns if stall is detected).
+* **[torque_controller.py](src/torque_controller.py)**: Implements compliant joint control (PD controller). *Note: Currently unused as ST3215 servos are run in position mode.*
+* **[utils.py](src/utils.py)**: Helper functions for sign-magnitude conversion, current parsing, and angle-to-encoder mapping.
 
 ### Firmware (`generations/gen2-st3215/firmware/`)
-* **[robot_esp32.ino](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/robot_esp32/robot_esp32.ino)**: Core firmware that controls the real physical snake robot. Replicates kinematics, sensor polling (MPU6050), obstacle FSM, and broadcasts packeted telemetry via ESP-NOW.
-* **[base_esp32.ino](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/base_esp32/base_esp32.ino)**: Receives ESP-NOW telemetry packets and prints them to USB Serial.
-* **[usb_servo_bridge.ino](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/usb_servo_bridge/usb_servo_bridge.ino)**: Turns the Waveshare board into a high-speed (1 Mbps) transparent bridge between PC USB and the half-duplex servo bus.
-* **[assign_ids.ino](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/assign_ids/assign_ids.ino)**: Factory setup tool to program serial numbers/IDs (1 to 10) onto raw servos.
+* **[robot_esp32.cpp](firmware/robot_esp32/robot_esp32.cpp)**: Core firmware that controls the real physical snake robot. Replicates kinematics, sensor polling (MPU6050), obstacle FSM, and broadcasts packeted telemetry via ESP-NOW.
+* **[base_esp32.cpp](firmware/base_esp32/base_esp32.cpp)**: Receives ESP-NOW telemetry packets and prints them to USB Serial.
+* **[usb_servo_bridge.cpp](firmware/usb_servo_bridge/usb_servo_bridge.cpp)**: Turns the Waveshare board into a high-speed (1 Mbps) transparent bridge between PC USB and the half-duplex servo bus.
+* **[assign_ids.cpp](firmware/assign_ids/assign_ids.cpp)**: Factory setup tool to program serial numbers/IDs (1 to 10) onto raw servos.
 
 ---
 
@@ -70,11 +72,11 @@ graph TD
 ### Findings & Logic Checks
 
 1. **Test Scripts Lack Mock Parameter Support**:
-   * **Problem**: In [test_st3215_ping.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/tests/test_st3215_ping.py) and [test_motor_feedback.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/tests/test_motor_feedback.py), the `ServoDriver` is instantiated without passing the `mock` parameter (meaning `mock=False` by default). This causes these test scripts to throw exceptions if run without physical hardware connected, even if the user specifies `SURGE_MOCK=1` in their environment.
+   * **Problem**: In [test_st3215_ping.py](tests/test_st3215_ping.py) and [test_motor_feedback.py](tests/test_motor_feedback.py), the `ServoDriver` is instantiated without passing the `mock` parameter (meaning `mock=False` by default). This causes these test scripts to throw exceptions if run without physical hardware connected, even if the user specifies `SURGE_MOCK=1` in their environment.
    * **Recommendation**: Modify both test scripts to read `SURGE_MOCK` from `os.environ` similar to `main.py`.
 
 2. **Unused Code Paths**:
-   * **Problem**: [torque_controller.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/torque_controller.py) and [kinematics.py](file:///c:/SurGe%20090%20Smart%20snake%20robot/gen2-st3215/src/kinematics.py) are present in `src/` but are completely bypassed in `main.py` and `robot_esp32.ino`. The active locomotion runs directly using the `SnakeKinematics` wave generator in position mode.
+   * **Problem**: [torque_controller.py](src/torque_controller.py) and [kinematics.py](src/kinematics.py) are present in `src/` but are completely bypassed in `main.py` and `robot_esp32.ino`. The active locomotion runs directly using the `SnakeKinematics` wave generator in position mode.
    * **Recommendation**: Document this explicitly or clean up if compliant torque control experiments are no longer planned.
 
 3. **Power Safety Note**:

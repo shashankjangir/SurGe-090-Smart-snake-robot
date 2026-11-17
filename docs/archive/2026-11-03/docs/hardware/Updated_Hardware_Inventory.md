@@ -2,9 +2,9 @@
 
 > **Updated 24 Sep 2026.** What we did before and what we do now is recorded in [What changed](#what-changed) at the end of this file.
 
-**Date Updated:** 24 September 2026 (power design → split bus v3, firmware → `robot_esp32_v2`)  
-**Status:** Phase 3 (Fabrication & Assembly)  
-**Generation:** Gen 2 — Waveshare ST3215 (Gen 1 Dynamixel XL330 hardware is gone — see [`gen1-dynamixel/`](../../generations/gen1-dynamixel) for historical record)
+**Date Updated:** 24 September 2026 (power design → split bus v3, firmware → `robot_esp32_v2`)\
+**Status:** Phase 3 (Fabrication & Assembly)\
+**Generation:** Gen 2 — Waveshare ST3215 (Gen 1 Dynamixel XL330 hardware is gone — see [`gen1-dynamixel/`](../../../../../generations/gen1-dynamixel) for historical record)
 
 ---
 
@@ -33,7 +33,7 @@
   - Input: 90–264V AC universal
   - **⚠ Below the ST3215 minimum of 6.0V — CANNOT feed the servo bus directly**
   - Role: Base station / Pi 5 / ESP32 power, or input to XL6009 boost for single-servo bench tests
-  
+
 - [x] **1× 3S LiPo 1800mAh battery**
   - Nominal voltage: 11.1V (3.7V × 3 cells)
   - Charged voltage: 12.6V, floor: 9.0V (3.0V per cell)
@@ -57,12 +57,12 @@
   - **⚠ Requires a Raspberry Pi host** — cannot connect to ESP32 (no SPI/I²C camera path exists)
   - CSI ribbon is short (~30 cm max without extension)
   - Role: base station vision (mounted on Pi 5), or robot-mounted with CSI extension cable (~1m)
-  
+
 - [x] **MPU6050 IMU** (orientation & acceleration feedback)
   - I²C interface, default address **0x68**
   - GPIO 21 SDA, GPIO 22 SCL on robot ESP32
   - 6-axis: 3-axis accelerometer + 3-axis gyroscope
-  - Code reference: `Config.IMU_I2C_ADDR`, `Config.IMU_SDA_GPIO`, `Config.IMU_SCL_GPIO` in [`gen2-st3215/src/robot_config.py`](../../generations/gen2-st3215/src/robot_config.py)
+  - Code reference: `Config.IMU_I2C_ADDR`, `Config.IMU_SDA_GPIO`, `Config.IMU_SCL_GPIO` in [`gen2-st3215/src/robot_config.py`](../../../../../generations/gen2-st3215/src/robot_config.py)
 
 ### Compute
 - [x] **Raspberry Pi 5, 8GB RAM** (base station, not onboard robot)
@@ -75,7 +75,7 @@
 
 ## Firmware Status
 
-All firmware exists in [`gen2-st3215/firmware/`](../../generations/gen2-st3215/firmware). Built with **PlatformIO** from the repo root (`platformio.ini`, board `esp32dev`).
+All firmware exists in [`gen2-st3215/firmware/`](../../../../../generations/gen2-st3215/firmware). Built with **PlatformIO** from the repo root (`platformio.ini`, board `esp32dev`).
 
 | Sketch | Target | Function | Status |
 |---|---|---|---|

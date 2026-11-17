@@ -1,6 +1,6 @@
 const {requireAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
-const { rankConsoleResults } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3-search.js'));
+const { rankConsoleResults } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-search.js'));
 const items = [
   {title: 'Waveform', description: 'Yaw frequency and speed'},
   {title: 'Speed counts/s', description: 'Waveform settings'},

@@ -1,8 +1,8 @@
 const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js', 'utf8');
-const save = source.slice(source.indexOf('const savePresetForm ='), source.indexOf('// Runs Journal'));
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-gait-presets.js', 'utf8');
+const save = source.slice(source.indexOf('const savePresetForm ='), source.indexOf('function copySimulationDraft()'));
 const elements = Object.fromEntries(['save-preset-form', 'preset-save-status', 'save-preset-pattern', 'preset-name', 'preset-desc'].map(id => [id, {value: '', textContent: ''}]));
 elements['save-preset-pattern'].value = 'sidewinding';
 elements['preset-name'].value = 'test';
@@ -11,7 +11,9 @@ let request;
 const context = { $: id => elements[id], statusOnline: true, presets: [], getDraftSettings: () => ({...draft}),
   window: {confirm: () => true, SurgeSimulationPresets: {sidewinding: {yaw:30, pitch:25, bias:0, freq:.5, lag:90, offset:90}}},
   action: fn => fn(), api: async (path, body) => {request = {path, body};}, loadPresets: async () => {} };
-vm.runInNewContext(save, context);
+vm.createContext(context);
+vm.runInContext(readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/data/gen3-records.js'), context);
+vm.runInContext(save, context);
 (async () => {
   elements['save-preset-form'].onsubmit({preventDefault(){}});
   await new Promise(resolve => setImmediate(resolve));

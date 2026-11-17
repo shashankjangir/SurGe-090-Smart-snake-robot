@@ -5,7 +5,7 @@
 Current hardware for the Gen 2 robot. Source of truth for the full BOM and budget:
 [`hardware/Updated_Hardware_Inventory.md`](Updated_Hardware_Inventory.md).
 Wiring: [`4_WIRING_DIAGRAM.md`](4_WIRING_DIAGRAM.md). Gen 1 (Dynamixel XL330) parts and safety notes are kept in
-[`../gen1-dynamixel/docs/parts_and_safety.md`](../../generations/gen1-dynamixel/docs/parts_and_safety.md) — that hardware is no longer in use.
+[`../gen1-dynamixel/docs/parts_and_safety.md`](../../../../../generations/gen1-dynamixel/docs/parts_and_safety.md) — that hardware is no longer in use.
 
 ## Parts on hand
 
@@ -107,9 +107,9 @@ Based on the plan for a 10-motor serpentine robot:
    - 3D Printed custom links OR BIOLOID frame components to mechanically connect the motors in alternating Pitch/Yaw configurations.
 4. **Friction Pads (CRITICAL):**
    - TPU feet, rubber pads, or passive wheels (that only roll forward/back) attached to the underside of the snake. *Required for Friction Anisotropy so the snake pushes forward instead of wriggling in place.*
-5. **Front Obstacle Sensor:** 
+5. **Front Obstacle Sensor:**
    - 1x **HC-SR04** (Ultrasonic) or **VL53L0X** (Time-of-Flight) module to attach to the ESP32 for head-on obstacle detection.
-5. **Miscellaneous Wiring:** 
+5. **Miscellaneous Wiring:**
    - Jumper wires to connect ESP32 and sensors.
    - 18 AWG wires to connect the 5V 10A Power Supply to the U2D2 PHB Terminal block.
 
@@ -135,7 +135,7 @@ If you decide to make the snake wireless, you cannot plug a 2S LiPo battery (7.4
 
 ### 4. Overcurrent & Stall Safety
 The Python code includes software safety limits to prevent motors from burning out if the snake gets stuck on an obstacle:
-- We read the `Present_Current` of each Dynamixel. 
+- We read the `Present_Current` of each Dynamixel.
 - If the current exceeds a set threshold (e.g., indicating a stall or collision), the robot will automatically halt and execute an avoidance maneuver.
 
 </details>

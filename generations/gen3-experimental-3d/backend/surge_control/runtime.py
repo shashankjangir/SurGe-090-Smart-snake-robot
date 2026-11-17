@@ -157,7 +157,7 @@ class ControlRuntime:
             if self.state['engine'] != 'SIM':
                 measured = self.iface.read_telemetry() if self.iface else {}
                 if any(not measured.get(i, {}).get('valid') or type(measured[i].get('position')) is not int or
-                       not 1252 <= measured[i]['position'] <= 2844 for i in range(1, 11)):
+                       not 796 <= measured[i]['position'] <= 3300 for i in range(1, 11)):
                     raise RuntimeError('All ten measured servo positions are required before manual motion')
                 manual.last_targets = {i: float(measured[i]['position']) for i in range(1, 11)}
             manual.check(now + time.monotonic() - received)
@@ -190,7 +190,7 @@ class ControlRuntime:
         s = self.state
         if not s["is_running"] or not self.iface:
             return
-        if not s['is_paused'] and self.sessions and not self.sessions.is_operator(self.owner_session):
+        if not s['is_paused'] and self.sessions and not self.sessions.is_driving(self.owner_session):
             self.pause('Operator lease expired; stopped')
             s['controller']['active'] = False
             if s.get('engine') == 'SIM':
@@ -244,7 +244,7 @@ class ControlRuntime:
                 s['sim_time'] += dt * speed
                 phase = getattr(self, 'manual_phase', 0.) + dt * speed * p['frequency']
                 self.manual_phase = phase
-                joints = [dict(id=i, zero=2048, min=1252, max=2844) for i in range(1, 11)]
+                joints = [dict(id=i, zero=2048, min=796, max=3300) for i in range(1, 11)]
                 desired = {i: 2048 + 4096 / (2 * math.pi) * (p['yaw'] * math.sin(phase - (i - 1) * p['lag']) + p['bias']) for i in range(1, 11)}
                 positions = self.manual.limit_targets(desired, joints, 600 if params['low_power'] else 2400, self.manual_elapsed)
                 manual_angles = {i: (v - 2048) * (2 * math.pi) / 4096 for i, v in positions.items()}
@@ -291,7 +291,7 @@ class ControlRuntime:
             if s['engine'] != 'SIM':
                 for sid in range(1, 11):
                     row = s['telemetry'].get(sid, {})
-                    if not row.get('valid') or type(row.get('position')) is not int or not 1252 <= row['position'] <= 2844:
+                    if not row.get('valid') or type(row.get('position')) is not int or not 796 <= row['position'] <= 3300:
                         self.pause(f'Joint {sid}: missing or invalid feedback; stopped')
                         return
                     if abs(row['position'] - positions[sid]) > 216:

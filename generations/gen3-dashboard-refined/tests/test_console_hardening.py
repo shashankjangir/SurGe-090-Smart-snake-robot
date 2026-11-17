@@ -146,7 +146,9 @@ class ConsoleHardeningTests(unittest.TestCase):
                     with self.subTest(route=route, method=method, headers=headers):
                         response = client.open(route, method=method, json={}, headers=headers)
                         self.assertEqual(response.status_code, 403)
-                        self.assertEqual(response.get_json()['error'], 'Operator mode required')
+                        expected = ('Open the controller link shown on the laptop dashboard'
+                                    if route == '/api/phone/input' else 'Operator mode required')
+                        self.assertEqual(response.get_json()['error'], expected)
 
     def test_cross_origin_actions_and_malformed_objects(self):
         self.operator()
@@ -292,12 +294,11 @@ class ConsoleHardeningTests(unittest.TestCase):
             run_id='web-test', request_id='apply', settings={}), headers=headers)
         self.assertEqual(response.status_code, 400)
 
-    def test_dashboard_assets_are_utf8_and_upload_is_unavailable(self):
+    def test_dashboard_assets_are_utf8(self):
         dashboard = DASHBOARD_DIR
         for name in ('static/gen3.js', 'static/gen3.css', 'templates/gen3.html'):
             (dashboard / name).read_text(encoding='utf-8')
-        response = self.client.get('/gen3')
-        self.assertIn(b'disabled>Browser upload unavailable', response.data)
+        self.assertEqual(self.client.get('/gen3').status_code, 200)
 
     def test_default_presets_validate_and_numeric_strings_rejected(self):
         for preset in DEFAULT_PRESETS:

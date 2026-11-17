@@ -1,6 +1,6 @@
 const {requireAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
-const {highlightBounds} = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/hover-background.js'));
+const {highlightBounds} = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/hover-background.js'));
 assert.deepEqual(highlightBounds({left:10, top:20}, {left:40, top:80, width:100, height:44}),
   {x:30, y:60, width:100, height:44});
 assert.deepEqual(highlightBounds({left:10, top:20}, {left:40, top:80, width:100, height:44}, 12, 30),

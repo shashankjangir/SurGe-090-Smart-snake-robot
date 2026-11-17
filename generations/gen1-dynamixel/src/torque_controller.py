@@ -1,5 +1,4 @@
 from .robot_config import Config
-import math
 
 class TorqueController:
     def __init__(self):

@@ -1,6 +1,8 @@
-# Dashboard optimization plan (not implemented)
+# Dashboard optimization plan and historical measurements
 
-Scope: `generations/gen3-experimental-3d/backend/web_dashboard` (Flask `web_app.py`, 3 pages: `/`, `/gen3`, `/3d`).
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
+Scope: `generations/gen3-experimental-3d/backend/web_dashboard` (Flask `web_app.py`, pages /, /gen3, /phone, and /3d (also /3d_viewer)).
 Method: `performance-optimization` skill — measure, fix one thing, re-measure, keep or revert.
 
 ## Step 0 — Baseline first (no changes)

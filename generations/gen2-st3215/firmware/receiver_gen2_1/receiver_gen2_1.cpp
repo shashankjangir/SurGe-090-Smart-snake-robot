@@ -11,7 +11,7 @@
  * I,id  -> EEPROM ID assign (single servo on bus)
  *
  * Watchdog: if armed and no P command for 750 ms, torque is disabled.
- * Mechanical arrangement: planar Gen 2 ST3215 chain (all-yaw), ±70°.
+ * Mechanical arrangement: planar Gen 2 ST3215 chain (all-yaw), ±110°.
  */
 #include "soc/rtc_cntl_reg.h"
 #include "soc/soc.h"
@@ -31,7 +31,8 @@ QueueHandle_t commandQueue;
 volatile bool stopRequested = false;
 uint8_t stopSender[6] = {}, replyAddress[6] = {255,255,255,255,255,255};
 portMUX_TYPE stopMux = portMUX_INITIALIZER_UNLOCKED;
-bool torqueOn[10] = {false};
+#define NUM_MOTORS 12  // Gen 3 12-motor upgrade (IDs 11-12): STOP needs every ID to confirm torque-off, so flash only with 12 on the bus
+bool torqueOn[NUM_MOTORS] = {false};
 static void reply(const String &message) {
   Serial.println(message);
   if (esp_now_send(replyAddress, (const uint8_t *)message.c_str(), message.length()) != ESP_OK)
@@ -102,9 +103,8 @@ bool displayReady = false;
 #define LED_COUNT 2
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-#define NUM_MOTORS 10
-#define POS_MIN 1252
-#define POS_MAX 2844
+#define POS_MIN 796
+#define POS_MAX 3300
 #define SPEED_DEFAULT 2400
 #define WATCHDOG_MS 750
 
@@ -449,7 +449,21 @@ void loop() {
   unsigned long now = millis();
 
   String req;
-  if (readCommand(Serial, req)) {
+  const bool usbCommand = readCommand(Serial, req);
+  bool radioStop;
+  uint8_t sender[6];
+  portENTER_CRITICAL(&stopMux);
+  radioStop = stopRequested; stopRequested = false; memcpy(sender, stopSender, 6);
+  portEXIT_CRITICAL(&stopMux);
+  if (radioStop || (usbCommand && req == "STOP")) {
+    if (radioStop) selectReplyPeer(sender);
+    if (usbCommand) lastUsbTime = now;
+    processCommand("STOP");
+    if (commandQueue) xQueueReset(commandQueue);
+    readCommand(Serial, req, true);
+    return;
+  }
+  if (usbCommand) {
     if (req == "OTA") {
       if (armed) { reply("ERR,OTA,STOP_FIRST"); return; }
       if (!enterStop()) { reply("ERR,STOP,TORQUE_OFF_UNCONFIRMED"); return; }
@@ -460,22 +474,11 @@ void loop() {
     lastUsbTime = now;
     processCommand(req);
   }
-  bool stopNow;
-  uint8_t sender[6];
-  portENTER_CRITICAL(&stopMux);
-  stopNow = stopRequested; stopRequested = false; memcpy(sender, stopSender, 6);
-  portEXIT_CRITICAL(&stopMux);
-  if (stopNow) {
-    if (commandQueue) xQueueReset(commandQueue);
-    selectReplyPeer(sender);
-    processCommand("STOP");
-  } else {
-    RadioCommand cmd;
-    if (commandQueue && xQueueReceive(commandQueue, &cmd, 0) == pdTRUE) {
-      lastEspNowTime = millis();
-      if (selectReplyPeer(cmd.sender)) processCommand(String(cmd.text));
-      else { enterStop(); reply("ERR,RADIO,PEER"); }
-    }
+  RadioCommand cmd;
+  if (commandQueue && xQueueReceive(commandQueue, &cmd, 0) == pdTRUE) {
+    lastEspNowTime = millis();
+    if (selectReplyPeer(cmd.sender)) processCommand(String(cmd.text));
+    else { enterStop(); reply("ERR,RADIO,PEER"); }
   }
   // Re-read time AFTER commands: using loop-entry time here underflows on RUN/P.
   now = millis();
@@ -487,8 +490,7 @@ void loop() {
       if ((uint32_t)(now - lastAcceptedPositionTime) > WATCHDOG_MS) timeout = true;
     }
     if (timeout) {
-      enterStop();
-      reply("STOP,WATCHDOG");
+      reply(enterStop() ? "STOP,WATCHDOG" : "ERR,STOP,TORQUE_OFF_UNCONFIRMED");
     }
   }
 

@@ -1,5 +1,7 @@
 # Reorganization verification — 2 November 2026
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 The folder move is implemented and ready for owner review. No commit or staging
 change was made. The running offline replay was allowed to finish before moving
 Gen 3; it was not interrupted.

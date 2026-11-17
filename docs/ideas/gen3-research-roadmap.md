@@ -1,10 +1,11 @@
 # Gen 3 next research topics — roadmap
 
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Written 1 November 2026 from the owner's list of eight topics. Grounded in
-`docs/GEN3_HANDOFF.md` and the current `generations/gen3-experimental-3d/joint_map.json`
+`docs/GEN3_HANDOFF.md` and the then-current `generations/gen3-experimental-3d/joint_map.json`
 (speed 1500 counts/s, tracking_error 216 counts, tracking_timeout 0.5 s,
-limits 1252–2844 ≈ ±70°, confirmed sign map). Nothing here has been built or
-tested yet.
+limits 796–3300 ≈ ±110° (widened from 1252–2844 on 4 November 2026), confirmed sign map). The original proposal preceded the implementation notes dated 2 November below.
 
 Unit reference: 4096 counts = 360°, so 1° ≈ 11.4 counts.
 216 counts ≈ 19°. 796 counts (current upper bound) ≈ 70°.
@@ -69,7 +70,7 @@ motion, which needs a receiver change (SYNC READ in the `T` reply).
   feedback from topic 4, "send" per joint or all); (b) per-joint gait overrides:
   amplitude, phase offset, bias, enable/disable per joint, so pitch and yaw
   groups and single segments can be tuned independently.
-- Keep: same limits (1252–2844), sign map, Start confirmation, and STOP
+- Keep: same limits (796–3300), sign map, Start confirmation, and STOP
   semantics. Manual targets must go through the same validation as gaits.
 - Done when: each joint can be posed alone and in arbitrary combinations
   in simulation, then on hardware at small angles.
@@ -79,7 +80,7 @@ motion, which needs a receiver change (SYNC READ in the `T` reply).
 calibrated range. `mode: 'pose'` moves all ten, holds 2–300 s, then returns to
 neutral. It needs a calibrated map for hardware and uses the map's tracking
 limits, with speed 1–3000. **Gait settings per joint**: enable (disabled joints
-hold zero), gain 0–2, phase shift ±180°, bias ±70°. These go as `joints` on gait
+hold zero), gain 0–2, phase shift ±180°, bias ±110°. These go as `joints` on gait
 start, are limit- and speed-checked (`validate_overrides` / `joint_wave` in
 `gait.py`), stay fixed for the run and are included in live-tuning transition
 checks. Both are recorded in the run manifest. Remaining: small-angle hardware
@@ -179,7 +180,7 @@ Two distinct problems; start with (a):
 - (a) **Shape fitting (static pose):** user draws a curve on a canvas →
   resample it into 10 links of the measured link length → compute the
   relative angle at each joint (yaw for a planar drawing; yaw + pitch for 3D)
-  → clamp to ±70° and flag segments that are unreachable → preview in the
+  → clamp to ±110° and flag segments that are unreachable → preview in the
   sim → move with ramped speed. Literature: backbone-curve fitting for
   hyper-redundant robots (Chirikjian & Burdick).
 - (b) **Follow the line (locomotion):** the robot travels along the drawn
@@ -249,7 +250,7 @@ commanded by the assistant during that work unless stated.
 - Live telemetry: each joint shows error, peak error and a 2 s error-trend sparkline recorded at
   the 20 Hz loop rate. Colours now use the running job's real limit (fixed a hard-coded 25-count bug).
 - Per-joint control: new pose mode (Move to Pose, hold 2–300 s, return to neutral) and per-joint
-  gait overrides (enabled, gain 0–2, phase ±180°, bias ±70°), all limit-checked before start.
+  gait overrides (enabled, gain 0–2, phase ±180°, bias ±110°), all limit-checked before start.
 - Shape presets (Straight, Head raised, Cobra stand, Cobra stand tall, Ring near-closed, S-curve rest)
   and Caterpillar crawl presets (10° commissioning, 20°). Tuned in simulation only.
 - Controls has a 3D Gait Preset selector that loads the draft only; it never starts motion.

@@ -84,6 +84,11 @@
     if (key) navigator.sendBeacon?.('/api/phone/input', new Blob([payload()], {type: 'application/json'}));
   }
 
+  // Keyboard and assistive clicks have no pointer click count.
+  $('stop').addEventListener('click', event => {
+    if (event.detail === 0) stopNow();
+  });
+
   // Buttons
   document.querySelectorAll('[data-button]').forEach(el => {
     const index = Number(el.dataset.button);

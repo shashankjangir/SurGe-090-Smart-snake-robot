@@ -1,0 +1,1 @@
+"""Persistence for dashboard records."""

@@ -12,8 +12,8 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('assert');
 const path = require('path');
 
-const indexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/index.html'), 'utf8');
-const scriptJs = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/script.js'), 'utf8');
+const indexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html'), 'utf8');
+const scriptJs = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js'), 'utf8');
 const styleCss = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/style.css'), 'utf8');
 
 // 1. Verify Layout Order: Left (controls) -> Middle (canvas-hub) -> Right (sim-controls-card)
@@ -71,7 +71,7 @@ assert(runtimePy.includes('self.path.complete()'), 'runtime.py must verify order
 assert(pathEnginePy.includes('self.progress_idx'), 'path_engine.py must track sequential progress index');
 
 // 11. Verify Generation Switch Hover Info Cards (Planar Snake for Gen 2.1 & 3D Spatial for Gen 3)
-const gen3Html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html'), 'utf8');
+const gen3Html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html'), 'utf8');
 const genSwitchCss = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/generation-switch.css'), 'utf8');
 
 [indexHtml, gen3Html].forEach(html => {
@@ -80,15 +80,15 @@ const genSwitchCss = readAsset(path.join(__dirname, '../../gen3-experimental-3d/
   assert(html.includes('10 Yaw Joints'), 'Gen 2.1 tooltip must specify 10 Yaw Joints');
   assert(html.includes('id="tooltip-gen3"'), 'Template must have tooltip-gen3');
   assert(html.includes('3D Spatial Snake'), 'Gen 3 tooltip must state 3D Spatial Snake');
-  assert(html.includes('Alternating 5 Pitch + 5 Yaw Joints'), 'Gen 3 tooltip must specify Alternating Joints');
+  assert(html.includes('Alternating 6 Pitch + 6 Yaw Joints'), 'Gen 3 tooltip must specify Alternating Joints');
 });
 
 assert(genSwitchCss.includes('.gen-info-card'), 'generation-switch.css must style .gen-info-card');
 assert(genSwitchCss.includes('.generation-switch a:hover .gen-info-card'), 'generation-switch.css must show card on hover');
 
 // 12. Verify Canvas Start & Stop buttons next to Clear Canvas
-const updatedIndexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/index.html'), 'utf8');
-const updatedScriptJs = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/script.js'), 'utf8');
+const updatedIndexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html'), 'utf8');
+const updatedScriptJs = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js'), 'utf8');
 const updatedStyleCss = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/style.css'), 'utf8');
 
 assert(updatedIndexHtml.includes('id="btn-canvas-start"'), 'Must have btn-canvas-start in canvas footer');

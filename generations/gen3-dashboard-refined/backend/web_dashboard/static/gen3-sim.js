@@ -8,7 +8,7 @@
 
   // Confirmed Gen 3 Hardware Calibration (joint_map.json / docs/GEN3_HANDOFF.md)
   // Pitch ID 1 = 1; Pitch IDs 3, 5, 7, 9 = -1; all Yaw IDs = 1. Neutral = 2048 counts.
-  // IDs 11 (pitch, -1) and 12 (yaw, +1) are the 12-motor upgrade; their signs are provisional until measured.
+  // IDs 11 (pitch, -1) and 12 (yaw, +1) are the 12-motor upgrade; marked calibrated on 10 November 2026.
   const JOINT_SPECS = [
     { id: 1, axis: 'pitch', sign: 1, zero: 2048, label: 'Pitch 1' },
     { id: 2, axis: 'yaw',   sign: 1, zero: 2048, label: 'Yaw 2' },

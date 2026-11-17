@@ -1,5 +1,7 @@
 # 🐍 SURGE-090: Self-Adaptive Smart Snake Robot
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../../docs/START_HERE.md) and [hardware guide](../../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 A bio-inspired, autonomous snake robot built on **Raspberry Pi** and **ROBOTIS Dynamixel XL330** servo motors. SURGE-090 uses a sinusoidal lateral undulation gait to slither forward and detects obstacles using only motor current feedback — no external sensors required.
 
 ---

@@ -1,8 +1,8 @@
 const {readAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const gen21 = readAsset(process.env.SURGE_GEN21_SOURCE || 'generations/gen3-experimental-3d/backend/web_dashboard/static/script.js', 'utf8');
-const gen3 = readAsset(process.env.SURGE_GEN3_SOURCE || 'generations/gen3-experimental-3d/backend/web_dashboard/static/gen3-sim.js', 'utf8');
+const gen21 = readAsset(process.env.SURGE_GEN21_SOURCE || 'generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js', 'utf8');
+const gen3 = readAsset(process.env.SURGE_GEN3_SOURCE || 'generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-sim.js', 'utf8');
 function element(value = '') { return {value, checked:false, style:{display:'none'}, events:{}, addEventListener(type,fn){this.events[type]=fn;}}; }
 (async () => {
   const ids = ['param-fric','param-amp','param-freq','param-phase','param-force','param-speed','param-lowpower','btn-apply-physics','btn-reset-physics','physics-applied-pill'];

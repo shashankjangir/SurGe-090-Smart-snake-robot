@@ -1,64 +1,52 @@
-# Start the project
+# Run the dashboard
 
-I start with simulation so I can check the software before connecting the robot. Run these commands from the repository root.
+Run the following commands from the repository root. The maintained app serves both Gen 2.1 and Gen 3.
 
-## Install the software
+## Install dependencies
 
-Our development environment is called surge and uses Python 3.11. With Conda installed:
+The development environment uses Python 3.11 and Conda.
 
-```powershell
+~~~powershell
 conda create -n surge python=3.11
 conda run -n surge python -m pip install -r generations/gen3-experimental-3d/backend/web_dashboard/requirements.txt
-```
+~~~
 
-Skip the create command if the environment already exists. The requirements install Flask, PySerial, psutil and PyBullet. PlatformIO is needed for firmware work, and the SolidWorks setup is needed only for regenerating native CAD exports.
+If the environment already exists, run only the installation command. The requirements install Flask, PySerial, psutil and PyBullet.
 
 ## Set up operator access
 
-The dashboard opens as a Viewer. Starting motion needs operator login. Supported names are Shashank, Bhavesh and Mahima.
+Create `generations/gen3-experimental-3d/operators.json` locally with your own password if the file is absent.
 
-For a fresh checkout, create generations/gen3-experimental-3d/operators.json locally with the following structure and your own private password:
-
-```json
+~~~json
 {
   "operators": ["Shashank", "Bhavesh", "Mahima"],
   "password": "replace-with-a-private-password"
 }
-```
+~~~
 
-Do not overwrite an existing local file. Git ignores it. SURGE_OPERATOR_PASSWORD is also supported when no file password is supplied. Missing credentials disable operator login; there is no default password to copy from an old chat.
+The file is ignored by Git. Preserve existing credentials on your own machine. For a shared export, create fresh credentials on the destination. `SURGE_OPERATOR_PASSWORD` is supported when the file does not supply a password. The app opens as a Viewer until an operator logs in.
 
-## Open the dashboard
+## Start the app
 
-```powershell
+~~~powershell
 conda run --no-capture-output -n surge python generations/gen3-experimental-3d/backend/web_dashboard/web_app.py
-```
+~~~
 
-Open [the planar page](http://127.0.0.1:5000/) or [the Gen 3 page](http://127.0.0.1:5000/gen3). Starting the server does not connect serial hardware or move motors. If port 5000 is busy, add --port 5001 and open that port.
+Open [Gen 3](http://127.0.0.1:5000/gen3) or [Gen 2.1](http://127.0.0.1:5000/). Add `--port 5002` to use another port. Server startup leaves serial hardware disconnected.
 
-I keep the dashboard on a trusted local computer. Operator login is not a reason to expose this development server publicly.
+For a first simulation, log in, open Gen 3 **Simulation**, connect PyBullet, and run a short finite gait. Watch joint feedback and the head trail, then press Stop. Read the [simulation guide](gen3/GEN3_SIMULATION.md) for the model's assumptions.
 
-## Run a first simulation
+A mathematical preview is also available.
 
-1. Log in from the header.
-2. Open Gen 3 and select Simulation.
-3. Review the gait and simulation limits, then connect PyBullet.
-4. Start a short run. Watch the body, joint telemetry and head trail.
-5. Stop before editing the route or switching workspaces.
-
-The [simulation guide](gen3/GEN3_SIMULATION.md) explains what is measured inside the model. Gen 2.1 has a separate planar Simulation workspace.
-
-## Preview the mathematics
-
-```powershell
+~~~powershell
 conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --help
 conda run -n surge python generations/gen3-experimental-3d/test_3d_snake.py --yaw 0 --pitch 5 --frequency 0.1 --ramp 8 --duration 20
-```
+~~~
 
-Without --hardware, this CLI prints a mathematical dry run. That is different from PyBullet motion and from a physical measurement.
+Without `--hardware`, this CLI prints calculated targets.
 
-## Before physical operation
+The [refined edition](../generations/gen3-dashboard-refined/README.md) defaults to port 5001 and has independent state. The [Pi package](../generations/rasp_pi/README.md) is the older 10-joint distribution. Keep code and maps together when copying either edition.
 
-Read [hardware](hardware/README.md), [the handoff](GEN3_HANDOFF.md) and [the operating guide](operations/1_APP_USAGE_MANUAL.md). Identify the USB boards and close other serial monitors.
+For physical operation, read [hardware](hardware/README.md), [the handoff](GEN3_HANDOFF.md) and [the operating guide](operations/1_APP_USAGE_MANUAL.md). The last confirmed setup used COM6 for the receiver and COM8 for the transmitter on 3 November 2026. Identify the boards again when the USB setup changes. Use one server for physical control at a time.
 
-Use [the folder guide](REPOSITORY_LAYOUT.md) for checks. Browser checks can need extra dependencies. The older desktop instructions referred to a removed shared/desktop-app folder; the maintained web dashboard is the supported entry point described here.
+Verification commands and runtime export files are listed in [the repository guide](REPOSITORY_LAYOUT.md).

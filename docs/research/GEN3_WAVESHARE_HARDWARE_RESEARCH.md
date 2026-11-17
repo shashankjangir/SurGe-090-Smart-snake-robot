@@ -1,5 +1,9 @@
 # Gen 3 segment redesign: hardware research and Opus 5.5 prompt
 
+The usable generator is [segments_v1](../../gen3-experimental-3d/cad/segments_v1/README.md) at the repository root. It remains a ten-joint prototype. Its servo and controller STEP inputs are now in generations/gen3-experimental-3d/cad/. The earlier scratch download paths and proposed checks/ tree below are historical. The check scripts are absent. The current robot has twelve joints, travel bounds 796–3300, and saved speed 2144 / tracking error 492 / timeout 0.5 s.
+
+This page preserves a dated research, planning, or verification record. Its trial values and results describe that session. Use the [current handoff](../GEN3_HANDOFF.md) and [setup guide](../START_HERE.md) for the maintained application.
+
 Researched 2 November 2026 against Waveshare primary sources. Restructured the same day for generating the parts with code-based CAD. This brief feeds the design; it does not certify the installed components and it is not a release-ready CAD drawing. The owner has identified the motor as **ST3215**; the voltage variant, controller SKU, printer and material are not confirmed. Existing local v6 CAD is not evidence that its dimensions or assembly transforms are correct.
 
 ## How to use this file
@@ -122,13 +126,9 @@ Installed 2 November 2026 on Python 3.14 (Windows) in a virtual environment at `
 | python-fcl | 0.7.0.11 |
 | numpy / scipy | 2.5.4 / 1.18.1 |
 
-Run every script with that interpreter, from the repository root so the repo-relative paths in section 2 resolve:
+The installation path above records the original workstation. For current export instructions and portable input paths, use the [generator README](../../gen3-experimental-3d/cad/segments_v1/README.md). The earlier checks/solids.py entry point is unavailable in this checkout.
 
-```bash
-C:/Users/gannu/.venv-cad/Scripts/python.exe generations/gen3-experimental-3d/cad/segments_v1/checks/solids.py
-```
-
-Do not create a second environment. If the environment is missing, recreate it with the same command and record the new versions here:
+The original environment was created with the following command. A new owner should choose their own environment path and record the installed versions:
 
 ```bash
 python -m venv C:/Users/gannu/.venv-cad && C:/Users/gannu/.venv-cad/Scripts/pip install build123d trimesh manifold3d python-fcl

@@ -1,27 +1,18 @@
-# Dashboard assets
+# Dashboard files
 
-Edit these files directly; no build step or new dependency is required.
+Flask serves Jinja templates, JavaScript, and CSS directly.
 
-| File | Contents |
+| If you need to change… | Start here |
 | --- | --- |
-| `generation-transition.js` | Early generation-navigation bootstrap; deliberately not deferred |
-| `common.js` | Shared UI components, operator session, browser controller input, motion labels and battery rendering |
-| `gen21.js` | Mathematical paths and the Gen 2.1 dashboard |
-| `gen3.js` | Gen 3 commissioning, controls, telemetry and console search |
-| `gen3-sim.js` | Gen 3 simulation viewer and route editor |
-| `vendor/three-r128.min.js`, `vendor/OrbitControls-r128.js` | Bundled third-party 3D libraries |
-| `fonts/fonts.css` | Local fonts; keep here so relative font URLs resolve |
-| `style.css` | Base dashboard styles |
-| `gen3.css` | Gen 3 layout and controls |
-| `components.css` | Shared component styles and operator-console overrides |
+| A screen | [`templates/pages/`](../templates/pages/) contains Gen 2.1, Gen 3, the phone controller, and the 3D viewer. `static/pages/` holds their scripts. |
+| A shared piece | [`templates/components/`](../templates/components/) contains shared markup. `static/components/` holds shared behavior such as the battery indicator, gamepad controls, and announcement ticker. |
+| What the browser loads or saves | `static/data/` holds requests for Gen 3 records and operator sessions, and reads and writes browser preferences. |
+| How the server saves a record | [`surge_control/data/`](../../surge_control/data/) holds the file operations for calibration, gait presets, taught poses, and the run journal. `Gen3Control` checks calibration and control rules and holds the lock during a save. |
 
-JavaScript bundles keep `asset` / `endasset` section comments so component tests
-can exercise each section independently. Keep those pairs when editing. The same
-comments identify component styles in `components.css`. Tests read the sections
-through `tests/asset-source.cjs`; whole-bundle parsing and template dependency
-order are checked by `tests/test_asset_bundles.cjs`.
+Keep one job per file. Search for the screen, component, or endpoint before adding code. For example, change how a gait preset is shown in [`pages/gen3-gait-presets.js`](pages/gen3-gait-presets.js). Change its request in [`data/gen3-records.js`](data/gen3-records.js) or its server storage in [`gait_presets.py`](../../surge_control/data/gait_presets.py).
 
-Both dashboards load the navigation bootstrap early, then deferred shared and
-generation-specific JavaScript. Gen 3 loads Three.js before its simulation
-controller. Shared component CSS follows base and Gen 3 CSS; operator-console
-overrides remain last. The standalone 3D viewer keeps its two vendor scripts.
+`tokens.css` loads before the base and page styles. `components.css` contains shared component styles and the dashboard overrides. Keep fonts and their stylesheet together so relative URLs resolve.
+
+The two dashboards load `components/generation-transition.js` early. Shared scripts are listed in [`dashboard-scripts.html`](../templates/components/dashboard-scripts.html). Keep the deferred scripts in dependency order, with Three.js before the Gen 3 simulation and both vendor scripts before the standalone viewer. [`test_asset_bundles.cjs`](../../../tests/test_asset_bundles.cjs) checks these paths and script order.
+
+The main generation retains its effect implementations, including the shader's public palette and variation methods. Compact heroes skip their poster canvases. GridBeam pauses while its panel or tab is hidden, outside the viewport, or under reduced motion. The unused customization popover and its storage keys were removed.

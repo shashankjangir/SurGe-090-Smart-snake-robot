@@ -4,11 +4,13 @@ const assert = require('assert');
 
 console.log('Testing Operator Factor Confirmation & Warnings...');
 
-const htmlPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html');
-const jsPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3.js');
+const htmlPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html');
+const jsPath = path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-gait-settings.js');
 
 const html = readAsset(htmlPath, 'utf8');
 const js = readAsset(jsPath, 'utf8');
+const calibrationJs = readAsset(path.join(path.dirname(jsPath), 'gen3-calibration.js'));
+const motionJs = readAsset(path.join(path.dirname(jsPath), 'gen3-motion.js'));
 
 // 1. Verify confirmation modal elements in gen3.html
 const requiredIds = [
@@ -42,8 +44,8 @@ console.log('  PASS: confirmParameterChanges with operator guard verified');
 
 // 4. Verify live apply, map-form, and gait-form integrate confirmParameterChanges
 assert(js.includes('confirmParameterChanges(changes, \'Confirm Live Parameter Update\')'), 'Live apply confirmation missing');
-assert(js.includes('confirmParameterChanges(changes, \'Confirm Calibration Map Update\')'), 'Calibration map confirmation missing');
-assert(js.includes('confirmParameterChanges(changes, \'Confirm Motion Trial Parameters\')'), 'Motion trial confirmation missing');
+assert(calibrationJs.includes('confirmParameterChanges(changes, \'Confirm Calibration Map Update\')'), 'Calibration map confirmation missing');
+assert(motionJs.includes('confirmParameterChanges(changes, \'Confirm Motion Trial Parameters\')'), 'Motion trial confirmation missing');
 console.log('  PASS: Live Apply, Calibration Map, and Motion Trial confirmation integrations verified');
 
 console.log('\nAll Factor Confirmation & Warnings checks passed successfully!');

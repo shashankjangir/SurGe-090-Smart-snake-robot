@@ -1,15 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-// Component tests exercise the original sections; browser checks exercise whole bundles.
+// Some stylesheet tests read named sections of components.css.
 const directory = path.resolve(__dirname, '../backend/web_dashboard/static');
 const sections = new Map();
-for (const name of ['common.js', 'gen21.js', 'gen3.js', 'components.css']) {
-  const source = fs.readFileSync(path.join(directory, name), 'utf8');
-  for (const match of source.matchAll(/\/\* asset: ([\w.-]+) \*\/\r?\n([\s\S]*?)\/\* endasset: \1 \*\//g)) {
-    if (sections.has(match[1])) throw new Error(`Duplicate asset section: ${match[1]}`);
-    sections.set(match[1], match[2]);
-  }
+const styles = fs.readFileSync(path.join(directory, 'components.css'), 'utf8');
+for (const match of styles.matchAll(/\/\* asset: ([\w.-]+) \*\/\r?\n([\s\S]*?)\/\* endasset: \1 \*\//g)) {
+  if (sections.has(match[1])) throw new Error(`Duplicate asset section: ${match[1]}`);
+  sections.set(match[1], match[2]);
 }
 
 function readAsset(filename, encoding = 'utf8') {

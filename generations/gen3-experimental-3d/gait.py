@@ -4,7 +4,11 @@ import math
 from pathlib import Path
 
 COUNTS_PER_RADIAN = 4096 / (2 * math.pi)
+GAIT_ANGLE_LIMIT_DEG = 90
 MAP_PATH = Path(__file__).with_name("joint_map.json")
+# 12-motor upgrade (Nov 2026): IDs 11 (pitch) and 12 (yaw) added at the tail.
+NUM_JOINTS = 12
+JOINT_IDS = range(1, NUM_JOINTS + 1)
 
 
 def number(value, name, low, high):
@@ -26,21 +30,21 @@ def validate_map(config, require_calibrated=False):
     if require_calibrated and not config["calibrated"]:
         raise ValueError("Measure joint axes, signs, zeros, limits and tracking envelope; then set calibrated to true")
     joints = config.get("joints")
-    if not isinstance(joints, list) or len(joints) != 10:
-        raise ValueError("Exactly ten joints in physical head-to-tail order are required")
+    if not isinstance(joints, list) or len(joints) != NUM_JOINTS:
+        raise ValueError(f"Exactly {NUM_JOINTS} joints in physical head-to-tail order are required")
     ids = []
     for j in joints:
-        if not isinstance(j, dict) or type(j.get("id")) is not int or j["id"] not in range(1, 11):
-            raise ValueError("Joint IDs must be integers 1..10")
+        if not isinstance(j, dict) or type(j.get("id")) is not int or j["id"] not in JOINT_IDS:
+            raise ValueError(f"Joint IDs must be integers 1..{NUM_JOINTS}")
         ids.append(j["id"])
         if j.get("axis") not in ("yaw", "pitch") or type(j.get("sign")) is not int or j["sign"] not in (-1, 1):
             raise ValueError("Each joint needs yaw/pitch axis and sign +1/-1")
         for field in ("zero", "min", "max"):
             if type(j.get(field)) is not int:
                 raise ValueError(f"Joint {j['id']} {field} must be integer counts")
-        if not 1252 <= j["min"] < j["zero"] < j["max"] <= 2844:
-            raise ValueError(f"Joint {j['id']} requires 1252 <= min < zero < max <= 2844")
-    if set(ids) != set(range(1, 11)):
+        if not 796 <= j["min"] < j["zero"] < j["max"] <= 3300:
+            raise ValueError(f"Joint {j['id']} requires 796 <= min < zero < max <= 3300")
+    if set(ids) != set(JOINT_IDS):
         raise ValueError("Duplicate or missing joint IDs")
     if any(a["axis"] == b["axis"] for a, b in zip(joints, joints[1:])):
         raise ValueError("Physical joint axes must alternate")
@@ -57,14 +61,14 @@ def validate_overrides(raw):
         raw = {}
     if not isinstance(raw, dict):
         raise ValueError("Joint overrides must be an object keyed by joint ID")
-    result = {sid: dict(enabled=True, gain=1.0, phase=0.0, bias=0.0) for sid in range(1, 11)}
+    result = {sid: dict(enabled=True, gain=1.0, phase=0.0, bias=0.0) for sid in JOINT_IDS}
     for key, row in raw.items():
         try:
             sid = int(key)
         except (TypeError, ValueError):
-            raise ValueError("Joint override keys must be IDs 1..10")
+            raise ValueError(f"Joint override keys must be IDs 1..{NUM_JOINTS}")
         if sid not in result or str(sid) != str(key) or not isinstance(row, dict):
-            raise ValueError("Joint override keys must be IDs 1..10 with object values")
+            raise ValueError(f"Joint override keys must be IDs 1..{NUM_JOINTS} with object values")
         if set(row) - {"enabled", "gain", "phase", "bias"}:
             raise ValueError(f"Unknown setting in joint {sid} override")
         enabled = row.get("enabled", True)
@@ -74,7 +78,7 @@ def validate_overrides(raw):
             enabled=enabled,
             gain=number(row.get("gain", 1), f"joint {sid} gain", 0, 2),
             phase=math.radians(number(row.get("phase", 0), f"joint {sid} phase", -180, 180)),
-            bias=math.radians(number(row.get("bias", 0), f"joint {sid} bias", -70, 70)))
+            bias=math.radians(number(row.get("bias", 0), f"joint {sid} bias", -110, 110)))
     return result
 
 
@@ -88,7 +92,7 @@ def joint_wave(override, center, amplitude):
 
 
 def validate_pose(config, degrees):
-    """Manual pose {id: degrees} -> calibrated target counts for all ten joints (missing = zero)."""
+    """Manual pose {id: degrees} -> calibrated target counts for every joint (missing = zero)."""
     if not isinstance(degrees, dict) or not degrees:
         raise ValueError("Pose must be an object of joint ID to degrees")
     targets = {j["id"]: j["zero"] for j in config["joints"]}
@@ -97,11 +101,11 @@ def validate_pose(config, degrees):
         try:
             sid = int(key)
         except (TypeError, ValueError):
-            raise ValueError("Pose keys must be IDs 1..10")
+            raise ValueError(f"Pose keys must be IDs 1..{NUM_JOINTS}")
         if sid not in joints or str(sid) != str(key):
-            raise ValueError("Pose keys must be IDs 1..10")
+            raise ValueError(f"Pose keys must be IDs 1..{NUM_JOINTS}")
         j = joints[sid]
-        angle = math.radians(number(value, f"joint {sid} angle", -90, 90))
+        angle = math.radians(number(value, f"joint {sid} angle", -120, 120))
         target = round(j["zero"] + j["sign"] * angle * COUNTS_PER_RADIAN)
         if not j["min"] <= target <= j["max"]:
             raise ValueError(f"Joint {sid} angle {value}° is outside its calibrated limits")
@@ -112,9 +116,10 @@ def validate_pose(config, degrees):
 def validate_gait(config, yaw, pitch, bias, frequency, lag, offset, duration, ramp, speed=None, overrides=None):
     validate_map(config)
     effective_speed = config["speed"] if speed is None else number(speed, "speed", 1, 3000)
+    angle_limit = math.radians(GAIT_ANGLE_LIMIT_DEG)
     for name, value in (("yaw", yaw), ("pitch", pitch)):
-        number(value, name, 0, math.pi / 2)
-    number(bias, "bias", -math.pi / 2, math.pi / 2)
+        number(value, name, 0, angle_limit)
+    number(bias, "bias", -angle_limit, angle_limit)
     number(frequency, "frequency", -.6, .6)
     number(lag, "lag", -2 * math.pi, 2 * math.pi)
     number(offset, "offset", -2 * math.pi, 2 * math.pi)

@@ -1,6 +1,6 @@
 const {requireAsset} = require('./asset-source.cjs');
 const assert = require('node:assert/strict');
-const { updateRollingNumber } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/rolling-number.js'));
+const { updateRollingNumber } = requireAsset(require('node:path').resolve(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/components/rolling-number.js'));
 
 function mockElement(tag = 'div') {
   const set = new Set();

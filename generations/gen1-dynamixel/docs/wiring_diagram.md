@@ -1,5 +1,7 @@
 # SURGE-SNAKE Wiring & Circuit Diagram
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../docs/START_HERE.md) and [hardware guide](../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 This document contains the exact wiring instructions and a visual flowchart showing how power and data travel through your robot.
 
 ## 1. Visual Flowchart

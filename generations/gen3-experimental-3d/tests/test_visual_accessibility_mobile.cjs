@@ -9,12 +9,10 @@ const {readAsset} = require('./asset-source.cjs');
 const assert = require('assert');
 const path = require('path');
 
-const indexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/index.html'), 'utf8');
-const gen3Html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/gen3.html'), 'utf8');
+const indexHtml = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/index.html'), 'utf8');
+const gen3Html = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/templates/pages/gen3.html'), 'utf8');
 const styleCss = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/style.css'), 'utf8');
 const gen3Css = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3.css'), 'utf8');
-const scriptJs = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/script.js'), 'utf8');
-const gen3Js = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3.js'), 'utf8');
 
 // --- Helper: sRGB luminance and contrast ratio ---
 function srgbLuminance(hex) {
@@ -73,13 +71,13 @@ assert(styleCss.includes('.marquee-banner:focus-within .marquee-track'), 'style.
 assert(styleCss.includes('.marquee-banner.is-paused .marquee-track'), 'style.css must support .is-paused state');
 assert(styleCss.includes('@media (prefers-reduced-motion: reduce)') && styleCss.includes('animation: none;'), 'style.css must stop animation under prefers-reduced-motion');
 
-[scriptJs, gen3Js].forEach((js, i) => {
-  const name = i === 0 ? 'script.js' : 'gen3.js';
-  assert(js.includes('sessionStorage.getItem(\'marquee-paused\')'), `${name} must read session memory`);
-  assert(js.includes('sessionStorage.setItem(\'marquee-paused\''), `${name} must save session memory`);
-  // The ticker starts paused while operating; style.css also stops it under reduced motion.
-  assert(js.includes("sessionPref !== null ? sessionPref === 'true' : true"), `${name} must start the ticker paused`);
-});
+const ticker = readAsset(path.join(__dirname, '../backend/web_dashboard/static/components/announcement-ticker.js'));
+const preferences = readAsset(path.join(__dirname, '../backend/web_dashboard/static/data/browser-preferences.js'));
+assert(ticker.includes('BrowserPreferences.readTickerPause()'));
+assert(ticker.includes('BrowserPreferences.saveTickerPause(isPaused)'));
+assert(ticker.includes("sessionPref !== null ? sessionPref === 'true' : true"));
+assert(preferences.includes("sessionStorage.getItem('marquee-paused')"));
+assert(preferences.includes("sessionStorage.setItem('marquee-paused'"));
 console.log('  PASS: Marquee toggle, aria-pressed, hover/focus-within pause, and session persistence verified');
 
 // 3. Finding 12: Hero stickers mobile repositioning / hiding

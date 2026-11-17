@@ -158,6 +158,6 @@ Simulation workspace route is used. Manual steering does not start a second
 automatic route follower. Hardware live tuning cannot modify a simulation job.
 
 Offline verification and desktop/mobile evidence:
-[workspace separation](../gen3/workspace-separation/README.md). No physical trial
+[workspace separation](../../../../gen3/workspace-separation/README.md). No physical trial
 was performed for this change. Keep the measured joint map unchanged: speed
 1500, tracking error 216 counts, timeout 0.5 seconds and confirmed joint signs.

@@ -1,5 +1,7 @@
 # Snake Robot Starter Kit Manual (Dynamixel Edition)
 
+This is a historical Gen 1 Dynamixel record. Use the [current setup guide](../../../../docs/START_HERE.md) and [hardware guide](../../../../docs/hardware/README.md) for the maintained ST3215 robot.
+
 Welcome to the Starter Kit for the self-adaptive snake robot project! This manual focuses on testing individual motor movement, reading current (load) feedback, and testing the `dynamixel_sdk` using Python.
 
 By the end of this guide, you will have your first Dynamixel XL330 motor spinning and reporting its load back to your computer.

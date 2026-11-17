@@ -12,7 +12,7 @@ const vm = require('vm');
 console.log('Testing Finding 20: Stop doing unnecessary work...');
 
 // 1. Gen 2.1 Exponential Backoff Check
-const scriptSource = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/script.js'), 'utf8');
+const scriptSource = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen21.js'), 'utf8');
 
 assert(!scriptSource.includes('setInterval(updateStatus, 100)'), 'script.js must NOT use static setInterval(updateStatus, 100)');
 assert(scriptSource.includes('scheduleStatusPoll'), 'script.js must define scheduleStatusPoll');
@@ -42,7 +42,7 @@ assert.equal(backoffSchedule[Math.min(failures, backoffSchedule.length - 1)], 10
 console.log('  PASS: Gen 2.1 exponential backoff schedule (100 -> 250 -> 500 -> 1000 -> 2000 ms) and instant recovery verified');
 
 // 2. Gen 3 Simulation Visibility Guard
-const gen3SimSource = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/gen3-sim.js'), 'utf8');
+const gen3SimSource = readAsset(path.join(__dirname, '../../gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-sim.js'), 'utf8');
 
 assert(gen3SimSource.includes('function isSimulationVisible()'), 'gen3-sim.js must define isSimulationVisible()');
 assert(gen3SimSource.includes('if (document.hidden) return false;'), 'isSimulationVisible must check document.hidden');

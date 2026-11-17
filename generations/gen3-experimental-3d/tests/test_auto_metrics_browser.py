@@ -68,11 +68,11 @@ def main():
         position = 2048
         def connect(self): return True, 'Torque off'
         def read_telemetry(self):
-            return {i: dict(valid=True, position=self.position) for i in range(1, 11)}
+            return {i: dict(valid=True, position=self.position) for i in range(1, 13)}
         def read_diagnostics(self):
             self.reads += 1
             return {i: dict(valid=True, reg8=1, torque=0, voltage=self.voltage, temperature=30, status=0)
-                    for i in range(1, 11)}
+                    for i in range(1, 13)}
         def disconnect(self): pass
     spec = importlib.util.spec_from_file_location('metrics_web', ROOT / 'backend/web_dashboard/web_app.py')
     module = importlib.util.module_from_spec(spec)
@@ -84,7 +84,7 @@ def main():
             app = module.create_app()
         hardware = Hardware()
         map_path = Path(temporary) / 'joint_map.json'
-        map_path.write_bytes((ROOT / 'joint_map.json').read_bytes())
+        map_path.write_text(json.dumps(dict(json.loads((ROOT / 'joint_map.json').read_text()), calibrated=True)))
         app.config['GEN3'].map_path = map_path
         app.config['GEN3'].hardware_factory = lambda **kw: hardware
         logging.getLogger('werkzeug').setLevel(logging.ERROR)

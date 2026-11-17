@@ -3,6 +3,7 @@
 Run with the installed CAD Python; pass the STEP exported from the supplied SLDASM,
 optionally followed by that SLDASM's path (default: the current V2 assembly).
 Runtime uses only the generated JSON/OBJ assets, with no CAD dependency.
+The source assembly still has 10 motors: run tools/extend_assembly_12.py afterwards for the 12-motor robot.
 """
 import hashlib
 import itertools

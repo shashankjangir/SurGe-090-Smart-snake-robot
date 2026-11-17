@@ -16,8 +16,7 @@ OUT = ROOT / '.scratch/hero-fluid'
 
 
 def hero_source(name):
-    source = (WEB / 'static/common.js').read_text(encoding='utf-8')
-    return source.split(f'/* asset: {name} */\n', 1)[1].split(f'/* endasset: {name} */', 1)[0]
+    return (WEB / 'static/components' / name).read_text(encoding='utf-8')
 
 
 def main():
@@ -40,7 +39,7 @@ def main():
                     return
             if url in ('http://surge-preview.local/', 'http://surge-preview.local/gen3'):
                 name = 'gen3.html' if url.endswith('/gen3') else 'index.html'
-                html = re.sub(r'<script\b[^>]*>[\s\S]*?</script>', '', env.get_template(name).render())
+                html = re.sub(r'<script\b[^>]*>[\s\S]*?</script>', '', env.get_template('pages/' + name).render())
                 request.fulfill(body=html, content_type='text/html')
                 return
             request.abort()

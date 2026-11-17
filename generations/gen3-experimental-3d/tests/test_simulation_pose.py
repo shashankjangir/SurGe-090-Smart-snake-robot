@@ -16,7 +16,7 @@ class SimulationPoseTest(unittest.TestCase):
             before = sim.link_positions()
             sim.p.resetBasePositionAndOrientation(sim.body, [before[0][0] + 0.3, 0, 0.2], [0, 0, 0, 1])
             after = sim.link_positions()
-            self.assertEqual(len(after), 11)
+            self.assertEqual(len(after), 13)
             self.assertGreater(after[0][0] - before[0][0], 0.29)
             self.assertGreater(after[-1][0] - before[-1][0], 0.29)
         finally:

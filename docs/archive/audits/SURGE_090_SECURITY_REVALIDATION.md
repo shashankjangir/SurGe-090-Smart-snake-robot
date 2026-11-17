@@ -1,16 +1,16 @@
 # SURGE 090 — Security Revalidation & Hardening Audit Report
 
-**Date:** 2026-10-30  
-**Auditor Roles:** Senior Embedded Security Engineer, Robotics Safety Engineer, Python Backend Specialist, Independent Auditor  
-**System Targets:** SURGE 090 Gen 2 / Gen 2.1 ST3215 & Gen 3 Experimental-3D Snake Robot  
-**Assurance Standard:** FIPS 180-4, RFC 2104 (HMAC-SHA256), IEC 61508 / ISO 13849 Fail-Safe Architecture  
-**Evaluation Mode:** Offline mocks, protocol-level fuzzing, negative authorization test clients, static compilation verification  
+**Date:** 2026-10-30\
+**Auditor Roles:** Senior Embedded Security Engineer, Robotics Safety Engineer, Python Backend Specialist, Independent Auditor\
+**System Targets:** SURGE 090 Gen 2 / Gen 2.1 ST3215 & Gen 3 Experimental-3D Snake Robot\
+**Assurance Standard:** FIPS 180-4, RFC 2104 (HMAC-SHA256), IEC 61508 / ISO 13849 Fail-Safe Architecture\
+**Evaluation Mode:** Offline mocks, protocol-level fuzzing, negative authorization test clients, static compilation verification\
 
 ---
 
 ## Executive Summary
 
-An independent cryptographic and system-level security audit was conducted on the remediations previously claimed for CodeRabbit findings `CR-01` through `CR-10`. 
+An independent cryptographic and system-level security audit was conducted on the remediations previously claimed for CodeRabbit findings `CR-01` through `CR-10`.
 
 ### Key Findings of the Revalidation Audit:
 1. **Cryptographic Weakness Eliminated (CR-01, CR-10):** The previous remediation utilized keyed 64-bit FNV-1a non-cryptographic hashing. While passing basic regression checks, FNV-1a is cryptographically insecure and vulnerable to length extension, multicollision, and differential forgery attacks. This has been replaced with standard **RFC 2104 HMAC-SHA256** with 128-bit truncated tags, strict monotonic sequence freshness tracking, and epoch isolation across reboots.
@@ -29,10 +29,10 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Keyed 64-bit FNV-1a hash over `(magic, version, opcode, seq, epoch)`.
 - **Sufficiency Analysis:** **Insufficient.** FNV-1a is an internal lookup hash function, not a Message Authentication Code. It exhibits linearity and trivial preimage generation under chosen-plaintext conditions.
 - **Remediation & Code Changes:**
-  - Implemented portable, self-contained FIPS 180-4 SHA-256 and RFC 2104 HMAC-SHA256 in [`gen2-st3215/firmware/common/surge_auth.h`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_auth.h).
-  - Defined binary [`AuthRobotCommand`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_auth.h) (28 bytes) with 128-bit truncated HMAC-SHA256 tag.
+  - Implemented portable, self-contained FIPS 180-4 SHA-256 and RFC 2104 HMAC-SHA256 in [`gen2-st3215/firmware/common/surge_auth.h`](../../../generations/gen2-st3215/firmware/common/surge_auth.h).
+  - Defined binary [`AuthRobotCommand`](../../../generations/gen2-st3215/firmware/common/surge_auth.h) (28 bytes) with 128-bit truncated HMAC-SHA256 tag.
   - Implemented ASCII text command signing and constant-time verification: `AUTH,<seq>,<tag_hex_16>,<cmd>` for Gen 2.1 receiver and transmitter.
-  - Excluded sensitive key provisioning file [`gen2-st3215/firmware/common/surge_credentials.h`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_credentials.h) from Git via [`.gitignore`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/.gitignore), providing [`surge_credentials.h.example`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_credentials.h.example).
+  - Excluded sensitive key provisioning file `gen2-st3215/firmware/common/surge_credentials.h` (local configuration, `surge_credentials.h`) from Git via [`.gitignore`](../../../.gitignore), providing [`surge_credentials.h.example`](../../../generations/gen2-st3215/firmware/common/surge_credentials.h.example).
 - **Tests Performed:** Bit-flip tamper testing across opcode, sequence, and HMAC bytes; key mismatch negative tests; gitignore inspection.
 - **Final Status:** **Verified Fixed**
 
@@ -43,7 +43,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** MAC allowlist checks in `OnDataRecv` and disarmed checks for `I,`.
 - **Sufficiency Analysis:** **Insufficient.** 802.11 MAC addresses are transmitted in plaintext and easily spoofed by software-defined radios or standard ESP32 boards (`esp_wifi_set_mac`).
 - **Remediation & Code Changes:**
-  - In [`gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp), radio commands require valid HMAC-SHA256 signature and advancing sequence number.
+  - In [`gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp`](../../../generations/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp), radio commands require valid HMAC-SHA256 signature and advancing sequence number.
   - Gated EEPROM servo ID assignment behind `MAINT,UNLOCK,CONFIRM` with a 15-second expiration (`MAINTENANCE_TIMEOUT_MS = 15000`) and automatic single-use relocking.
   - Preserved immediate unauthenticated execution for emergency `STOP` commands.
 - **Tests Performed:** Offline command gate simulation, 15-second expiration timeout test, single-use auto-relock test, spoofed MAC rejection.
@@ -56,7 +56,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Added state check in `/api/connect`.
 - **Sufficiency Analysis:** **Partially Sufficient.** Needed strict validation that both disconnects and transitions from disconnected to connected require active Operator session under `control.lock`.
 - **Remediation & Code Changes:**
-  - Enforced `require_operator_for_control()` on all non-read-only `/api/connect` transitions in [`gen3-experimental-3d/backend/web_dashboard/web_app.py`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen3-experimental-3d/backend/web_dashboard/web_app.py).
+  - Enforced `require_operator_for_control()` on all non-read-only `/api/connect` transitions in [`gen3-experimental-3d/backend/web_dashboard/web_app.py`](../../../generations/gen3-experimental-3d/backend/web_dashboard/web_app.py).
   - Guarded transition under `with control.lock:`.
 - **Tests Performed:** Unauthenticated client POST to `/api/connect` while hardware active (returned 403); viewer attempt to initialize hardware (returned 403).
 - **Final Status:** **Verified Fixed**
@@ -68,7 +68,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Character scanning rejecting `\r`, `\n`, `\0`, and non-printable ASCII.
 - **Sufficiency Analysis:** **Sufficient & Verified.**
 - **Remediation & Code Changes:**
-  - Verified ASCII validation loops in [`gen2-st3215/firmware/transmitter_gen2_1/transmitter_gen2_1.cpp`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/transmitter_gen2_1/transmitter_gen2_1.cpp).
+  - Verified ASCII validation loops in [`gen2-st3215/firmware/transmitter_gen2_1/transmitter_gen2_1.cpp`](../../../generations/gen2-st3215/firmware/transmitter_gen2_1/transmitter_gen2_1.cpp).
   - Maintained strict schema for non-receiver broadcasts: must strictly match `T:<numeric>`.
   - Added signing to transmitter USB-to-radio forwarding (`surge_sign_text_command`).
 - **Tests Performed:** Tested payload injection with embedded newlines, null bytes, and fake control codes.
@@ -81,7 +81,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Timestamp monotonically increasing check.
 - **Sufficiency Analysis:** **Insufficient.** Timestamps without cryptographic MACs can be fabricated by any transmitter on the same WiFi channel.
 - **Remediation & Code Changes:**
-  - Added [`AuthRobotTelemetry`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_protocol.h) (82 bytes) in [`surge_protocol.h`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/common/surge_protocol.h) containing 128-bit HMAC-SHA256 over timestamp, sequence, and joint telemetry.
+  - Added [`AuthRobotTelemetry`](../../../generations/gen2-st3215/firmware/common/surge_protocol.h) (82 bytes) in [`surge_protocol.h`](../../../generations/gen2-st3215/firmware/common/surge_protocol.h) containing 128-bit HMAC-SHA256 over timestamp, sequence, and joint telemetry.
   - Implemented `surge_sign_auth_telemetry` and `surge_verify_auth_telemetry`.
   - Base station verifies sender MAC, HMAC-SHA256 tag, and sequence monotonicity.
 - **Tests Performed:** Telemetry replay test, tampered feedback payload test, sender MAC verification.
@@ -94,7 +94,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Separated `lastArmTime` and `lastAcceptedPositionTime`.
 - **Sufficiency Analysis:** **Sufficient & Re-verified.**
 - **Remediation & Code Changes:**
-  - Verified in [`receiver_gen2_1.cpp`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp) lines 285-295 and 468-479: repeated `RUN` command returns `OK,RUN,ALREADY_ARMED` without updating `lastArmTime` or `lastAcceptedPositionTime`.
+  - Verified in [`receiver_gen2_1.cpp`](../../../generations/gen2-st3215/firmware/receiver_gen2_1/receiver_gen2_1.cpp) lines 285-295 and 468-479: repeated `RUN` command returns `OK,RUN,ALREADY_ARMED` without updating `lastArmTime` or `lastAcceptedPositionTime`.
   - Watchdog checks `(now - lastAcceptedPositionTime) > 750` when positions have started, or `(now - lastArmTime) > 750` if no position was received after arming.
 - **Tests Performed:** Simulated 500 ms delay + repeated RUN + 300 ms delay -> watchdog correctly fires at 800 ms total elapsed time.
 - **Final Status:** **Verified Fixed**
@@ -106,7 +106,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Removed fallback password from `session.py`.
 - **Sufficiency Analysis:** **Sufficient & Re-verified.**
 - **Remediation & Code Changes:**
-  - Confirmed [`gen3-experimental-3d/backend/surge_control/session.py`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen3-experimental-3d/backend/surge_control/session.py) returns `configured=False` and empty password if config is missing.
+  - Confirmed [`gen3-experimental-3d/backend/surge_control/session.py`](../../../generations/gen3-experimental-3d/backend/surge_control/session.py) returns `configured=False` and empty password if config is missing.
   - Verified that calling `authenticate()` without config returns `(False, None, "Operator configuration not configured or password unset")`.
 - **Tests Performed:** Offline test with temporary non-existent configuration file attempting legacy password `test-only-operator-password`.
 - **Final Status:** **Verified Fixed**
@@ -118,7 +118,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Checked `request.is_secure or X-Forwarded-Proto == 'https'`.
 - **Sufficiency Analysis:** **Insufficient.** Blindly trusting `X-Forwarded-Proto` allows any remote attacker to bypass transport security requirements.
 - **Remediation & Code Changes:**
-  - Added `TRUSTED_PROXIES` configuration (defaulting to loopback `127.0.0.1,::1`) and `is_request_secure()` in [`gen3-experimental-3d/backend/web_dashboard/web_app.py`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen3-experimental-3d/backend/web_dashboard/web_app.py).
+  - Added `TRUSTED_PROXIES` configuration (defaulting to loopback `127.0.0.1,::1`) and `is_request_secure()` in [`gen3-experimental-3d/backend/web_dashboard/web_app.py`](../../../generations/gen3-experimental-3d/backend/web_dashboard/web_app.py).
   - Only requests originating from an IP listed in `TRUSTED_PROXIES` have their `X-Forwarded-Proto` header evaluated.
   - Remote direct HTTP clients attempting login receive 403 Forbidden.
   - Session cookies enforce `HttpOnly`, `SameSite=Lax`, and dynamic `Secure` flags.
@@ -132,7 +132,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Previous Fix:** Added basic cache key and error cap.
 - **Sufficiency Analysis:** **Partially Sufficient.** The cache key `(revision, actual_len, progress)` returned stale results if error count or target path changed without `actual_len` advancing.
 - **Remediation & Code Changes:**
-  - Updated cache key in [`web_app.py`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/gen3-experimental-3d/backend/web_dashboard/web_app.py) to:
+  - Updated cache key in [`web_app.py`](../../../generations/gen3-experimental-3d/backend/web_dashboard/web_app.py) to:
     `cache_key = (revision, actual_len, target_len, progress, error_count)`.
   - Maintained memory cap: `self.report_errors = self.report_errors[-10000:]`.
   - Maintained cache eviction limit (clear cache when size exceeds 20 entries).
@@ -148,7 +148,7 @@ An independent cryptographic and system-level security audit was conducted on th
 - **Remediation & Code Changes:**
   - Replay evaluation rule: `(new_epoch > last_epoch) || (new_epoch == last_epoch && new_seq > last_seq)`.
   - Controller generates new random or monotonic epoch upon reboot/reconnect, allowing sequence number reset to 1 without triggering replay rejection.
-- **Tests Performed:** Epoch incrementation with sequence reset unit tests in [`tests/test_coderabbit_remediation.py`](file:///c:/1.%20SurGe%20090%20Smart%20snake%20robot/tests/test_coderabbit_remediation.py).
+- **Tests Performed:** Epoch incrementation with sequence reset unit tests in [`tests/test_coderabbit_remediation.py`](../../../tests/test_coderabbit_remediation.py).
 - **Final Status:** **Verified Fixed**
 
 ---

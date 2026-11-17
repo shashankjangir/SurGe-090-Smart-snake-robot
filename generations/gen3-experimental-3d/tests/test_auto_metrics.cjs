@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {readAsset} = require('./asset-source.cjs');
-const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/gen3.js');
+const source = readAsset('generations/gen3-experimental-3d/backend/web_dashboard/static/pages/gen3-hardware.js');
 let now = 10000, calls = 0, finish;
 const elements = {port: {value: 'FAKE'}, 'tab-operate': {getAttribute: () => 'true'}, 'bus-refresh-status': {}};
 const context = {$: id => elements[id], Date: {now: () => now}, document: {hidden: false},

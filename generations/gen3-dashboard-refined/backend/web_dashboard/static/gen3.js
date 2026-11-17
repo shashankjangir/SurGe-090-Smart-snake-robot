@@ -1438,9 +1438,16 @@ function updateRunVisibility() {
   $('runs-show-more').hidden = shown >= rows.length;
   $('runs-show-more').textContent = `Show ${Math.min(3, rows.length - shown)} more`;
 }
+const annotationDrafts = new Map();
+let runsLoadVersion = 0;
 async function loadRuns() {
+  const version = ++runsLoadVersion;
   const data = await api('runs', undefined, 'GET');
+  if (version !== runsLoadVersion) return;
   const tbody = $('runs-table-body');
+  const openAnnotations = new Set(Array.from(tbody.children)
+    .filter(row => row.querySelector('.run-annotations').open)
+    .map(row => row.dataset.runId));
   tbody.replaceChildren();
 
   const runsList = data.runs || [];
@@ -1457,8 +1464,9 @@ async function loadRuns() {
 
   (data.runs || []).filter(r => $('runs-workspace-filter').value === 'all' || r.execution === $('runs-workspace-filter').value).forEach(r => {
     const tr = document.createElement('tr');
+    tr.dataset.runId = r.run_id;
     const dateStr = new Date(r.timestamp * 1000).toLocaleString();
-    const ann = r.annotations || {};
+    const ann = annotationDrafts.get(r.run_id) || r.annotations || {};
     tr.innerHTML = `
       <td><code>${r.run_id}</code></td>
       <td>${dateStr}</td>
@@ -1491,16 +1499,26 @@ async function loadRuns() {
       <td><details class="run-draft-actions"><summary>Load draft</summary><button type="button" class="btn-sm btn-repeat-simulation">Load into Simulation</button><button type="button" class="btn-sm btn-repeat">Load into Hardware</button></details></td>
     `;
 
+    tr.querySelector('.run-annotations').open = openAnnotations.has(r.run_id);
+    tr.oninput = () => {
+      annotationDrafts.set(r.run_id, {
+        displacement_cm: tr.querySelector('.ann-disp').value,
+        surface: tr.querySelector('.ann-surf').value,
+        notes: tr.querySelector('.ann-notes').value
+      });
+    };
     tr.querySelector('.btn-save-ann').disabled = !currentIsOperator;
     tr.querySelector('.btn-save-ann').onclick = () => action(async () => {
+      const savedDraft = annotationDrafts.get(r.run_id);
       const disp = tr.querySelector('.ann-disp').value;
       const surf = tr.querySelector('.ann-surf').value;
       const notes = tr.querySelector('.ann-notes').value;
       await api(`runs/${r.run_id}/annotate`, {
         displacement_cm: disp ? Number(disp) : undefined,
-        surface: surf || undefined,
-        notes: notes || undefined
+        surface: surf,
+        notes: notes
       });
+      if (annotationDrafts.get(r.run_id) === savedDraft) annotationDrafts.delete(r.run_id);
       await loadRuns();
     });
 
@@ -1752,7 +1770,7 @@ async function pollSystemStats() {
     await initSession();
     await loadMap();
     await loadPorts();
-    await loadPresets();
+    await loadPresets().catch(error => { $('preset-save-status').textContent = error.message; });
     await loadRuns();
     await loadSavedPosePresets();
     syncHashTab();
